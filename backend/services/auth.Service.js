@@ -86,6 +86,7 @@ const login = async (identifier, password) => {
             "EX",
             60 * 60 * 24 * 7
         ); // Refresh token expires in 7 days
+        logger.info(`User ${identifier} logged in successfully`);
 
         return { accessToken, refreshToken };
     } catch (error) {
