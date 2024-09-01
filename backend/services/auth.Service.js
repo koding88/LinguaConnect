@@ -8,9 +8,20 @@ const {
     refreshTokenVerify,
 } = require("../utils/tokenUtil");
 const { redisClient } = require("../config/redis");
+const {
+    registerValidation,
+    authValidation,
+    refreshTokenValidate,
+} = require("../validations/authValidation");
 
 const register = async (userData) => {
     try {
+        const { error } = registerValidation(userData);
+        if (error) {
+            logger.error(`Registration failed: ${error.message}`);
+            throw new Error(error.message);
+        }
+
         const user = await userModel.findOne({
             $or: [{ email: userData?.email }, { username: userData?.username }],
         });
@@ -37,6 +48,12 @@ const register = async (userData) => {
 
 const login = async (identifier, password) => {
     try {
+        const { error } = authValidation({ identifier, password });
+        if (error) {
+            logger.error(`Login user error: ${error.message}`);
+            throw new Error(error.message);
+        }
+
         const user = await userModel.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });
@@ -79,6 +96,12 @@ const login = async (identifier, password) => {
 
 const refreshToken = async (refreshToken) => {
     try {
+        const { error } = refreshTokenValidate({ refreshToken });
+        if (error) {
+            logger.error(`Refresh token validation error: ${error.message}`);
+            throw new Error(error.message);
+        }
+
         const decoded = refreshTokenVerify(refreshToken);
         const userId = decoded?.userId;
 
@@ -86,7 +109,6 @@ const refreshToken = async (refreshToken) => {
             `refreshToken:${userId}`
         );
 
-        console.log("storedRefreshToken", storedRefreshToken);
         if (!storedRefreshToken || storedRefreshToken !== refreshToken) {
             logger.error(
                 "Invalid refresh token: Token mismatch or not found in Redis"
