@@ -6,8 +6,10 @@ const {
     generateRefreshToken,
     accessTokenVerify,
     refreshTokenVerify,
+    generateConfirmToken,
 } = require("../utils/tokenUtil");
 const { redisClient } = require("../config/redis");
+const { sendVerificationEmail } = require("../providers/emailProvider");
 const {
     registerValidation,
     authValidation,
@@ -37,7 +39,24 @@ const register = async (userData) => {
         });
 
         logger.info(`User ${userData?.email} registered successfully`);
-        return await newUser.save();
+
+        await newUser.save();
+
+        const confirmToken = generateConfirmToken();
+        await redisClient.set(
+            `confirmToken:${confirmToken}`,
+            newUser?._id.toString(),
+            "EX",
+            60 * 60 * 24
+        ); // 24 hours
+
+        // Send confirmation email
+        await sendVerificationEmail({
+            email: userData.email,
+            full_name: userData.full_name,
+            token: confirmToken,
+        });
+        return newUser;
     } catch (error) {
         logger.error(
             `Registration failed for email ${userData?.email}: ${error.message}`
@@ -73,6 +92,21 @@ const login = async (identifier, password) => {
                 `Invalid credentials: Password of ${identifier} mismatch`
             );
             throw new Error("Wrong credentials: Invalid username or password");
+        }
+
+        if (!user.isVerify) {
+            const confirmToken = await redisClient.get(
+                `confirmToken:${user._id}`
+            );
+            if (confirmToken) {
+                await redisClient.expire(
+                    `confirmToken:${user._id}`,
+                    60 * 60 * 24
+                ); // 24 hours
+            }
+
+            logger.error(`Account not verified: User ${identifier}`);
+            throw new Error("Account not verified");
         }
 
         const accessToken = generateAccessToken(user);
@@ -133,8 +167,44 @@ const refreshToken = async (refreshToken) => {
     }
 };
 
+const confirmEmail = async (token) => {
+    try {
+        // Retrieve user ID from Redis using the token
+        const userId = await redisClient.get(`confirmToken:${token}`);
+        if (!userId) {
+            throw new Error("Invalid or expired token");
+        }
+
+        // Find the user by ID
+        const user = await userModel.findById(userId);
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        // Verify the user account
+        user.isVerify = true;
+        await user.save();
+
+        // Remove the token from Redis
+        await redisClient.del(`confirmToken:${token}`);
+
+        // Log successful confirmation
+        logger.info(`User ${user.email} email confirmed successfully`);
+
+        // result
+        const full_name = user.full_name;
+
+        return full_name;
+    } catch (error) {
+        // Log and rethrow the error for further handling
+        logger.error(`Error confirming email: ${error.message}`);
+        throw error;
+    }
+};
+
 module.exports = {
     register,
     login,
     refreshToken,
+    confirmEmail,
 };

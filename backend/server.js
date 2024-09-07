@@ -19,6 +19,10 @@ const server = http.createServer(app);
 // Body parser
 app.use(bodyParser.json());
 
+// Ejs template engine
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+
 // Routes v1
 const authRoute = require("./routes/v1/auth.Route");
 

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Account Verification</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                color: #333;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                width: 90%;
+                max-width: 500px;
+                margin: 40px auto;
+                background: #fff;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e1e1e1;
+            }
+            h1 {
+                font-size: 18px;
+                color: #333;
+                margin-bottom: 20px;
+            }
+            p {
+                font-size: 14px;
+                line-height: 1.6;
+                margin-bottom: 20px;
+                color: #555;
+            }
+            .code-box {
+                font-size: 20px;
+                font-weight: bold;
+                background-color: #000;
+                padding: 16px 200px;
+                border-radius: 8px;
+                color: #fff;
+                text-align: center;
+                display: inline-block;
+                border: 1px solid #ddd;
+            }
+            a {
+                color: #1877f2;
+                text-decoration: none;
+                font-weight: bold;
+            }
+            a:hover {
+                text-decoration: underline;
+                opacity: 0.8;
+            }
+            .footer {
+                font-size: 12px;
+                color: #777;
+                margin-top: 30px;
+                text-align: center;
+            }
+            .meta-logo {
+                font-size: 12px;
+                color: #777;
+                margin-top: 20px;
+                text-align: center;
+                font-weight: bold;
+            }
+            .logo-section {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .header img,
+            .logo-section img {
+                margin-right: 10px;
+            }
+            .logo-section strong {
+                font-size: 14px;
+                color: #333;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <img
+                    src="https://res.cloudinary.com/du4g4aoew/image/upload/v1725378419/images/udthiuhmy3xpb7nyxkkc.png"
+                    width="30"
+                    height="30"
+                    alt="Lingua Connect Logo"
+                />
+                <hr />
+                <h1>Hi <%= full_name %></h1>
+            </div>
+            <p>
+                We received a request to verify your account. Use the following
+                verification link:
+            </p>
+            <a
+                class="code-box"
+                href="<%= BASE_URL %>/api/v1/auth/confirm?token=<%= token %>"
+            >
+                Click here
+            </a>
+
+            <div class="footer">
+                <p>
+                    Didn't request this verification?
+                    <a href="<%= BASE_URL %>/support">Let us know</a>.
+                </p>
+            </div>
+            <div class="meta-logo">from</div>
+
+            <div class="logo-section">
+                <img
+                    src="https://res.cloudinary.com/du4g4aoew/image/upload/v1725378419/images/udthiuhmy3xpb7nyxkkc.png"
+                    width="30"
+                    height="30"
+                    alt="Lingua Connect Logo"
+                />
+                <strong>Lingua Connect</strong>
+            </div>
+        </div>
+    </body>
+</html>

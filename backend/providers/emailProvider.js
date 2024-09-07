@@ -1,0 +1,61 @@
+const nodemailer = require("nodemailer");
+const { OAuth2Client } = require("google-auth-library");
+const logger = require("../utils/loggerUtil")
+const {
+    readTemplate,
+    renderTemplate,
+    sendMail,
+} = require("../utils/emailUtil");
+
+// OAuth2
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
+client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
+
+// NodeMailer
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        type: "OAuth2",
+        user: process.env.SEND_MAIL_ACCOUNT,
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        accessToken: client.getAccessToken(),
+    },
+});
+
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+
+const sendVerificationEmail = async ({ email, full_name, token }) => {
+    try {
+        const template = readTemplate("verificationEmail.ejs");
+
+        const html = renderTemplate(template, { full_name, token, BASE_URL });
+
+        const mailOptions = {
+            from: process.env.SEND_MAIL_ACCOUNT,
+            to: email,
+            subject: "Account Verification",
+            html: html,
+        };
+
+        const info = await sendMail(transporter, mailOptions);
+
+        logger.info("Verification email sent successfully", {
+            email,
+            response: info.response,
+        });
+    } catch (error) {
+        logger.error("Error sending verification email", {
+            email,
+            error: error.message,
+        });
+        throw new Error(
+            "Failed to send verification email. Please try again later."
+        );
+    }
+};
+
+module.exports = {
+    sendVerificationEmail,
+};

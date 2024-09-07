@@ -10,7 +10,10 @@ const registerController = async (req, res) => {
             data: user,
         });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
     }
 };
 
@@ -30,7 +33,21 @@ const loginController = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        if (
+            error.message ===
+                "Wrong credentials: Invalid username or password" ||
+            error.message === "Account not verified"
+        ) {
+            res.status(401).json({
+                status: "error",
+                message: error.message,
+            });
+        } else {
+            res.status(500).json({
+                status: "error",
+                message: error.message,
+            });
+        }
     }
 };
 
@@ -46,7 +63,26 @@ const refreshTokenController = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+};
+
+const confirmEmailController = async (req, res) => {
+    try {
+        const { token } = req.query;
+        const full_name = await authService.confirmEmail(token);
+        const loginUrl = `${process.env.CLIENT_URL}/login`;
+
+        res.render("confirmation", {
+            full_name,
+            loginUrl,
+        });
+    } catch (error) {
+        console.log(error);
+        res.render("error");
     }
 };
 
@@ -54,4 +90,5 @@ module.exports = {
     registerController,
     loginController,
     refreshTokenController,
+    confirmEmailController,
 };
