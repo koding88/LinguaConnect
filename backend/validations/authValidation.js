@@ -154,5 +154,52 @@ const ChangePasswordValidation = (data) => {
     return schema.validate(data);
 }
 
+const forgotPasswordValidation = (data) => {
+    const schema = Joi.object({
+        email: Joi.string().email().required().messages({
+            "string.base": "Email must be a string",
+            "string.email": "Email must be a valid email",
+            "any.required": "Email is required",
+            "string.empty": "Email cannot be empty",
+        }),
+    });
+    return schema.validate(data);
+}
 
-module.exports = {registerValidation, authValidation, refreshTokenValidate, ChangePasswordValidation};
+const resetPasswordValidation = (data) => {
+    const schema = Joi.object({
+        email: Joi.string().email().required().messages({
+            "string.base": "Email must be a string",
+            "string.email": "Email must be a valid email",
+            "any.required": "Email is required",
+            "string.empty": "Email cannot be empty",
+        }),
+        otp: Joi.string().required().messages({
+            "string.base": "Token must be a string",
+            "any.required": "Token is required",
+            "string.empty": "Token cannot be empty",
+        }),
+        newPassword: Joi.string()
+            .min(8)
+            .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])"))
+            .required()
+            .messages({
+                "string.base": "Password must be a string.",
+                "string.min": "Password must be at least 8 characters long.",
+                "string.pattern.base":
+                    "Password must include at least one uppercase letter, one lowercase letter, and one number.",
+                "any.required": "Password is required.",
+                "string.empty": "Password cannot be empty",
+            }),
+    });
+    return schema.validate(data);
+}
+
+module.exports = {
+    registerValidation,
+    authValidation,
+    refreshTokenValidate,
+    ChangePasswordValidation,
+    forgotPasswordValidation,
+    resetPasswordValidation
+};

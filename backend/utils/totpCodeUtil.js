@@ -18,8 +18,6 @@ const generateTotpSecret = () => {
 
 const verifyTotpToken = (secret, otp) => {
     try{
-        console.log("secret: ", secret);
-        console.log("otp: ", otp);
         const verified = speakeasy.totp.verify({
             secret: secret,
             encoding: 'base32',
@@ -27,7 +25,6 @@ const verifyTotpToken = (secret, otp) => {
             digits: 6,
             window: 1
         })
-        console.log("verified: ", verified);
         return verified;
     }catch(error){
         throw new Error(`Verify TOTP token error: ${error.message}`);

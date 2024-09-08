@@ -14,7 +14,7 @@ const {
     registerValidation,
     authValidation,
     refreshTokenValidate,
-    ChangePasswordValidation
+    ChangePasswordValidation, forgotPasswordValidation, resetPasswordValidation
 } = require("../validations/authValidation");
 const {generateTotpSecret, verifyTotpToken} = require("../utils/totpCodeUtil");
 
@@ -237,6 +237,11 @@ const changePassword = async (userId, oldPassword, newPassword) => {
 
 const forgotPassword = async (email) => {
     try {
+        const {error} = forgotPasswordValidation({email});
+        if (error) {
+            throw new Error(error.message);
+        }
+
         const user = await userModel.findOne({email});
         if (!user) {
             throw new Error(`User: ${email} not found`);
@@ -256,13 +261,18 @@ const forgotPassword = async (email) => {
 
         logger.info(`Password reset link sent successfully to ${user.email}`);
     } catch (error) {
-        logger.error(`Error sending password reset link: ${error.message}`);
-        throw new Error(error.message);
+        logger.error(`Failed to send password reset link for ${email}. Error: ${error.message}`);
+        throw error;
     }
 }
 
 const resetPassword = async (email, otp, newPassword) => {
     try {
+        const {error} = resetPasswordValidation({email, otp, newPassword});
+        if (error) {
+            throw new Error(error.message);
+        }
+
         const user = await userModel.findOne({email});
         if (!user) {
             throw new Error(`User: ${email} not found`);
@@ -289,7 +299,7 @@ const resetPassword = async (email, otp, newPassword) => {
 
         return {message: 'Password changed successfully'};
     } catch (error) {
-        logger.error(`Error resetting password: ${error.message}`);
+        logger.error(`Error resetting password for ${email}. Error: ${error.message}`);
         throw new Error(error.message);
     }
 }
