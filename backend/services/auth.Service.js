@@ -13,7 +13,8 @@ const {sendVerificationEmail} = require("../providers/emailProvider");
 const {
     registerValidation,
     authValidation,
-    refreshTokenValidate, resetPasswordValidation,
+    refreshTokenValidate,
+    ChangePasswordValidation
 } = require("../validations/authValidation");
 
 const register = async (userData) => {
@@ -204,7 +205,7 @@ const confirmEmail = async (token) => {
 
 const changePassword = async (userId, oldPassword, newPassword) => {
     try {
-        const {error} = resetPasswordValidation({oldPassword, newPassword});
+        const {error} = ChangePasswordValidation({oldPassword, newPassword});
         if (error) {
             logger.error(`Change password validation error: ${error.message}`);
             throw new Error(error.message);
@@ -225,7 +226,7 @@ const changePassword = async (userId, oldPassword, newPassword) => {
         user.password = hashPassword;
         await user.save();
 
-        logger.info(`Password changed successfully for user: ${user._id}`);
+        logger.info(`Password changed successfully for user: ${user.email}`);
         return {message: "Password changed successfully"};
     } catch (error) {
         logger.error(`Error changing password for user: ${userId} - ${error.message}`);

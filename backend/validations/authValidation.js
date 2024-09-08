@@ -124,7 +124,7 @@ const refreshTokenValidate = (data) => {
     return schema.validate(data);
 };
 
-const resetPasswordValidation = (data) => {
+const ChangePasswordValidation = (data) => {
     const schema = Joi.object({
         oldPassword: Joi.string()
             .min(8)
@@ -155,4 +155,4 @@ const resetPasswordValidation = (data) => {
 }
 
 
-module.exports = {registerValidation, authValidation, refreshTokenValidate, resetPasswordValidation};
+module.exports = {registerValidation, authValidation, refreshTokenValidate, ChangePasswordValidation};
