@@ -27,3 +27,5 @@ const isAdmin = async (req, res, next) => {
         return res.status(403).json({ message: "Forbidden" });
     }
 };
+
+module.exports = { verifyToken, isAdmin };

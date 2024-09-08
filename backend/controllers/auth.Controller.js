@@ -86,9 +86,27 @@ const confirmEmailController = async (req, res) => {
     }
 };
 
+const changePasswordController = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const userId = req.userId;
+        const result = await authService.changePassword(userId, oldPassword, newPassword);
+        res.status(200).json({
+            status: "success",
+            message: "Password changed successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+};
+
 module.exports = {
     registerController,
     loginController,
     refreshTokenController,
     confirmEmailController,
+    changePasswordController
 };

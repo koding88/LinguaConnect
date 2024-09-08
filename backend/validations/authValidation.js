@@ -124,5 +124,35 @@ const refreshTokenValidate = (data) => {
     return schema.validate(data);
 };
 
+const resetPasswordValidation = (data) => {
+    const schema = Joi.object({
+        oldPassword: Joi.string()
+            .min(8)
+            .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])"))
+            .required()
+            .messages({
+                "string.base": "Old Password must be a string.",
+                "string.min": "Old Password must be at least 8 characters long.",
+                "string.pattern.base":
+                    "Old Password must include at least one uppercase letter, one lowercase letter, and one number.",
+                "any.required": "Old Password is required.",
+                "string.empty": "Old Password cannot be empty",
+            }),
+        newPassword: Joi.string()
+            .min(8)
+            .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])"))
+            .required()
+            .messages({
+                "string.base": "New Password must be a string.",
+                "string.min": "New Password must be at least 8 characters long.",
+                "string.pattern.base":
+                    "New Password must include at least one uppercase letter, one lowercase letter, and one number.",
+                "any.required": "New Password is required.",
+                "string.empty": "New Password cannot be empty",
+            }),
+    });
+    return schema.validate(data);
+}
 
-module.exports = { registerValidation, authValidation, refreshTokenValidate };
+
+module.exports = {registerValidation, authValidation, refreshTokenValidate, resetPasswordValidation};

@@ -8,24 +8,24 @@ const {
     refreshTokenVerify,
     generateConfirmToken,
 } = require("../utils/tokenUtil");
-const { redisClient } = require("../config/redis");
-const { sendVerificationEmail } = require("../providers/emailProvider");
+const {redisClient} = require("../config/redis");
+const {sendVerificationEmail} = require("../providers/emailProvider");
 const {
     registerValidation,
     authValidation,
-    refreshTokenValidate,
+    refreshTokenValidate, resetPasswordValidation,
 } = require("../validations/authValidation");
 
 const register = async (userData) => {
     try {
-        const { error } = registerValidation(userData);
+        const {error} = registerValidation(userData);
         if (error) {
             logger.error(`Registration failed: ${error.message}`);
             throw new Error(error.message);
         }
 
         const user = await userModel.findOne({
-            $or: [{ email: userData?.email }, { username: userData?.username }],
+            $or: [{email: userData?.email}, {username: userData?.username}],
         });
 
         if (user) {
@@ -67,14 +67,14 @@ const register = async (userData) => {
 
 const login = async (identifier, password) => {
     try {
-        const { error } = authValidation({ identifier, password });
+        const {error} = authValidation({identifier, password});
         if (error) {
             logger.error(`Login user error: ${error.message}`);
             throw new Error(error.message);
         }
 
         const user = await userModel.findOne({
-            $or: [{ email: identifier }, { username: identifier }],
+            $or: [{email: identifier}, {username: identifier}],
         });
 
         if (!user) {
@@ -122,7 +122,7 @@ const login = async (identifier, password) => {
         ); // Refresh token expires in 7 days
         logger.info(`User ${identifier} logged in successfully`);
 
-        return { accessToken, refreshToken };
+        return {accessToken, refreshToken};
     } catch (error) {
         logger.error("Login user error: ", error);
         throw error;
@@ -131,7 +131,7 @@ const login = async (identifier, password) => {
 
 const refreshToken = async (refreshToken) => {
     try {
-        const { error } = refreshTokenValidate({ refreshToken });
+        const {error} = refreshTokenValidate({refreshToken});
         if (error) {
             logger.error(`Refresh token validation error: ${error.message}`);
             throw new Error(error.message);
@@ -202,9 +202,41 @@ const confirmEmail = async (token) => {
     }
 };
 
+const changePassword = async (userId, oldPassword, newPassword) => {
+    try {
+        const {error} = resetPasswordValidation({oldPassword, newPassword});
+        if (error) {
+            logger.error(`Change password validation error: ${error.message}`);
+            throw new Error(error.message);
+        }
+
+        const user = await userModel.findById(userId);
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const isMatch = await passwordUtil.comparePassword(oldPassword, user.password);
+        if (!isMatch) {
+            throw new Error("Old password is incorrect");
+        }
+
+        const hashPassword = await passwordUtil.hashPassword(newPassword);
+
+        user.password = hashPassword;
+        await user.save();
+
+        logger.info(`Password changed successfully for user: ${user._id}`);
+        return {message: "Password changed successfully"};
+    } catch (error) {
+        logger.error(`Error changing password for user: ${userId} - ${error.message}`);
+        throw new Error(error.message);
+    }
+}
+
 module.exports = {
     register,
     login,
     refreshToken,
     confirmEmail,
+    changePassword
 };
