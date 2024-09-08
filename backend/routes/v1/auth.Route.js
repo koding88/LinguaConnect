@@ -10,5 +10,7 @@ router.get("/confirm", authController.confirmEmailController);
 router.post("/change-password", verifyToken, authController.changePasswordController);
 router.post("/forgot-password", authController.forgotPasswordController);
 router.post("/reset-password", authController.resetPasswordController);
+router.get("/enable-2fa", verifyToken, authController.enable2FAController);
+router.get("/disable-2fa", verifyToken, authController.disable2FAController);
 
 module.exports = router;

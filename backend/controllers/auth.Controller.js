@@ -19,11 +19,12 @@ const registerController = async (req, res) => {
 
 const loginController = async (req, res) => {
     try {
-        const {identifier, password} = req.body;
-        const {accessToken, refreshToken} = await authService.login(
-            identifier,
-            password
-        );
+        const { identifier, password, otp } = req.body;
+
+        // Call login service to authenticate user
+        const { accessToken, refreshToken } = await authService.login(identifier, password, otp);
+
+        // Respond with tokens if login is successful
         res.status(200).json({
             status: "success",
             message: "User logged in successfully",
@@ -33,23 +34,34 @@ const loginController = async (req, res) => {
             },
         });
     } catch (error) {
+        // Handle specific known error cases
         if (
-            error.message ===
-            "Wrong credentials: Invalid username or password" ||
+            error.message === "Wrong credentials: Invalid username or password" ||
             error.message === "Account not verified"
         ) {
             res.status(401).json({
                 status: "error",
                 message: error.message,
             });
+        } else if (error.message === "OTP required for 2FA-enabled account") {
+            res.status(401).json({
+                status: "error",
+                message: error.message,
+            });
+        } else if (error.message === "Invalid OTP for 2FA") {
+            res.status(401).json({
+                status: "error",
+                message: "Invalid OTP, please try again",
+            });
         } else {
             res.status(500).json({
                 status: "error",
-                message: error.message,
+                message: "Internal server error",
             });
         }
     }
 };
+
 
 const refreshTokenController = async (req, res) => {
     try {
@@ -135,6 +147,42 @@ const resetPasswordController = async (req, res) => {
     }
 };
 
+const enable2FAController = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const otpUrl = await authService.get2faQRCodeForUser(userId);
+
+        res.status(200).json({
+            status: "success",
+            message: "2FA enabled successfully",
+            data: otpUrl
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+}
+
+const disable2FAController = async (req, res) => {
+    try {
+        const userId = req.userId;
+        await authService.disable2FA(userId);
+
+        res.status(200).json({
+            status: "success",
+            message: "2FA disabled successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+}
+
+
 module.exports = {
     registerController,
     loginController,
@@ -142,5 +190,7 @@ module.exports = {
     confirmEmailController,
     changePasswordController,
     forgotPasswordController,
-    resetPasswordController
+    resetPasswordController,
+    enable2FAController,
+    disable2FAController
 };

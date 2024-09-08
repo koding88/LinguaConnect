@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
         username: {
             type: String,
             required: true,
-            unique: true,   
+            unique: true,
         },
         avatarUrl: {
             type: String,
@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        isEnable2FA: {
+            type: Boolean,
+            default: false,
+        },
         saved_posts: [
             {
                 type: mongoose.Schema.Types.ObjectId,
@@ -69,7 +73,7 @@ const userSchema = new mongoose.Schema(
             },
         ],
     },
-    { timestamps: true }
+    {timestamps: true}
 );
 
 module.exports = mongoose.model("User", userSchema, "users");

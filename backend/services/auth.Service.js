@@ -16,7 +16,7 @@ const {
     refreshTokenValidate,
     ChangePasswordValidation, forgotPasswordValidation, resetPasswordValidation
 } = require("../validations/authValidation");
-const {generateTotpSecret, verifyTotpToken} = require("../utils/totpCodeUtil");
+const {generateTotpSecret, verifyTotpToken, enable2FA} = require("../utils/totpCodeUtil");
 
 const register = async (userData) => {
     try {
@@ -67,16 +67,18 @@ const register = async (userData) => {
     }
 };
 
-const login = async (identifier, password) => {
+const login = async (identifier, password, otp) => {
     try {
-        const {error} = authValidation({identifier, password});
+        // Validate user input for identifier and password
+        const { error } = authValidation({ identifier, password });
         if (error) {
             logger.error(`Login user error: ${error.message}`);
             throw new Error(error.message);
         }
 
+        // Find user by email or username
         const user = await userModel.findOne({
-            $or: [{email: identifier}, {username: identifier}],
+            $or: [{ email: identifier }, { username: identifier }],
         });
 
         if (!user) {
@@ -84,52 +86,68 @@ const login = async (identifier, password) => {
             throw new Error("Wrong credentials: Invalid username or password");
         }
 
-        const isMatch = await passwordUtil.comparePassword(
-            password,
-            user.password
-        );
-
+        // Check if the password matches
+        const isMatch = await passwordUtil.comparePassword(password, user.password);
         if (!isMatch) {
-            logger.error(
-                `Invalid credentials: Password of ${identifier} mismatch`
-            );
+            logger.error(`Invalid credentials: Password mismatch for ${identifier}`);
             throw new Error("Wrong credentials: Invalid username or password");
         }
 
+        // Check if the user's account is verified
         if (!user.isVerify) {
-            const confirmToken = await redisClient.get(
-                `confirmToken:${user._id}`
-            );
+            const confirmToken = await redisClient.get(`confirmToken:${user._id}`);
             if (confirmToken) {
-                await redisClient.expire(
-                    `confirmToken:${user._id}`,
-                    60 * 60 * 24
-                ); // 24 hours
+                await redisClient.expire(`confirmToken:${user._id}`, 60 * 60 * 24); // Extend confirm token expiry to 24 hours
             }
 
             logger.error(`Account not verified: User ${identifier}`);
             throw new Error("Account not verified");
         }
 
+        // Only check the OTP if 2FA is enabled
+        if (user.isEnable2FA) {
+            if (!otp) {
+                throw new Error("OTP required for 2FA-enabled account");
+            }
+
+            // Retrieve 2FA secret from Redis
+            const secret = await redisClient.get(`2faSecret:${user._id}`);
+            if (!secret) {
+                throw new Error("2FA secret not found");
+            }
+
+            // Verify OTP using speakeasy
+            const verified = verifyTotpToken(secret, otp);
+            if (!verified) {
+                logger.error(`Invalid 2FA OTP for user ${identifier}`);
+                throw new Error("Invalid OTP for 2FA");
+            }
+            logger.info(`2FA OTP verified successfully for ${identifier}`);
+        } else {
+            // If 2FA is disabled and OTP is provided, ignore the OTP
+            if (otp) {
+                logger.warn(`OTP provided but 2FA is disabled for user ${identifier}, ignoring OTP`);
+            }
+        }
+
+        // Generate tokens after successful password (and possibly OTP) verification
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken(user);
 
         // Save accessToken and refreshToken in Redis
-        redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 20); // Access token expires in 20 minutes
-        redisClient.set(
-            `refreshToken:${user._id}`,
-            refreshToken,
-            "EX",
-            60 * 60 * 24 * 7
-        ); // Refresh token expires in 7 days
+        await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 20); // Access token expires in 20 minutes
+        await redisClient.set(`refreshToken:${user._id}`, refreshToken, "EX", 60 * 60 * 24 * 7); // Refresh token expires in 7 days
+
         logger.info(`User ${identifier} logged in successfully`);
 
-        return {accessToken, refreshToken};
+        return { accessToken, refreshToken };
     } catch (error) {
         logger.error("Login user error: ", error);
         throw error;
     }
 };
+
+
 
 const refreshToken = async (refreshToken) => {
     try {
@@ -304,6 +322,47 @@ const resetPassword = async (email, otp, newPassword) => {
     }
 }
 
+const get2faQRCodeForUser = async (userId) => {
+    try {
+        const user = await userModel.findById({_id: userId});
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const {secret, otp_url} = enable2FA();
+        await redisClient.set(`2faSecret:${userId}`, secret);
+
+        user.isEnable2FA = true;
+        await user.save();
+
+        return {otp_url};
+
+    } catch (error) {
+        logger.error(`Error getting 2FA QR code for user: ${userId}. Error: ${error.message}`);
+        throw new Error(error.message);
+    }
+}
+
+const disable2FA = async (userId) => {
+    try {
+        const user = await userModel.findById({_id: userId});
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        user.isEnable2FA = false;
+        await user.save();
+
+        await redisClient.del(`2faSecret:${userId}`);
+
+        return {message: "2FA disabled successfully"};
+    } catch (error) {
+        logger.error(`Error disabling 2FA for user: ${userId}. Error: ${error.message}`);
+        throw new Error(error.message);
+    }
+}
+
+
 module.exports = {
     register,
     login,
@@ -311,5 +370,7 @@ module.exports = {
     confirmEmail,
     changePassword,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    get2faQRCodeForUser,
+    disable2FA
 };
