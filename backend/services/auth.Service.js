@@ -9,13 +9,14 @@ const {
     generateConfirmToken,
 } = require("../utils/tokenUtil");
 const {redisClient} = require("../config/redis");
-const {sendVerificationEmail} = require("../providers/emailProvider");
+const {sendVerificationEmail, sendPasswordResetEmail} = require("../providers/emailProvider");
 const {
     registerValidation,
     authValidation,
     refreshTokenValidate,
     ChangePasswordValidation
 } = require("../validations/authValidation");
+const {generateTotpSecret, verifyTotpToken} = require("../utils/totpCodeUtil");
 
 const register = async (userData) => {
     try {
@@ -234,10 +235,71 @@ const changePassword = async (userId, oldPassword, newPassword) => {
     }
 }
 
+const forgotPassword = async (email) => {
+    try {
+        const user = await userModel.findOne({email});
+        if (!user) {
+            throw new Error(`User: ${email} not found`);
+        }
+
+        const {secret, token} = generateTotpSecret();
+
+        // Save the secret in Redis
+        await redisClient.set(`forgotPassword:${user._id}`, secret);
+
+        // Send password reset email
+        await sendPasswordResetEmail({
+            email: user.email,
+            full_name: user.full_name,
+            token,
+        });
+
+        logger.info(`Password reset link sent successfully to ${user.email}`);
+    } catch (error) {
+        logger.error(`Error sending password reset link: ${error.message}`);
+        throw new Error(error.message);
+    }
+}
+
+const resetPassword = async (email, otp, newPassword) => {
+    try {
+        const user = await userModel.findOne({email});
+        if (!user) {
+            throw new Error(`User: ${email} not found`);
+        }
+
+        const secret = await redisClient.get(`forgotPassword:${user._id}`);
+
+        if (!secret) {
+            throw new Error("Invalid or expired token");
+        }
+
+        const verified = verifyTotpToken(secret, otp);
+
+        if (!verified) {
+            throw new Error("Invalid OTP");
+        }
+
+        const hashPassword = await passwordUtil.hashPassword(newPassword);
+        user.password = hashPassword;
+        await user.save();
+
+        // Remove the secret from Redis
+        await redisClient.del(`forgotPassword:${user._id}`);
+
+        return {message: 'Password changed successfully'};
+    } catch (error) {
+        logger.error(`Error resetting password: ${error.message}`);
+        throw new Error(error.message);
+    }
+}
+
 module.exports = {
     register,
     login,
     refreshToken,
     confirmEmail,
-    changePassword
+    changePassword,
+    forgotPassword,
+    resetPassword
 };

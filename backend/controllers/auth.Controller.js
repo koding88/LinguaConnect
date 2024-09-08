@@ -19,8 +19,8 @@ const registerController = async (req, res) => {
 
 const loginController = async (req, res) => {
     try {
-        const { identifier, password } = req.body;
-        const { accessToken, refreshToken } = await authService.login(
+        const {identifier, password} = req.body;
+        const {accessToken, refreshToken} = await authService.login(
             identifier,
             password
         );
@@ -35,7 +35,7 @@ const loginController = async (req, res) => {
     } catch (error) {
         if (
             error.message ===
-                "Wrong credentials: Invalid username or password" ||
+            "Wrong credentials: Invalid username or password" ||
             error.message === "Account not verified"
         ) {
             res.status(401).json({
@@ -53,7 +53,7 @@ const loginController = async (req, res) => {
 
 const refreshTokenController = async (req, res) => {
     try {
-        const { refreshToken } = req.body;
+        const {refreshToken} = req.body;
         const newAccessToken = await authService.refreshToken(refreshToken);
         res.status(200).json({
             status: "success",
@@ -72,7 +72,7 @@ const refreshTokenController = async (req, res) => {
 
 const confirmEmailController = async (req, res) => {
     try {
-        const { token } = req.query;
+        const {token} = req.query;
         const full_name = await authService.confirmEmail(token);
         const loginUrl = `${process.env.CLIENT_URL}/login`;
 
@@ -88,7 +88,7 @@ const confirmEmailController = async (req, res) => {
 
 const changePasswordController = async (req, res) => {
     try {
-        const { oldPassword, newPassword } = req.body;
+        const {oldPassword, newPassword} = req.body;
         const userId = req.userId;
         const result = await authService.changePassword(userId, oldPassword, newPassword);
         res.status(200).json({
@@ -103,10 +103,44 @@ const changePasswordController = async (req, res) => {
     }
 };
 
+const forgotPasswordController = async (req, res) => {
+    try {
+        const {email} = req.body;
+        await authService.forgotPassword(email);
+        res.status(200).json({
+            status: "success",
+            message: "Password reset link sent successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+};
+
+const resetPasswordController = async (req, res) => {
+    try {
+        const {email, otp, newPassword} = req.body;
+        await authService.resetPassword(email, otp, newPassword);
+        res.status(200).json({
+            status: "success",
+            message: "Password reset successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+};
+
 module.exports = {
     registerController,
     loginController,
     refreshTokenController,
     confirmEmailController,
-    changePasswordController
+    changePasswordController,
+    forgotPasswordController,
+    resetPasswordController
 };
