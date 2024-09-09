@@ -19,10 +19,10 @@ const registerController = async (req, res) => {
 
 const loginController = async (req, res) => {
     try {
-        const { identifier, password, otp } = req.body;
+        const {identifier, password, otp} = req.body;
 
         // Call login service to authenticate user
-        const { accessToken, refreshToken } = await authService.login(identifier, password, otp);
+        const {accessToken, refreshToken} = await authService.login(identifier, password, otp);
 
         // Respond with tokens if login is successful
         res.status(200).json({
@@ -117,7 +117,7 @@ const changePasswordController = async (req, res) => {
 
 const forgotPasswordController = async (req, res) => {
     try {
-        const {email} = req.body;
+        const {email} = req.query;
         await authService.forgotPassword(email);
         res.status(200).json({
             status: "success",
@@ -133,7 +133,9 @@ const forgotPasswordController = async (req, res) => {
 
 const resetPasswordController = async (req, res) => {
     try {
-        const {email, otp, newPassword} = req.body;
+        const {email, otp} = req.query
+        const {newPassword} = req.body;
+
         await authService.resetPassword(email, otp, newPassword);
         res.status(200).json({
             status: "success",
