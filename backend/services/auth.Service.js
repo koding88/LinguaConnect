@@ -116,6 +116,13 @@ const login = async (identifier, password, otp) => {
 
         // Handle OTP verification if 2FA is enabled
         if (user.isEnable2FA) {
+            // Validation OTP 6digits
+            const validateOTP = (otp) => /^\d{6}$/.test(otp);
+            if (!validateOTP(otp)) {
+                logger.error(`Invalid OTP format for 2FA-enabled account: ${identifier}`);
+                throw errorHandler(400, "Invalid OTP format");
+            }
+
             if (!otp) {
                 logger.error(`OTP required for 2FA-enabled account: ${identifier}`);
                 throw errorHandler(401, "OTP required for 2FA-enabled account");
