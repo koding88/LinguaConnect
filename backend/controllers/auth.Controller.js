@@ -1,6 +1,6 @@
 const authService = require("../services/auth.Service");
 
-const registerController = async (req, res) => {
+const registerController = async (req, res, next) => {
     try {
         const userData = req.body;
         const user = await authService.register(userData);
@@ -10,14 +10,11 @@ const registerController = async (req, res) => {
             data: user,
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 };
 
-const loginController = async (req, res) => {
+const loginController = async (req, res, next) => {
     try {
         const {identifier, password, otp} = req.body;
 
@@ -34,36 +31,12 @@ const loginController = async (req, res) => {
             },
         });
     } catch (error) {
-        // Handle specific known error cases
-        if (
-            error.message === "Wrong credentials: Invalid username or password" ||
-            error.message === "Account not verified"
-        ) {
-            res.status(401).json({
-                status: "error",
-                message: error.message,
-            });
-        } else if (error.message === "OTP required for 2FA-enabled account") {
-            res.status(401).json({
-                status: "error",
-                message: error.message,
-            });
-        } else if (error.message === "Invalid OTP for 2FA") {
-            res.status(401).json({
-                status: "error",
-                message: "Invalid OTP, please try again",
-            });
-        } else {
-            res.status(500).json({
-                status: "error",
-                message: "Internal server error",
-            });
-        }
+        next(error);
     }
 };
 
 
-const refreshTokenController = async (req, res) => {
+const refreshTokenController = async (req, res, next) => {
     try {
         const {refreshToken} = req.body;
         const newAccessToken = await authService.refreshToken(refreshToken);
@@ -75,14 +48,11 @@ const refreshTokenController = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 };
 
-const confirmEmailController = async (req, res) => {
+const confirmEmailController = async (req, res, next) => {
     try {
         const {token} = req.query;
         const full_name = await authService.confirmEmail(token);
@@ -93,12 +63,12 @@ const confirmEmailController = async (req, res) => {
             loginUrl,
         });
     } catch (error) {
-        console.log(error);
         res.render("error");
+        next(error)
     }
 };
 
-const changePasswordController = async (req, res) => {
+const changePasswordController = async (req, res, next) => {
     try {
         const {oldPassword, newPassword} = req.body;
         const userId = req.userId;
@@ -108,14 +78,11 @@ const changePasswordController = async (req, res) => {
             message: "Password changed successfully",
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 };
 
-const forgotPasswordController = async (req, res) => {
+const forgotPasswordController = async (req, res, next) => {
     try {
         const {email} = req.query;
         await authService.forgotPassword(email);
@@ -124,14 +91,11 @@ const forgotPasswordController = async (req, res) => {
             message: "Password reset link sent successfully",
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 };
 
-const resetPasswordController = async (req, res) => {
+const resetPasswordController = async (req, res, next) => {
     try {
         const {email, otp} = req.query
         const {newPassword} = req.body;
@@ -142,14 +106,11 @@ const resetPasswordController = async (req, res) => {
             message: "Password reset successfully",
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 };
 
-const enable2FAController = async (req, res) => {
+const enable2FAController = async (req, res, next) => {
     try {
         const userId = req.userId;
         const otpUrl = await authService.get2faQRCodeForUser(userId);
@@ -160,14 +121,11 @@ const enable2FAController = async (req, res) => {
             data: otpUrl
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error)
     }
 }
 
-const disable2FAController = async (req, res) => {
+const disable2FAController = async (req, res, next) => {
     try {
         const userId = req.userId;
         await authService.disable2FA(userId);
@@ -177,10 +135,7 @@ const disable2FAController = async (req, res) => {
             message: "2FA disabled successfully"
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error)
     }
 }
 

@@ -1,5 +1,6 @@
 const userModel = require("../models/user.Model");
 const logger = require("../utils/loggerUtil");
+const errorHandler = require("../utils/errorUtil");
 const passwordUtil = require("../utils/passwordUtil");
 const {
     generateAccessToken,
@@ -20,37 +21,44 @@ const {generateTotpSecret, verifyTotpToken, enable2FA} = require("../utils/totpC
 
 const register = async (userData) => {
     try {
+        // Validate user data
         const {error} = registerValidation(userData);
         if (error) {
             logger.error(`Registration failed: ${error.message}`);
-            throw new Error(error.message);
+            throw errorHandler(400, error.message);
         }
 
-        const user = await userModel.findOne({
-            $or: [{email: userData?.email}, {username: userData?.username}],
+        // Check if the user already exists
+        const existingUser = await userModel.findOne({
+            $or: [{email: userData.email}, {username: userData.username}],
         });
 
-        if (user) {
-            throw new Error("User already exists");
+        if (existingUser) {
+            logger.error(`User already exists: ${userData.email}`);
+            throw errorHandler(400, "User already exists");
         }
 
-        const hashPassword = await passwordUtil.hashPassword(userData.password);
+        // Hash the password
+        const hashedPassword = await passwordUtil.hashPassword(userData.password);
+
+        // Create a new user instance
         const newUser = new userModel({
             ...userData,
-            password: hashPassword,
+            password: hashedPassword,
         });
 
-        logger.info(`User ${userData?.email} registered successfully`);
-
+        // Save the new user to the database
         await newUser.save();
+        logger.info(`User ${userData.email} registered successfully`);
 
+        // Generate confirmation token and store it in Redis
         const confirmToken = generateConfirmToken();
         await redisClient.set(
             `confirmToken:${confirmToken}`,
-            newUser?._id.toString(),
+            newUser._id.toString(),
             "EX",
-            60 * 60 * 24
-        ); // 24 hours
+            60 * 60 * 24 // 24 hours
+        );
 
         // Send confirmation email
         await sendVerificationEmail({
@@ -58,117 +66,122 @@ const register = async (userData) => {
             full_name: userData.full_name,
             token: confirmToken,
         });
+
         return newUser;
     } catch (error) {
         logger.error(
-            `Registration failed for email ${userData?.email}: ${error.message}`
+            `Registration failed for email ${userData.email}: ${error.message}`
         );
         throw error;
     }
 };
 
+
 const login = async (identifier, password, otp) => {
     try {
-        // Validate user input for identifier and password
-        const { error } = authValidation({ identifier, password });
+        // Validate user input
+        const {error} = authValidation({identifier, password});
         if (error) {
-            logger.error(`Login user error: ${error.message}`);
-            throw new Error(error.message);
+            logger.error(`Login validation error: ${error.message}`);
+            throw errorHandler(400, error.message);
         }
 
-        // Find user by email or username
+        // Find the user by email or username
         const user = await userModel.findOne({
-            $or: [{ email: identifier }, { username: identifier }],
+            $or: [{email: identifier}, {username: identifier}],
         });
 
         if (!user) {
-            logger.error(`Wrong credentials: User ${identifier} not found`);
-            throw new Error("Wrong credentials: Invalid username or password");
+            logger.error(`User not found: ${identifier}`);
+            throw errorHandler(401, "Invalid username or password");
         }
 
-        // Check if the password matches
-        const isMatch = await passwordUtil.comparePassword(password, user.password);
-        if (!isMatch) {
-            logger.error(`Invalid credentials: Password mismatch for ${identifier}`);
-            throw new Error("Wrong credentials: Invalid username or password");
+        // Verify the password
+        const isPasswordMatch = await passwordUtil.comparePassword(password, user.password);
+        if (!isPasswordMatch) {
+            logger.error(`Password mismatch for user: ${identifier}`);
+            throw errorHandler(401, "Invalid username or password");
         }
 
         // Check if the user's account is verified
         if (!user.isVerify) {
             const confirmToken = await redisClient.get(`confirmToken:${user._id}`);
             if (confirmToken) {
-                await redisClient.expire(`confirmToken:${user._id}`, 60 * 60 * 24); // Extend confirm token expiry to 24 hours
+                await redisClient.expire(`confirmToken:${user._id}`, 60 * 60 * 24); // Extend token expiry
             }
 
-            logger.error(`Account not verified: User ${identifier}`);
-            throw new Error("Account not verified");
+            logger.error(`Account not verified for user: ${identifier}`);
+            throw errorHandler(401, "Account not verified");
         }
 
-        // Only check the OTP if 2FA is enabled
+        // Handle OTP verification if 2FA is enabled
         if (user.isEnable2FA) {
             if (!otp) {
-                throw new Error("OTP required for 2FA-enabled account");
+                logger.error(`OTP required for 2FA-enabled account: ${identifier}`);
+                throw errorHandler(401, "OTP required for 2FA-enabled account");
             }
 
-            // Retrieve 2FA secret from Redis
-            const secret = await redisClient.get(`2faSecret:${user._id}`);
-            if (!secret) {
-                throw new Error("2FA secret not found");
+            const twoFASecret = await redisClient.get(`2faSecret:${user._id}`);
+            if (!twoFASecret) {
+                logger.error(`2FA secret not found for user: ${identifier}`);
+                throw errorHandler(401, "2FA secret not found");
             }
 
-            // Verify OTP using speakeasy
-            const verified = verifyTotpToken(secret, otp);
-            if (!verified) {
-                logger.error(`Invalid 2FA OTP for user ${identifier}`);
-                throw new Error("Invalid OTP for 2FA");
+            const isOtpValid = verifyTotpToken(twoFASecret, otp);
+            if (!isOtpValid) {
+                logger.error(`Invalid 2FA OTP for user: ${identifier}`);
+                throw errorHandler(401, "Invalid OTP for 2FA");
             }
-            logger.info(`2FA OTP verified successfully for ${identifier}`);
+
+            logger.info(`2FA OTP verified successfully for user: ${identifier}`);
         } else {
-            // If 2FA is disabled and OTP is provided, ignore the OTP
             if (otp) {
-                logger.warn(`OTP provided but 2FA is disabled for user ${identifier}, ignoring OTP`);
+                logger.warn(`Ignoring OTP because 2FA is disabled for user: ${identifier}`);
             }
         }
 
-        // Generate tokens after successful password (and possibly OTP) verification
+        // Generate and store tokens
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken(user);
 
-        // Save accessToken and refreshToken in Redis
-        await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 20); // Access token expires in 20 minutes
-        await redisClient.set(`refreshToken:${user._id}`, refreshToken, "EX", 60 * 60 * 24 * 7); // Refresh token expires in 7 days
+        await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 20); // 20 minutes
+        await redisClient.set(`refreshToken:${user._id}`, refreshToken, "EX", 60 * 60 * 24 * 7); // 7 days
 
         logger.info(`User ${identifier} logged in successfully`);
 
-        return { accessToken, refreshToken };
+        return {accessToken, refreshToken};
     } catch (error) {
-        logger.error("Login user error: ", error);
+        logger.error(`Login error for user ${identifier}: ${error.message}`);
         throw error;
     }
 };
 
 
-
 const refreshToken = async (refreshToken) => {
     try {
+        // Validate the provided refresh token
         const {error} = refreshTokenValidate({refreshToken});
         if (error) {
             logger.error(`Refresh token validation error: ${error.message}`);
-            throw new Error(error.message);
+            throw errorHandler(400, error.message);
         }
 
+        // Verify the refresh token and decode it
         const decoded = refreshTokenVerify(refreshToken);
         const userId = decoded?.userId;
 
-        const storedRefreshToken = await redisClient.get(
-            `refreshToken:${userId}`
-        );
+        if (!userId) {
+            logger.error("Invalid refresh token: No user ID found in the token");
+            throw errorHandler(401, "Invalid refresh token");
+        }
 
+        // Retrieve the stored refresh token from Redis
+        const storedRefreshToken = await redisClient.get(`refreshToken:${userId}`);
+
+        // Check if the stored token matches the provided token
         if (!storedRefreshToken || storedRefreshToken !== refreshToken) {
-            logger.error(
-                "Invalid refresh token: Token mismatch or not found in Redis"
-            );
-            throw new Error("Invalid refresh token");
+            logger.error("Invalid refresh token: Token mismatch or not found in Redis");
+            throw errorHandler(401, "Invalid refresh token");
         }
 
         // Generate a new access token
@@ -178,43 +191,46 @@ const refreshToken = async (refreshToken) => {
         });
 
         // Update the access token in Redis
-        redisClient.set(`accessToken:${userId}`, accessToken, "EX", 60 * 20); // 20 minutes
+        await redisClient.set(`accessToken:${userId}`, accessToken, "EX", 60 * 20); // 20 minutes
+
+        logger.info(`New access token generated for user ID ${userId}`);
 
         return accessToken;
     } catch (error) {
-        logger.error(error);
+        logger.error(`Error refreshing token: ${error.message}`);
         throw error;
     }
 };
 
+
 const confirmEmail = async (token) => {
     try {
-        // Retrieve user ID from Redis using the token
+        // Retrieve user ID from Redis using the confirmation token
         const userId = await redisClient.get(`confirmToken:${token}`);
         if (!userId) {
-            throw new Error("Invalid or expired token");
+            logger.error("Invalid or expired confirmation token");
+            throw errorHandler(400, "Invalid or expired token");
         }
 
         // Find the user by ID
         const user = await userModel.findById(userId);
         if (!user) {
-            throw new Error("User not found");
+            logger.error(`User not found for ID: ${userId}`);
+            throw errorHandler(400, "User not found");
         }
 
-        // Verify the user account
+        // Verify the user's account
         user.isVerify = true;
         await user.save();
 
-        // Remove the token from Redis
+        // Remove the confirmation token from Redis
         await redisClient.del(`confirmToken:${token}`);
 
         // Log successful confirmation
-        logger.info(`User ${user.email} email confirmed successfully`);
+        logger.info(`Email confirmed successfully for user: ${user.email}`);
 
-        // result
-        const full_name = user.full_name;
-
-        return full_name;
+        // Return the full name of the user
+        return user.full_name;
     } catch (error) {
         // Log and rethrow the error for further handling
         logger.error(`Error confirming email: ${error.message}`);
@@ -222,52 +238,68 @@ const confirmEmail = async (token) => {
     }
 };
 
+
 const changePassword = async (userId, oldPassword, newPassword) => {
     try {
-        const {error} = ChangePasswordValidation({oldPassword, newPassword});
+        // Validate the input passwords
+        const { error } = ChangePasswordValidation({ oldPassword, newPassword });
         if (error) {
             logger.error(`Change password validation error: ${error.message}`);
-            throw new Error(error.message);
+            throw errorHandler(400, error.message);
         }
 
+        // Find the user by ID
         const user = await userModel.findById(userId);
         if (!user) {
-            throw new Error("User not found");
+            logger.error(`User not found: ${userId}`);
+            throw errorHandler(400, "User not found");
         }
 
-        const isMatch = await passwordUtil.comparePassword(oldPassword, user.password);
-        if (!isMatch) {
-            throw new Error("Old password is incorrect");
+        // Check if the old password matches
+        const isOldPasswordValid = await passwordUtil.comparePassword(oldPassword, user.password);
+        if (!isOldPasswordValid) {
+            logger.error(`Invalid old password for user: ${userId}`);
+            throw errorHandler(400, "Invalid old password");
         }
 
-        const hashPassword = await passwordUtil.hashPassword(newPassword);
+        // Hash the new password
+        const hashedNewPassword = await passwordUtil.hashPassword(newPassword);
 
-        user.password = hashPassword;
+        // Update the user's password
+        user.password = hashedNewPassword;
         await user.save();
 
+        // Log success and return a success message
         logger.info(`Password changed successfully for user: ${user.email}`);
-        return {message: "Password changed successfully"};
+        return { message: "Password changed successfully" };
     } catch (error) {
+        // Log the error and rethrow it for further handling
         logger.error(`Error changing password for user: ${userId} - ${error.message}`);
-        throw new Error(error.message);
+        throw error;
     }
-}
+};
+
 
 const forgotPassword = async (email) => {
     try {
-        const {error} = forgotPasswordValidation({email});
+        // Validate the email address
+        const { error } = forgotPasswordValidation({ email });
         if (error) {
-            throw new Error(error.message);
+            logger.error(`Forgot password validation error: ${error.message}`);
+            throw errorHandler(400, error.message);
         }
 
-        const user = await userModel.findOne({email});
+        // Find the user by email
+        const user = await userModel.findOne({ email });
         if (!user) {
-            throw new Error(`User: ${email} not found`);
+            logger.error(`User not found: ${email}`);
+            throw errorHandler(400, `User with email ${email} not found`);
         }
 
-        const {secret, token} = generateTotpSecret();
+        // Generate TOTP secret and token
+        const { secret, token } = generateTotpSecret();
 
-        // Save the secret in Redis
+        // Store the secret in Redis for later verification
         await redisClient.set(`forgotPassword:${user._id}`, secret);
 
         // Send password reset email
@@ -277,90 +309,120 @@ const forgotPassword = async (email) => {
             token,
         });
 
+        // Log successful email sending
         logger.info(`Password reset link sent successfully to ${user.email}`);
     } catch (error) {
-        logger.error(`Failed to send password reset link for ${email}. Error: ${error.message}`);
+        // Log the error and rethrow for further handling
+        logger.error(`Error sending password reset link for ${email}: ${error.message}`);
         throw error;
     }
-}
+};
+
 
 const resetPassword = async (email, otp, newPassword) => {
     try {
-        const {error} = resetPasswordValidation({email, otp, newPassword});
+        // Validate input parameters
+        const { error } = resetPasswordValidation({ email, otp, newPassword });
         if (error) {
-            throw new Error(error.message);
+            logger.error(`Reset password validation error: ${error.message}`);
+            throw errorHandler(400, error.message);
         }
 
-        const user = await userModel.findOne({email});
+        // Find the user by email
+        const user = await userModel.findOne({ email });
         if (!user) {
-            throw new Error(`User: ${email} not found`);
+            logger.error(`User not found: ${email}`);
+            throw errorHandler(400, `User with email ${email} not found`);
         }
 
+        // Retrieve the secret from Redis
         const secret = await redisClient.get(`forgotPassword:${user._id}`);
-
         if (!secret) {
-            throw new Error("Invalid or expired token");
+            logger.error(`Invalid or expired token for user: ${email}`);
+            throw errorHandler(400, "Invalid or expired token");
         }
 
-        const verified = verifyTotpToken(secret, otp);
-
-        if (!verified) {
-            throw new Error("Invalid OTP");
+        // Verify the OTP
+        const isOtpValid = verifyTotpToken(secret, otp);
+        if (!isOtpValid) {
+            logger.error(`Invalid OTP for user: ${email}`);
+            throw errorHandler(400, "Invalid OTP");
         }
 
-        const hashPassword = await passwordUtil.hashPassword(newPassword);
-        user.password = hashPassword;
+        // Hash the new password and update the user record
+        const hashedPassword = await passwordUtil.hashPassword(newPassword);
+        user.password = hashedPassword;
         await user.save();
 
         // Remove the secret from Redis
         await redisClient.del(`forgotPassword:${user._id}`);
 
-        return {message: 'Password changed successfully'};
+        logger.info(`Password successfully changed for user: ${email}`);
+        return { message: 'Password changed successfully' };
     } catch (error) {
-        logger.error(`Error resetting password for ${email}. Error: ${error.message}`);
-        throw new Error(error.message);
+        // Log the error and rethrow it for further handling
+        logger.error(`Error resetting password for ${email}: ${error.message}`);
+        throw error;
     }
-}
+};
+
 
 const get2faQRCodeForUser = async (userId) => {
     try {
-        const user = await userModel.findById({_id: userId});
+        // Find the user by ID
+        const user = await userModel.findById(userId);
         if (!user) {
-            throw new Error("User not found");
+            logger.error(`User not found: ${userId}`);
+            throw errorHandler(400, "User not found");
         }
 
-        const {secret, otp_url} = enable2FA();
+        // Generate 2FA secret and OTP URL
+        const { secret, otp_url } = enable2FA();
+
+        // Store the 2FA secret in Redis
         await redisClient.set(`2faSecret:${userId}`, secret);
 
+        // Enable 2FA for the user
         user.isEnable2FA = true;
         await user.save();
 
-        return {otp_url};
+        // Return the OTP URL for QR code generation
+        return { otp_url };
 
     } catch (error) {
-        logger.error(`Error getting 2FA QR code for user: ${userId}. Error: ${error.message}`);
-        throw new Error(error.message);
+        // Log the error and rethrow it for further handling
+        logger.error(`Error generating 2FA QR code for user ${userId}: ${error.message}`);
+        throw error;
     }
-}
+};
+
 
 const disable2FA = async (userId) => {
     try {
-        const user = await userModel.findById({_id: userId});
+        // Retrieve the user by ID
+        const user = await userModel.findById(userId);
         if (!user) {
-            throw new Error("User not found");
+            logger.error(`User not found: ${userId}`);
+            throw errorHandler(400, "User not found");
         }
 
+        // Disable 2FA for the user
         user.isEnable2FA = false;
         await user.save();
 
+        // Remove the 2FA secret from Redis
         await redisClient.del(`2faSecret:${userId}`);
 
-        return {message: "2FA disabled successfully"};
+        // Return success message
+        return { message: "2FA disabled successfully" };
+
     } catch (error) {
-        logger.error(`Error disabling 2FA for user: ${userId}. Error: ${error.message}`);
-        throw new Error(error.message);
+        // Log the error and rethrow it for further handling
+        logger.error(`Error disabling 2FA for user ${userId}: ${error.message}`);
+        throw error;
     }
-}
+};
+
 
 
 module.exports = {
