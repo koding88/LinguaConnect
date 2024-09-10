@@ -8,8 +8,8 @@ const {
 } = require("../utils/emailUtil");
 
 // OAuth2
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
-client.setCredentials({refresh_token: process.env.GOOGLE_REFRESH_TOKEN});
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID_MAIL, process.env.GOOGLE_CLIENT_SECRET_MAIL);
+client.setCredentials({refresh_token: process.env.GOOGLE_REFRESH_TOKEN_MAIL});
 
 // NodeMailer
 const transporter = nodemailer.createTransport({
@@ -17,9 +17,9 @@ const transporter = nodemailer.createTransport({
     auth: {
         type: "OAuth2",
         user: process.env.SEND_MAIL_ACCOUNT,
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        clientId: process.env.GOOGLE_CLIENT_ID_MAIL,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET_MAIL,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN_MAIL,
         accessToken: client.getAccessToken(),
     },
 });
