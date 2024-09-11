@@ -5,6 +5,7 @@ const path = require("path");
 const mongoDB = require("./config/db");
 const redis = require("./config/redis");
 const cors = require("cors");
+const passport = require("./config/passport");
 const { redisClient } = require("./config/redis");
 const logger = require("./utils/loggerUtil");
 const errorMiddleware = require("./middlewares/error.Middleware");
@@ -12,13 +13,20 @@ require("dotenv").config();
 
 const app = express();
 // Cors
-app.use(cors());
+app.use(cors(
+    {
+        origin: "*"
+    }
+));
 
 // Create server
 const server = http.createServer(app);
 
 // Body parser
 app.use(bodyParser.json());
+
+// Passport
+app.use(passport.initialize());
 
 // Ejs template engine
 app.set("views", path.join(__dirname, "views"));
@@ -28,6 +36,11 @@ app.set("view engine", "ejs");
 const authRoute = require("./routes/v1/auth.Route");
 
 app.use("/api/v1/auth", authRoute);
+
+// Route test login google
+app.get("/", (req, res) => {
+    res.send('<a href="/api/v1/auth/google">Authenticate with google</a>');
+});
 
 // Error handler
 app.use(errorMiddleware);

@@ -1,4 +1,5 @@
 const authService = require("../services/auth.Service");
+const passport = require("../config/passport");
 
 const registerController = async (req, res, next) => {
     try {
@@ -33,6 +34,33 @@ const loginController = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+};
+
+const loginGoogleController = passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "select_account",
+});
+
+
+const loginGoogleRedirectController = (req, res, next) => {
+    passport.authenticate("google", {session: false}, async (err, token) => {
+        if (err) {
+            return next(err);
+        }
+
+        if (!token) {
+            return res.status(401).json({
+                status: "error",
+                message: "Authentication failed",
+            });
+        }
+
+        const {accessToken, refreshToken} = token;
+
+        res.redirect(
+            `http://localhost:3000/login/oauth?access_token=${accessToken}&refresh_token=${refreshToken}`
+        )
+    })(req, res, next);
 };
 
 
@@ -149,5 +177,7 @@ module.exports = {
     forgotPasswordController,
     resetPasswordController,
     enable2FAController,
-    disable2FAController
+    disable2FAController,
+    loginGoogleRedirectController,
+    loginGoogleController
 };

@@ -18,6 +18,7 @@ const {
     ChangePasswordValidation, forgotPasswordValidation, resetPasswordValidation
 } = require("../validations/authValidation");
 const {generateTotpSecret, verifyTotpToken, enable2FA} = require("../utils/totpCodeUtil");
+const {getBirthdayForAge, createUsername, getFullName} = require("../utils/profileUtil")
 
 const register = async (userData) => {
     try {
@@ -163,6 +164,58 @@ const login = async (identifier, password, otp) => {
     }
 };
 
+const loginGoogle = async (profile) => {
+    try {
+        const profileData = profile?._json;
+
+        if (!profileData) {
+            logger.error("Invalid profile data received from Google");
+            throw errorHandler(400, "Invalid profile data")
+        }
+
+        // Extract and construct user information from profile data
+        const userInfo = {
+            full_name: getFullName(profileData?.family_name, profileData?.given_name),
+            username: createUsername(profileData?.family_name),
+            email: profileData?.email,
+            password: await passwordUtil.generatePassword(),
+            gender: true,
+            birthday: getBirthdayForAge(18),
+            location: "",
+            isVerify: true,
+        };
+
+        // Check if the user already exists
+        let user = await userModel.findOne({
+            $or: [{email: userInfo.email}, {username: userInfo.username}]
+        });
+
+        if (!user) {
+            // Create a new user if none exists
+            user = new userModel(userInfo);
+            await user.save();
+            logger.info(`User ${userInfo.email} registered successfully`);
+        } else {
+            logger.info(`User ${userInfo.email} already exists. Generating tokens.`);
+        }
+
+        // Generate and store tokens for the user
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+
+        await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 20); // 20 minutes
+        await redisClient.set(`refreshToken:${user._id}`, refreshToken, "EX", 60 * 60 * 24 * 7); // 7 days
+
+        logger.info(`User ${userInfo.email} logged in successfully`);
+
+        return {accessToken, refreshToken};
+
+    } catch (error) {
+        logger.error(`Login error for profile ${profile}: ${error.message}`);
+        throw error;
+    }
+};
+
 
 const refreshToken = async (refreshToken) => {
     try {
@@ -249,7 +302,7 @@ const confirmEmail = async (token) => {
 const changePassword = async (userId, oldPassword, newPassword) => {
     try {
         // Validate the input passwords
-        const { error } = ChangePasswordValidation({ oldPassword, newPassword });
+        const {error} = ChangePasswordValidation({oldPassword, newPassword});
         if (error) {
             logger.error(`Change password validation error: ${error.message}`);
             throw errorHandler(400, error.message);
@@ -278,7 +331,7 @@ const changePassword = async (userId, oldPassword, newPassword) => {
 
         // Log success and return a success message
         logger.info(`Password changed successfully for user: ${user.email}`);
-        return { message: "Password changed successfully" };
+        return {message: "Password changed successfully"};
     } catch (error) {
         // Log the error and rethrow it for further handling
         logger.error(`Error changing password for user: ${userId} - ${error.message}`);
@@ -290,21 +343,21 @@ const changePassword = async (userId, oldPassword, newPassword) => {
 const forgotPassword = async (email) => {
     try {
         // Validate the email address
-        const { error } = forgotPasswordValidation({ email });
+        const {error} = forgotPasswordValidation({email});
         if (error) {
             logger.error(`Forgot password validation error: ${error.message}`);
             throw errorHandler(400, error.message);
         }
 
         // Find the user by email
-        const user = await userModel.findOne({ email });
+        const user = await userModel.findOne({email});
         if (!user) {
             logger.error(`User not found: ${email}`);
             throw errorHandler(400, `User with email ${email} not found`);
         }
 
         // Generate TOTP secret and token
-        const { secret, token } = generateTotpSecret();
+        const {secret, token} = generateTotpSecret();
 
         // Store the secret in Redis for later verification
         await redisClient.set(`forgotPassword:${user._id}`, secret);
@@ -329,14 +382,14 @@ const forgotPassword = async (email) => {
 const resetPassword = async (email, otp, newPassword) => {
     try {
         // Validate input parameters
-        const { error } = resetPasswordValidation({ email, otp, newPassword });
+        const {error} = resetPasswordValidation({email, otp, newPassword});
         if (error) {
             logger.error(`Reset password validation error: ${error.message}`);
             throw errorHandler(400, error.message);
         }
 
         // Find the user by email
-        const user = await userModel.findOne({ email });
+        const user = await userModel.findOne({email});
         if (!user) {
             logger.error(`User not found: ${email}`);
             throw errorHandler(400, `User with email ${email} not found`);
@@ -365,7 +418,7 @@ const resetPassword = async (email, otp, newPassword) => {
         await redisClient.del(`forgotPassword:${user._id}`);
 
         logger.info(`Password successfully changed for user: ${email}`);
-        return { message: 'Password changed successfully' };
+        return {message: 'Password changed successfully'};
     } catch (error) {
         // Log the error and rethrow it for further handling
         logger.error(`Error resetting password for ${email}: ${error.message}`);
@@ -384,7 +437,7 @@ const get2faQRCodeForUser = async (userId) => {
         }
 
         // Generate 2FA secret and OTP URL
-        const { secret, otp_url } = enable2FA();
+        const {secret, otp_url} = enable2FA();
 
         // Store the 2FA secret in Redis
         await redisClient.set(`2faSecret:${userId}`, secret);
@@ -394,7 +447,7 @@ const get2faQRCodeForUser = async (userId) => {
         await user.save();
 
         // Return the OTP URL for QR code generation
-        return { otp_url };
+        return {otp_url};
 
     } catch (error) {
         // Log the error and rethrow it for further handling
@@ -421,7 +474,7 @@ const disable2FA = async (userId) => {
         await redisClient.del(`2faSecret:${userId}`);
 
         // Return success message
-        return { message: "2FA disabled successfully" };
+        return {message: "2FA disabled successfully"};
 
     } catch (error) {
         // Log the error and rethrow it for further handling
@@ -429,7 +482,6 @@ const disable2FA = async (userId) => {
         throw error;
     }
 };
-
 
 
 module.exports = {
@@ -441,5 +493,6 @@ module.exports = {
     forgotPassword,
     resetPassword,
     get2faQRCodeForUser,
-    disable2FA
+    disable2FA,
+    loginGoogle
 };

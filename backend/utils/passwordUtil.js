@@ -23,3 +23,10 @@ exports.comparePassword = async (password, hash) => {
         throw new Error("Compare password error: ", error.message);
     }
 };
+
+// Generate password
+exports.generatePassword = async () => {
+    const salt = await bcrypt.genSalt(10);
+    return salt + "Lingua_Password";
+}
+
