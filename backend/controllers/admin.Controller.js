@@ -55,4 +55,23 @@ const unlockUserByIdController = async (req, res, next) => {
     }
 }
 
-module.exports = {getAllUsersController, getUserByIdController, lockUserByIdController, unlockUserByIdController}
+const searchAccountController = async (req, res, next) => {
+    try {
+        const { key } = req.query;
+        if (!key) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Search term is required',
+            });
+        }
+        res.status(200).json({
+            status: 'success',
+            message: 'User retrieved successfully',
+            data: key,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = {getAllUsersController, getUserByIdController, lockUserByIdController, unlockUserByIdController, searchAccountController}

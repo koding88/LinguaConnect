@@ -12,7 +12,7 @@ const verifyToken = async (req, res, next) => {
         req.role = decoded.role;
         next();
     } catch (error) {
-        logger.error("Verify token error: ", error.message);
+        logger.error("Verify token error: ", error);
         return res.status(401).json({ message: "Unauthorized" });
     }
 };
@@ -24,7 +24,7 @@ const isAdmin = async (req, res, next) => {
         }
         next();
     } catch (error) {
-        logger.error("Check admin error: ", error.message);
+        logger.error("Check admin error: ", error);
         return res.status(500).json({ message: "Internal server error. Please try again later." });
     }
 };

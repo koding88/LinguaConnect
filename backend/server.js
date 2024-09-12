@@ -34,10 +34,10 @@ app.set("view engine", "ejs");
 
 // Routes v1
 const authRoute = require("./routes/v1/auth.Route");
-const userRoute = require("./routes/v1/user.Route");
+const adminRoute = require("./routes/v1/admin.Route");
 
 app.use("/api/v1/auth", authRoute);
-app.use("/api/v1/users", userRoute);
+app.use("/api/v1/admin", adminRoute);
 
 // Route test login google
 app.get("/", (req, res) => {
