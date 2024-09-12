@@ -1,7 +1,7 @@
 const userModel = require('../models/user.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
-const {IdValidation} = require("../validations/adminValidation");
+const {IdValidation, searchAccountValidation} = require("../validations/adminValidation");
 
 const projection = {_id: 0, password: 0};
 
@@ -86,6 +86,30 @@ const unlockUserById = async (id) => {
     }
 }
 
+const searchAccount = async (key) => {
+    try {
+        const {error} = searchAccountValidation({key});
+        if(error) {
+            logger.error(`Error validating search key: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        const users = await userModel.find({
+            $or: [
+                {email: {$regex: key, $options: 'i'}},
+                {username: {$regex: key, $options: 'i'}},
+                {full_name: {$regex: key, $options: 'i'}}
+            ]
+        }, projection).exec();
+
+        return users;
+
+    } catch (error) {
+        logger.error(`Error searching account: ${error}`);
+        throw error;
+    }
+};
 
 
-module.exports = {getAllUsers, getUserById, lockUserById, unlockUserById}
+
+module.exports = {getAllUsers, getUserById, lockUserById, unlockUserById, searchAccount}

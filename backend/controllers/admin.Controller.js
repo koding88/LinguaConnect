@@ -58,16 +58,11 @@ const unlockUserByIdController = async (req, res, next) => {
 const searchAccountController = async (req, res, next) => {
     try {
         const { key } = req.query;
-        if (!key) {
-            return res.status(400).json({
-                status: 'error',
-                message: 'Search term is required',
-            });
-        }
+        const user = await userService.searchAccount(key);
         res.status(200).json({
             status: 'success',
             message: 'User retrieved successfully',
-            data: key,
+            data: user,
         });
     } catch (error) {
         next(error);
