@@ -6,7 +6,7 @@ const mongoDB = require("./config/db");
 const redis = require("./config/redis");
 const cors = require("cors");
 const passport = require("./config/passport");
-const { redisClient } = require("./config/redis");
+const {redisClient} = require("./config/redis");
 const logger = require("./utils/loggerUtil");
 const errorMiddleware = require("./middlewares/error.Middleware");
 require("dotenv").config();
@@ -24,6 +24,7 @@ const server = http.createServer(app);
 
 // Body parser
 app.use(bodyParser.json());
+app.use(express.urlencoded({extended: false, limit: "50mb"}));
 
 // Passport
 app.use(passport.initialize());
@@ -35,9 +36,11 @@ app.set("view engine", "ejs");
 // Routes v1
 const authRoute = require("./routes/v1/auth.Route");
 const adminRoute = require("./routes/v1/admin.Route");
+const postRoute = require("./routes/v1/post.Route");
 
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/admin", adminRoute);
+app.use("/api/v1/posts", postRoute);
 
 // Route test login google
 app.get("/", (req, res) => {
