@@ -1,7 +1,6 @@
 const userModel = require('../models/user.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
-const {string} = require("joi");
 
 const projection = {_id: 0, password: 0};
 
@@ -16,28 +15,28 @@ const getAllUsers = async () => {
 
 const getUserById = async (id) => {
     try {
-        var user = await userModel.findById(id, projection).exec();
+        const user = await userModel.findById(id, projection).exec();
         if (!user) {
-            throw errorHandler(404, `User ${user?.email} not found`);
+            throw errorHandler(404, `User with ID ${id} not found`);
         }
 
         return user;
     } catch (error) {
-        logger.error(`Error fetching user ${user?.email}:`, error);
+        logger.error(`Error fetching user with ${id}:`, error);
         throw error;
     }
 };
 
 const lockUserById = async (id) => {
     try {
-        var user = await userModel.findById(id).exec();
+        const user = await userModel.findById(id).exec();
 
         if (!user) {
-            throw errorHandler(404, `User ${user?.email} not found`);
+            throw errorHandler(404, `User with ID ${id} not found`);
         }
 
         if(user.status === "block") {
-            throw errorHandler(400, `User ${user?.email} is already locked`);
+            throw errorHandler(400, `User with ID ${id} is already locked`);
         }
 
         user.status = "block";
@@ -45,17 +44,17 @@ const lockUserById = async (id) => {
         return user
 
     } catch (error) {
-        logger.error(`Error locking user ${user?.email}:`, error);
+        logger.error(`Error locking user with ID ${id}:`, error);
         throw error;
     }
 }
 
 const unlockUserById = async (id) => {
     try {
-        var user = await userModel.findById(id).exec();
+        const user = await userModel.findById(id).exec();
 
         if (!user) {
-            throw errorHandler(404, `User ${user?.email} not found`);
+            throw errorHandler(404, `User with ID ${id} not found`);
         }
 
         user.status = "unblock";
@@ -63,7 +62,7 @@ const unlockUserById = async (id) => {
         return user
 
     } catch (error) {
-        logger.error(`Error unlocking user${user?.email}:`, error);
+        logger.error(`Error unlocking user with ID ${id}:`, error);
         throw error;
     }
 }
