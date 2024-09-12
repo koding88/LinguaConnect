@@ -20,11 +20,12 @@ const verifyToken = async (req, res, next) => {
 const isAdmin = async (req, res, next) => {
     try {
         if (req.role !== "admin") {
-            return res.status(403).json({ message: "Forbidden" });
+            return res.status(403).json({ message: "Access denied. Admin privileges are required" });
         }
+        next();
     } catch (error) {
         logger.error("Check admin error: ", error.message);
-        return res.status(403).json({ message: "Forbidden" });
+        return res.status(500).json({ message: "Internal server error. Please try again later." });
     }
 };
 

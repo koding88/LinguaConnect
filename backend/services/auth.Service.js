@@ -115,6 +115,12 @@ const login = async (identifier, password, otp) => {
             throw errorHandler(401, "Account not verified");
         }
 
+        // Check if the user's account is blocked
+        if (user.status === "block") {
+            logger.error(`Account is blocked for user: ${identifier}`);
+            throw errorHandler(401, "Account is blocked");
+        }
+
         // Handle OTP verification if 2FA is enabled
         if (user.isEnable2FA) {
             // Validation OTP 6digits
