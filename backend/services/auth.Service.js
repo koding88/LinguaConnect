@@ -158,7 +158,7 @@ const login = async (identifier, password, otp) => {
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken(user);
 
-        await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 20); // 20 minutes
+        await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 24 * 24); // 1 day
         await redisClient.set(`refreshToken:${user._id}`, refreshToken, "EX", 60 * 60 * 24 * 7); // 7 days
 
         logger.info(`User ${identifier} logged in successfully`);
@@ -209,7 +209,7 @@ const loginGoogle = async (profile) => {
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken(user);
 
-        await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 20); // 20 minutes
+        await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 60 * 24); // 1 day
         await redisClient.set(`refreshToken:${user._id}`, refreshToken, "EX", 60 * 60 * 24 * 7); // 7 days
 
         logger.info(`User ${userInfo.email} logged in successfully`);
@@ -257,7 +257,7 @@ const refreshToken = async (refreshToken) => {
         });
 
         // Update the access token in Redis
-        await redisClient.set(`accessToken:${userId}`, accessToken, "EX", 60 * 20); // 20 minutes
+        await redisClient.set(`accessToken:${userId}`, accessToken, "EX", 60 * 60 * 24); // 1 day
 
         logger.info(`New access token generated for user ID ${userId}`);
 
