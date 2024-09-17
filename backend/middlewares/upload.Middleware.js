@@ -8,7 +8,7 @@ const logger = require("../utils/loggerUtil");
 const getCloudinaryOptions = () => {
     return {
         resource_type: "auto",
-        folder: "images",
+        folder: "uploads",
         transformation: [
             {quality: "auto", fetch_format: "auto"},
         ],
@@ -17,8 +17,6 @@ const getCloudinaryOptions = () => {
 
 exports.uploadImages = (req, res, next) => {
     upload.array("files")(req, res, (err) => {
-        console.log("1")
-        console.log("Err: ", err)
         if (err) return handleMulterError(err, res, upload.limits);
         if (!req.files || req.files.length === 0)
             return res.status(400).json({error: "No files uploaded"});
@@ -37,9 +35,9 @@ exports.uploadImagesToCloudinary = (req, res, next) => {
             return handleMulterError(err, res, upload.limits);
         }
 
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({error: "No files uploaded"});
-        }
+        // if (!req.files || req.files.length === 0) {
+        //     return res.status(400).json({error: "No files uploaded"});
+        // }
 
         try {
             const uploadPromises = req.files.map((file) => {
