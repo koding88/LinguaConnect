@@ -2,7 +2,7 @@ const postModel = require('../models/post.Model');
 const commentModel = require('../models/comment.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
-const {idValidation, PostValidation, updatePostValidation} = require("../validations/postValidation");
+const {postValidation, updatePostValidation, postIdValidation, getPostValidation} = require("../validations/postValidation");
 const {deleteImages} = require("../utils/cloudinaryUtil");
 
 const getAllPosts = async () => {
@@ -34,7 +34,7 @@ const getAllPosts = async () => {
 
 const getOnePost = async (postId) => {
     try {
-        const {error} = idValidation({id: postId});
+        const {error} = getPostValidation({id: postId});
         if (error) {
             throw errorHandler(400, `Validation error: ${error.message}`);
         }
@@ -64,7 +64,7 @@ const createPost = async (userId, postData) => {
         const {content, images} = postData;
 
         // Validate the post data
-        const {error} = PostValidation({id: userId, content});
+        const {error} = postValidation({id: userId, content});
         if (error) {
             throw errorHandler(400, `Validation error: ${error.message}`);
         }
@@ -90,10 +90,10 @@ const createPost = async (userId, postData) => {
 };
 
 
-const updatePost = async (postId, updateData) => {
+const updatePost = async (postId, userId, updateData) => {
     try {
-        // Validate the post ID
-        const {error: idError} = idValidation({id: postId});
+        // Validate the post ID and user ID
+        const {error: idError} = postIdValidation({postId: postId, userId: userId});
         if (idError) {
             throw errorHandler(400, `Validation error: ${idError.message}`);
         }
@@ -104,45 +104,52 @@ const updatePost = async (postId, updateData) => {
             throw errorHandler(404, 'Post not found');
         }
 
-        // Destructure content, urlsToRemove, and newImages from updateData with default values
-        const {content, urlsToRemove = [], newImages = []} = updateData;
+        // Check ownership of the comment
+        if(existingPost.user.toString() !== userId) {
+            throw errorHandler(403, 'You are not allowed to update comment');
+        }
 
-        // Validate the update data
-        const {error: validationError} = updatePostValidation({content, urlsToRemove, newImages});
+        // Destructure content, urls (for removal), and images from updateData
+        const {content, urls, images} = updateData;
+
+        // Validate the update data if necessary
+        const {error: validationError} = updatePostValidation({content: content, urls: urls, images: images});
         if (validationError) {
             throw errorHandler(400, `Validation error: ${validationError.message}`);
         }
 
         // Use existing images from the post
-        let currentImages = existingPost.images;
+        let currentImages = existingPost.images || [];
 
-        // Ensure that all URLs to be removed exist in the current post's images
-        const invalidUrls = urlsToRemove.filter(url => !currentImages.includes(url));
+        // Handle URLs for removal only if urls is provided
+        if (urls && Array.isArray(urls) && urls.length > 0) {
+            const invalidUrls = urls.filter(url => !currentImages.includes(url));
+            if (invalidUrls.length > 0) {
+                throw errorHandler(400, `The following URLs do not exist in this post: ${invalidUrls.join(', ')}`);
+            }
 
-        // If there are any invalid URLs (i.e., they do not exist in the post's images), throw an error
-        if (invalidUrls.length > 0) {
-            throw errorHandler(400, `The following URLs do not exist in this post: ${invalidUrls.join(', ')}`);
-        }
-
-        // If there are URLs to remove, handle image deletion
-        if (urlsToRemove.length > 0) {
-            const {deletedUrls, failedUrls} = await deleteImages(urlsToRemove);
+            // Delete the images
+            const {deletedUrls, failedUrls} = await deleteImages(urls);
             if (failedUrls.length > 0) {
                 throw errorHandler(500, 'Error deleting image');
             }
 
-            // Remove deleted URLs from existing post images
+            // Remove deleted URLs from current images
             currentImages = currentImages.filter(url => !deletedUrls.includes(url));
         }
 
-        // Combine existing images (after deletions) with new images
-        const updatedImages = [...currentImages, ...newImages];
+        // Handle adding new images only if images is provided
+        if (images && Array.isArray(images) && images.length > 0) {
+            currentImages = [...currentImages, ...images];
+        }
 
-        // Update post content and images
+        // Update content if provided
         if (content !== undefined) {
             existingPost.content = content;
         }
-        existingPost.images = updatedImages;
+
+        // Update images
+        existingPost.images = currentImages;
 
         // Save the updated post
         await existingPost.save();
@@ -155,13 +162,12 @@ const updatePost = async (postId, updateData) => {
     }
 };
 
-
-const deletePost = async (postId) => {
+const deletePost = async (postId, userId) => {
     try {
-        // Validate the post ID
-        const {error} = idValidation({id: postId});
-        if (error) {
-            throw errorHandler(400, `Validation error: ${error.message}`);
+        // Validate the post ID and user ID
+        const {error: idError} = postIdValidation({postId, userId});
+        if (idError) {
+            throw errorHandler(400, `Validation error: ${idError.message}`);
         }
 
         // Fetch the post by ID and populate user information
@@ -170,6 +176,11 @@ const deletePost = async (postId) => {
         // Handle case where post is not found
         if (!post) {
             throw errorHandler(404, 'Post not found');
+        }
+
+        // Check ownership of the post
+        if (post.user.toString() !== userId) {
+            throw errorHandler(403, 'You are not allowed to delete post');
         }
 
         // Handle image deletion if the post has images

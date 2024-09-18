@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const PostValidation = (data) => {
+const postValidation = (data) => {
     const schema = Joi.object({
         id: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
             "string.base": "ID must be a string",
@@ -19,14 +19,33 @@ const PostValidation = (data) => {
     return schema.validate(data);
 }
 
-const idValidation = (data) => {
+const getPostValidation = (data) => {
     const schema = Joi.object({
         id: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
             "string.base": "ID must be a string",
             "string.pattern.base": "ID must be a valid MongoDB ObjectId",
             "any.required": "ID is required",
             "string.empty": "ID cannot be empty",
-        })
+        }),
+    });
+
+    return schema.validate(data);
+}
+
+const postIdValidation = (data) => {
+    const schema = Joi.object({
+        postId: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
+            "string.base": "ID must be a string",
+            "string.pattern.base": "ID must be a valid MongoDB ObjectId",
+            "any.required": "ID is required",
+            "string.empty": "ID cannot be empty",
+        }),
+        userId: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
+            "string.base": "ID must be a string",
+            "string.pattern.base": "ID must be a valid MongoDB ObjectId",
+            "any.required": "ID is required",
+            "string.empty": "ID cannot be empty",
+        }),
     });
 
     return schema.validate(data);
@@ -38,7 +57,7 @@ const updatePostValidation = (data) => {
             "string.base": "Content must be a string",
             "string.max": "Content can be up to 63206 characters long",
             "string.empty": "Content cannot be empty",
-        }), 
+        }),
         urls: Joi.array().items(Joi.string().uri().messages({
             'string.uri': `"urls" contains invalid URL`,
             'string.base': `"urls" must be a valid URL string`,
@@ -50,7 +69,7 @@ const updatePostValidation = (data) => {
         })).optional()
     });
 
-    return schema.validate(data, { abortEarly: false });
+    return schema.validate(data, {abortEarly: false});
 }
 
-module.exports = {PostValidation, idValidation, updatePostValidation};
+module.exports = {postValidation, postIdValidation, updatePostValidation, getPostValidation};
