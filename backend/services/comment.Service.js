@@ -58,6 +58,11 @@ const updateComment = async (userId, postId, commentId, commentData) => {
             throw errorHandler(404, 'Post not found');
         }
 
+        // Check ownership of the comment
+        if(post.user.toString() !== userId) {
+            throw errorHandler(403, 'You are not allowed to modify comment');
+        }
+
         // Find the comment
         const comment = await commentModel.findByIdAndUpdate(commentId, commentData, {new: true});
         if (!comment) {
@@ -85,6 +90,11 @@ const deleteComment = async (userId, postId, commentId) => {
         const post = await postModel.findById(postId);
         if (!post) {
             throw errorHandler(404, 'Post not found');
+        }
+
+        // Check ownership of the comment
+        if(post.user.toString() !== userId) {
+            throw errorHandler(403, 'You are not allowed to delete comment');
         }
 
         // Find the comment
