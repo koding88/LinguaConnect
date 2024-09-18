@@ -78,9 +78,6 @@ const updatePostController = async (req, res, next) => {
     }
 };
 
-
-
-
 const deletePostController = async (req, res, next) => {
     try {
         const userId = req.userId;
@@ -96,10 +93,26 @@ const deletePostController = async (req, res, next) => {
     }
 }
 
+const likePostController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const postId = req.params.id;
+        await postService.likePost(postId, userId);
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Post liked successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     getAllPostsController,
     getPostByIdController,
     createPostController,
     updatePostController,
-    deletePostController
+    deletePostController,
+    likePostController
 }

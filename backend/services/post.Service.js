@@ -209,5 +209,43 @@ const deletePost = async (postId, userId) => {
     }
 };
 
+const likePost = async (postId, userId) => {
+    try {
+        // Validate the post ID and user ID
+        const {error: idError} = postIdValidation({postId, userId});
+        if (idError) {
+            throw errorHandler(400, `Validation error: ${idError.message}`);
+        }
 
-module.exports = {getAllPosts, getOnePost, createPost, updatePost, deletePost}
+        // Fetch the post by ID
+        const post = await postModel.findById(postId);
+
+        // Handle case where post is not found
+        if (!post) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Check if the user has already liked the post
+        const hasLiked = post.likes.includes(userId);
+        if (hasLiked) {
+            // Remove like if the user has already liked the post
+            post.likes.pull(userId);
+        } else {
+            // Add like
+            post.likes.push(userId);
+        }
+
+        // Save the updated post
+        await post.save();
+
+        return {message: 'Post liked successfully'};
+
+    } catch (error) {
+        // Log and rethrow the error
+        logger.error(`Error liking post: ${error.message}`);
+        throw error;
+    }
+}
+
+
+module.exports = {getAllPosts, getOnePost, createPost, updatePost, deletePost, likePost}

@@ -9,5 +9,6 @@ router.post("/", verifyToken, uploadImagesToCloudinary, postController.createPos
 router.get("/:id", verifyToken, postController.getPostByIdController);
 router.patch("/:id", verifyToken, uploadImagesToCloudinary, postController.updatePostController);
 router.delete("/:id", verifyToken, postController.deletePostController);
+router.patch("/:id/like", verifyToken, postController.likePostController);
 
 module.exports = router;
