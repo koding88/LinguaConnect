@@ -238,6 +238,9 @@ const likePost = async (postId, userId) => {
         // Save the updated post
         await post.save();
 
+        // Log successful like
+        logger.info(`User ${userId} liked post ${postId} successfully`);
+
         return {message: 'Post liked successfully'};
 
     } catch (error) {
