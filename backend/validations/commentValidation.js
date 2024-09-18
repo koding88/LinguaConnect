@@ -58,7 +58,7 @@ const updateCommentValidation = (data) => {
     return schema.validate(data);
 }
 
-const deleteCommentValidation = (data) => {
+const likeAndDeleteCommentValidation = (data) => {
     const schema = Joi.object({
         userId: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
             "string.base": "ID must be a string",
@@ -83,4 +83,4 @@ const deleteCommentValidation = (data) => {
     return schema.validate(data);
 }
 
-module.exports = {createCommentValidation, updateCommentValidation, deleteCommentValidation};
+module.exports = {createCommentValidation, updateCommentValidation, likeAndDeleteCommentValidation};

@@ -2,7 +2,11 @@ const postModel = require('../models/post.Model');
 const commentModel = require('../models/comment.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
-const {createCommentValidation, updateCommentValidation, deleteCommentValidation} = require("../validations/commentValidation");
+const {
+    createCommentValidation,
+    updateCommentValidation,
+    likeAndDeleteCommentValidation
+} = require("../validations/commentValidation");
 
 const createComment = async (userId, postId, commentData) => {
     try {
@@ -47,7 +51,12 @@ const createComment = async (userId, postId, commentData) => {
 const updateComment = async (userId, postId, commentId, commentData) => {
     try {
         // Validate the comment data
-        const {error} = updateCommentValidation({userId: userId, postId: postId, commentId: commentId, content: commentData.content});
+        const {error} = updateCommentValidation({
+            userId: userId,
+            postId: postId,
+            commentId: commentId,
+            content: commentData.content
+        });
         if (error) {
             throw errorHandler(400, `Validation error: ${error.message}`);
         }
@@ -59,7 +68,7 @@ const updateComment = async (userId, postId, commentId, commentData) => {
         }
 
         // Check ownership of the comment
-        if(post.user.toString() !== userId) {
+        if (post.user.toString() !== userId) {
             throw errorHandler(403, 'You are not allowed to modify comment');
         }
 
@@ -81,7 +90,7 @@ const updateComment = async (userId, postId, commentId, commentData) => {
 const deleteComment = async (userId, postId, commentId) => {
     try {
         // Validate the comment data
-        const {error} = deleteCommentValidation({userId: userId, postId: postId, commentId: commentId});
+        const {error} = likeAndDeleteCommentValidation({userId: userId, postId: postId, commentId: commentId});
         if (error) {
             throw errorHandler(400, `Validation error: ${error.message}`);
         }
@@ -93,7 +102,7 @@ const deleteComment = async (userId, postId, commentId) => {
         }
 
         // Check ownership of the comment
-        if(post.user.toString() !== userId) {
+        if (post.user.toString() !== userId) {
             throw errorHandler(403, 'You are not allowed to delete comment');
         }
 
@@ -116,7 +125,48 @@ const deleteComment = async (userId, postId, commentId) => {
     }
 }
 
+const likeComment = async (userId, postId, commentId) => {
+    try {
+        // Validate the comment data
+        const {error} = likeAndDeleteCommentValidation({userId: userId, postId: postId, commentId: commentId});
+        if (error) {
+            throw errorHandler(400, `Validation error: ${error.message}`);
+        }
+
+        // Find the post
+        const post = await postModel.findById(postId);
+        if (!post) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Find the comment
+        const comment = await commentModel.findById(commentId);
+        if (!comment) {
+            throw errorHandler(404, 'Comment not found');
+        }
+
+        // Check if the user has already liked the comment
+        const hashComment = comment.likes.includes(userId);
+        if (hashComment) {
+            // Remove like if the user has already liked the post
+            comment.likes.pull(userId);
+        } else {
+            // Add like
+            comment.likes.push(userId);
+        }
+
+        await comment.save();
+
+        logger.info(`User ${userId} liked comment in ${postId} successfully`);
+        return {message: 'Comment liked successfully'};
+    } catch (error) {
+        // Log the error and rethrow it
+        logger.error(`Error liking comment: ${error.message}`);
+        throw error;
+    }
+}
+
 module.exports = {
-    createComment, updateComment, deleteComment
+    createComment, updateComment, deleteComment, likeComment
 };
 

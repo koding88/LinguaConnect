@@ -9,5 +9,6 @@ router.post("/:id", verifyToken, commentController.createCommentController);
 // router.get("/:id", verifyToken, commentController.getCommentByIdController);
 router.patch("/:id", verifyToken, commentController.updateCommentController);
 router.delete("/:id", verifyToken, commentController.deleteCommentController);
+router.patch("/:id/like", verifyToken, commentController.likeCommentController);
 
 module.exports = router;

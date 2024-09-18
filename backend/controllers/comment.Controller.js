@@ -53,8 +53,26 @@ const deleteCommentController = async (req, res, next) => {
     }
 }
 
+const likeCommentController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const commentId = req.params.id;
+        const {postId} = req.body;
+
+        await commentService.likeComment(userId, postId, commentId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Comment liked successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     createCommentController,
     updateCommentController,
-    deleteCommentController
+    deleteCommentController,
+    likeCommentController
 }
