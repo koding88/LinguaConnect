@@ -1,4 +1,5 @@
 const postModel = require('../models/post.Model');
+const commentModel = require('../models/comment.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
 const {idValidation, PostValidation, updatePostValidation} = require("../validations/postValidation");
@@ -9,7 +10,13 @@ const getAllPosts = async () => {
         // Retrieve all posts and populate user information
         const posts = await postModel.find()
             .populate('user', 'username full_name')
-            .exec();
+            .populate({
+                path: 'comments',
+                populate: {
+                    path: 'user',
+                    select: 'username full_name'
+                }
+            })
 
         if (!posts) {
             throw errorHandler(404, 'No posts found');
@@ -86,7 +93,7 @@ const createPost = async (userId, postData) => {
 const updatePost = async (postId, updateData) => {
     try {
         // Validate the post ID
-        const { error: idError } = idValidation({ id: postId });
+        const {error: idError} = idValidation({id: postId});
         if (idError) {
             throw errorHandler(400, `Validation error: ${idError.message}`);
         }
@@ -98,10 +105,10 @@ const updatePost = async (postId, updateData) => {
         }
 
         // Destructure content, urlsToRemove, and newImages from updateData with default values
-        const { content, urlsToRemove = [], newImages = [] } = updateData;
+        const {content, urlsToRemove = [], newImages = []} = updateData;
 
         // Validate the update data
-        const { error: validationError } = updatePostValidation({ content, urlsToRemove, newImages });
+        const {error: validationError} = updatePostValidation({content, urlsToRemove, newImages});
         if (validationError) {
             throw errorHandler(400, `Validation error: ${validationError.message}`);
         }
@@ -119,7 +126,7 @@ const updatePost = async (postId, updateData) => {
 
         // If there are URLs to remove, handle image deletion
         if (urlsToRemove.length > 0) {
-            const { deletedUrls, failedUrls } = await deleteImages(urlsToRemove);
+            const {deletedUrls, failedUrls} = await deleteImages(urlsToRemove);
             if (failedUrls.length > 0) {
                 throw errorHandler(500, 'Error deleting image');
             }
@@ -149,9 +156,6 @@ const updatePost = async (postId, updateData) => {
 };
 
 
-
-
-
 const deletePost = async (postId) => {
     try {
         // Validate the post ID
@@ -161,7 +165,7 @@ const deletePost = async (postId) => {
         }
 
         // Fetch the post by ID and populate user information
-        const post = await postModel.findById(postId).populate('user', 'username full_name').exec();
+        const post = await postModel.findById(postId)
 
         // Handle case where post is not found
         if (!post) {
@@ -175,6 +179,9 @@ const deletePost = async (postId) => {
                 throw errorHandler(500, 'Error deleting image');
             }
         }
+
+        // Delete comment references from the post
+        await commentModel.deleteMany({post: postId}).exec();
 
         // Delete the post from the database
         await postModel.findByIdAndDelete(postId).exec();
