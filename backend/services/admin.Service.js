@@ -3,7 +3,7 @@ const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
 const {IdValidation, searchAccountValidation} = require("../validations/adminValidation");
 
-const projection = {_id: 0, password: 0};
+const projection = {password: 0};
 
 const getAllUsers = async () => {
     try {

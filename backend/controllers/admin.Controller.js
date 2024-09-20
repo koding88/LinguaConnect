@@ -1,8 +1,8 @@
-const userService = require('../services/user.Service');
+const adminService = require('../services/admin.Service');
 
 const getAllUsersController = async (req, res, next) => {
     try {
-        const users = await userService.getAllUsers();
+        const users = await adminService.getAllUsers();
         res.status(200).json({
             status: 'success',
             message: 'Users retrieved successfully',
@@ -16,7 +16,7 @@ const getAllUsersController = async (req, res, next) => {
 const getUserByIdController = async (req, res, next) => {
     try {
         const {id} = req.params;
-        const user = await userService.getUserById(id);
+        const user = await adminService.getUserById(id);
         res.status(200).json({
             status: 'success',
             message: 'User retrieved successfully',
@@ -30,7 +30,7 @@ const getUserByIdController = async (req, res, next) => {
 const lockUserByIdController = async (req, res, next) => {
     try {
         const {id} = req.params;
-        const user = await userService.lockUserById(id);
+        const user = await adminService.lockUserById(id);
         res.status(200).json({
             status: 'success',
             message: 'User locked successfully',
@@ -44,7 +44,7 @@ const lockUserByIdController = async (req, res, next) => {
 const unlockUserByIdController = async (req, res, next) => {
     try {
         const {id} = req.params;
-        const user = await userService.unlockUserById(id);
+        const user = await adminService.unlockUserById(id);
         res.status(200).json({
             status: 'success',
             message: 'User unlocked successfully',
@@ -58,7 +58,7 @@ const unlockUserByIdController = async (req, res, next) => {
 const searchAccountController = async (req, res, next) => {
     try {
         const { key } = req.query;
-        const user = await userService.searchAccount(key);
+        const user = await adminService.searchAccount(key);
         res.status(200).json({
             status: 'success',
             message: 'User retrieved successfully',
