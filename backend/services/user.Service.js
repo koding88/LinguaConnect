@@ -2,6 +2,30 @@ const userModel = require('../models/user.Model');
 const logger = require('../utils/loggerUtil')
 const errorHandler = require('../utils/errorUtil');
 
+var projection = {password: 0, status: 0, role: 0};
+
+const getUser = async (userId, userInfo) => {
+    try {
+        if(!(userId === userInfo)) {
+            projection = {email: 0, password: 0, role: 0, status: 0, isVerify: 0, isEnable2FA: 0}
+        }
+
+        const user = await userModel.findById(userInfo, projection)
+            .populate('followers', 'username full_name')
+            .populate('following', 'username full_name')
+            .exec();
+        if (!user) {
+            throw errorHandler(404, 'User not found');
+        }
+
+        return user;
+
+    } catch (error) {
+        logger.error(`Error getting user: ${error.message}`);
+        throw error;
+    }
+}
+
 const followUser = async (follower, following) => {
     try {
         if (follower === following) {
@@ -38,5 +62,6 @@ const followUser = async (follower, following) => {
 
 
 module.exports = {
-    followUser
+    followUser,
+    getUser
 }
