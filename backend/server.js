@@ -38,11 +38,13 @@ const authRoute = require("./routes/v1/auth.Route");
 const adminRoute = require("./routes/v1/admin.Route");
 const postRoute = require("./routes/v1/post.Route");
 const commentRoute = require("./routes/v1/comment.Route");
+const userRoute = require("./routes/v1/user.Route");
 
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/posts", postRoute);
 app.use("/api/v1/comments", commentRoute);
+app.use("/api/v1/users", userRoute);
 
 // Route test login google
 app.get("/", (req, res) => {
