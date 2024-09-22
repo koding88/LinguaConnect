@@ -5,10 +5,12 @@ const errorHandler = require('../utils/errorUtil');
 const {postValidation, updatePostValidation, postIdValidation, getPostValidation} = require("../validations/postValidation");
 const {deleteImages} = require("../utils/cloudinaryUtil");
 
+let projection = {group: 0}
+
 const getAllPosts = async () => {
     try {
         // Retrieve all posts and populate user information
-        const posts = await postModel.find()
+        const posts = await postModel.find({}, projection)
             .populate('user', 'username full_name')
             .populate({
                 path: 'comments',
@@ -40,7 +42,7 @@ const getOnePost = async (postId) => {
         }
 
         // Find the post by ID and populate user information
-        const post = await postModel.findById(postId)
+        const post = await postModel.findById(postId, projection)
             .populate('user', 'username full_name')
             .exec();
 
