@@ -102,7 +102,7 @@ const removeGroupMemberController = async (req, res, next) => {
     try {
         const userId = req.userId;
         const groupId = req.params.id;
-        const memberId = req.body;
+        const {memberId} = req.body;
 
         await groupService.removeGroupMember(groupId, userId, memberId);
 
