@@ -2,6 +2,13 @@ const groupModel = require('../models/group.Model');
 const userModel = require('../models/user.Model');
 const errorHandler = require('../utils/errorUtil');
 const logger = require('../utils/loggerUtil');
+const {
+    idValidation,
+    createGroupValidation,
+    updateGroupValidation,
+    deleteGroupValidation,
+    removeGroupMemberValidation, joinGroupValidation, leaveGroupValidation
+} = require("../validations/groupValidation");
 
 const getAllGroups = async () => {
     try {
@@ -24,6 +31,11 @@ const getAllGroups = async () => {
 
 const getOneGroup = async (groupId) => {
     try {
+        const {error} = idValidation({id: groupId});
+        if (error) {
+            throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        }
+
         const group = await groupModel.findOne({_id: groupId})
             .populate('owner', 'username full_name')
             .populate('members', 'username full_name')
@@ -45,7 +57,13 @@ const createGroup = async (groupData) => {
         // Destructure the input data
         const {name, description, userId: ownerId} = groupData;
 
-        // Validate the owner
+        // Validate the input data
+        const {error} = createGroupValidation({name, description, userId: ownerId});
+        if (error) {
+            throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        }
+
+        // Check if the owner exists
         const owner = await userModel.findById(ownerId);
         if (!owner) {
             throw errorHandler(404, 'Owner not found');
@@ -77,7 +95,18 @@ const createGroup = async (groupData) => {
 
 const updateGroup = async (groupId, ownerId, groupData) => {
     try {
-        // Validate the owner
+        // Validate the group ID
+        const {error: groupError} = idValidation({id: groupId});
+        if (groupError) {
+            throw errorHandler(400, `Invalid validation error: ${groupError.message}`);
+        }
+        // Validate the ownerId
+        const {error: ownerError} = idValidation({id: ownerId});
+        if (ownerError) {
+            throw errorHandler(400, `Invalid validation error: ${ownerError.message}`);
+        }
+
+        // Check if the owner exists
         const owner = await userModel.findById(ownerId);
         if (!owner) {
             throw errorHandler(404, 'Owner not found');
@@ -91,6 +120,12 @@ const updateGroup = async (groupId, ownerId, groupData) => {
 
         // Destructure the new group data
         const {name, description} = groupData;
+
+        // Validate the new group data
+        const {error} = updateGroupValidation({name, description});
+        if (error) {
+            throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        }
 
         // Check for an existing group with the same name
         const existingGroup = await groupModel.findOne({name});
@@ -115,10 +150,22 @@ const updateGroup = async (groupId, ownerId, groupData) => {
 
 const deleteGroup = async (groupId, ownerId) => {
     try {
-        // Validate the owner
+        // Validate the group ID and owner ID
+        const {error: groupError} = deleteGroupValidation({userId: ownerId, groupId});
+        if (groupError) {
+            throw errorHandler(400, `Invalid validation error: ${groupError.message}`);
+        }
+
+        // Check if the owner exists
         const owner = await userModel.findById(ownerId);
         if (!owner) {
             throw errorHandler(404, 'Owner not found');
+        }
+
+        // Check if the group exists
+        const groupExists = await groupModel.findById(groupId);
+        if (!groupExists) {
+            throw errorHandler(404, 'Group not found');
         }
 
         // Check if the owner has permission to delete the group
@@ -139,6 +186,12 @@ const deleteGroup = async (groupId, ownerId) => {
 
 const limitGroupMembers = async (groupId, userId, maxMembers) => {
     try {
+        // Validate the group ID and owner ID
+        const {error} = deleteGroupValidation({userId, groupId, maxMembers});
+        if (error) {
+            throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        }
+
         // Check if the group exists
         const group = await groupModel.findById(groupId);
         if (!group) {
@@ -169,6 +222,12 @@ const limitGroupMembers = async (groupId, userId, maxMembers) => {
 
 const removeGroupMember = async (groupId, ownerId, memberId) => {
     try {
+        // Validate the group ID, owner ID, and member ID
+        const {error} = removeGroupMemberValidation({userId: ownerId, groupId, memberId});
+        if (error) {
+            throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        }
+
         // Check if the group exists
         const group = await groupModel.findById(groupId);
         if (!group) {
@@ -182,7 +241,7 @@ const removeGroupMember = async (groupId, ownerId, memberId) => {
         }
 
         // Verify the owner has permission to remove a member
-        const ownerOfGroup = await groupModel.findOne({ _id: groupId, owner: ownerId });
+        const ownerOfGroup = await groupModel.findOne({_id: groupId, owner: ownerId});
         if (!ownerOfGroup) {
             throw errorHandler(403, 'Access denied');
         }
@@ -193,16 +252,22 @@ const removeGroupMember = async (groupId, ownerId, memberId) => {
             throw errorHandler(404, 'Member not found');
         }
 
+        // Check owner == member
+        const isOwner = await groupModel.findOne({_id: groupId, owner: memberId});
+        if (isOwner) {
+            throw errorHandler(403, 'Owner cannot be removed from group');
+        }
+
         // Check if the member is part of the group
-        const isMemberOfGroup = await groupModel.findOne({ _id: groupId, members: memberId });
+        const isMemberOfGroup = await groupModel.findOne({_id: groupId, members: memberId});
         if (!isMemberOfGroup) {
             throw errorHandler(409, 'Member is not a member of the group');
         }
 
         // Remove the member from the group
-        await groupModel.updateOne({ _id: groupId }, { $pull: { members: memberId } });
+        await groupModel.updateOne({_id: groupId}, {$pull: {members: memberId}});
 
-        return { message: 'Member removed successfully' };
+        return {message: 'Member removed successfully'};
     } catch (error) {
         logger.error(`Error removing member: ${error.message}`);
         throw error;
@@ -210,9 +275,14 @@ const removeGroupMember = async (groupId, ownerId, memberId) => {
 };
 
 
-
 const joinGroup = async (groupId, userId) => {
     try {
+        // Validate the group ID and user ID
+        const {error} = joinGroupValidation({userId, groupId});
+        if (error) {
+            throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        }
+
         // Validate the user
         const user = await userModel.findById(userId);
         if (!user) {
@@ -249,7 +319,13 @@ const joinGroup = async (groupId, userId) => {
 
 const leaveGroup = async (groupId, userId) => {
     try {
-        // Validate the user
+        // Validate the group ID and user ID
+        const {error} = leaveGroupValidation({userId, groupId});
+        if (error) {
+            throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        }
+
+        // Check if the user exists
         const user = await userModel.findById(userId);
         if (!user) {
             throw errorHandler(404, 'User not found');
