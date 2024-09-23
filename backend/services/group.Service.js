@@ -1,7 +1,9 @@
 const groupModel = require('../models/group.Model');
 const userModel = require('../models/user.Model');
+const postModel = require('../models/post.Model');
 const errorHandler = require('../utils/errorUtil');
 const logger = require('../utils/loggerUtil');
+const { deleteImages } = require("../utils/cloudinaryUtil");
 const {
     idValidation,
     createGroupValidation,
@@ -353,6 +355,278 @@ const leaveGroup = async (groupId, userId) => {
     }
 };
 
+const getAllPostsInGroup = async (groupId, userId) => {
+    try {
+        // Validate groupId
+        const { error } = idValidation({ id: groupId });
+        if (error) {
+            throw errorHandler(400, `Invalid group ID: ${error.message}`);
+        }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({ _id: groupId });
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        const posts = await postModel.find({ group: groupId });
+        
+        if (posts.length === 0) {
+            return { posts: [] };
+        }
+
+        logger.info(`Successfully retrieved ${posts.length} posts in group ${groupId}`);
+
+        return { posts };
+    } catch (error) {
+        logger.error(`Error getting all posts in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const createPostInGroup = async (groupId, userId, postData) => {
+    try {
+        // Destructure the post data
+        const { content, images } = postData;
+
+        // Validate the group ID and user ID
+        // const {error} = createPostInGroupValidation({userId, groupId, content});
+        // if (error) {
+        //     throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        // }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({ _id: groupId });
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        // Create a new post
+        const newPost = new postModel({
+            content, 
+            images,
+            user: userId,
+            group: groupId
+        });
+
+        // Save the new post to the database
+        await newPost.save();
+
+        logger.info(`Successfully ${userId} created post in group ${groupId}`);
+
+        return newPost;
+    } catch (error) {
+        logger.error(`Error creating post in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const updatePostInGroup = async (groupId, userId, postId, postData) => {
+    try{
+        // Validate groupId, userId, postId
+        // const {error: idError} = postIdInGroupValidation({groupId, userId, postId});
+        // if (idError) {
+        //     throw errorHandler(400, `Invalid group ID: ${idError.message}`);
+        // }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({ _id: groupId });
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        // Check if the post exists
+        const existingPost = await postModel.findOne({ _id: postId });
+        if (!existingPost) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Check if the user is the owner of the post
+        if (existingPost.user.toString() !== userId) {
+            throw errorHandler(403, 'User is not the owner of the post');
+        }
+
+        // Destructure content, urls (for removal), and images from postData
+        const { content, urls, images } = postData;
+
+        // Validate the update data if necessary
+        // const { error: validationError } = updatePostValidation({ content: content, urls: urls, images: images });
+        // if (validationError) {
+        //     throw errorHandler(400, `Validation error: ${validationError.message}`);
+        // }
+
+        // Use existing images from the post
+        let currentImages = existingPost.images || [];
+
+        // Handle URLs for removal only if urls is provided
+        if (urls && Array.isArray(urls) && urls.length > 0) {
+            const invalidUrls = urls.filter(url => !currentImages.includes(url));
+            if (invalidUrls.length > 0) {
+                throw errorHandler(400, `The following URLs do not exist in this post: ${invalidUrls.join(', ')}`);
+            }
+
+            // Delete the images
+            const { deletedUrls, failedUrls } = await deleteImages(urls);
+            if (failedUrls.length > 0) {
+                throw errorHandler(500, 'Error deleting image');
+            }
+
+            // Remove deleted URLs from current images
+            currentImages = currentImages.filter(url => !deletedUrls.includes(url));
+        }
+
+        // Handle adding new images only if images is provided
+        if (images && Array.isArray(images) && images.length > 0) {
+            currentImages = [...currentImages, ...images];
+        }
+
+        // Update content if provided
+        if (content !== undefined) {
+            existingPost.content = content;
+        }
+
+        // Update images
+        existingPost.images = currentImages;
+
+        // Save the updated post
+        await existingPost.save();
+
+        logger.info(`Successfully ${userId} updated post in group ${groupId}`);
+
+        return existingPost;
+
+
+    }catch(error){
+        logger.error(`Error updating post in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const deletePostInGroup = async (groupId, userId, postId) => {
+    try{
+        // Validate groupId, userId, postId
+        // const {error: idError} = postIdInGroupValidation({groupId, userId, postId});
+        // if (idError) {
+        //     throw errorHandler(400, `Invalid group ID: ${idError.message}`);
+        // }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({ _id: groupId });
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        // Check if the post exists
+        const existingPost = await postModel.findOne({ _id: postId });
+        if (!existingPost) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Check if the user is the owner of the post
+        if (existingPost.user.toString() !== userId) {
+            throw errorHandler(403, 'User is not the owner of the post');
+        }
+
+        // Handle image deletion if the post has images
+        if (existingPost.images.length > 0) {
+            const { deletedUrls, failedUrls } = await deleteImages(post.images);
+            if (failedUrls.length > 0) {
+                throw errorHandler(500, 'Error deleting image');
+            }
+        } 
+
+        // Delete comment references from the post
+        await commentModel.deleteMany({post: postId}).exec();
+
+        // Delete the post
+        await postModel.findByIdAndDelete(postId).exec();
+
+        // Log successful deletion
+        logger.info(`${existingPost.user?.username || 'Unknown user'} deleted post successfully`);
+
+        return { message: 'Post deleted successfully' };
+
+    }catch(error){
+        logger.error(`Error deleting post in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const likePostInGroup = async (groupId, userId, postId) => {
+    try{
+        // Validate groupId, userId, postId
+        // const {error: idError} = postIdInGroupValidation({groupId, userId, postId});
+        // if (idError) {
+        //     throw errorHandler(400, `Invalid group ID: ${idError.message}`);
+        // }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({ _id: groupId });
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        // Check if the post exists
+        const existingPost = await postModel.findOne({ _id: postId });
+        if (!existingPost) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Check if the post belongs to a group
+        if (existingPost.group === null) {
+            throw errorHandler(409, 'This post does not belong to any group');
+        }
+
+        // Check if the post belongs to the specified group
+        if (existingPost.group.toString() !== groupId) {
+            throw errorHandler(409, 'Post does not belong to the specified group');
+        }
+        
+        // Check if the user has already liked the post
+        const hasLiked = existingPost.likes.includes(userId);
+        
+        if (hasLiked) {
+            // Remove like if the user has already liked the post
+            existingPost.likes.pull(userId);
+        } else {
+            // Add like
+            existingPost.likes.push(userId);
+        }
+
+        // Save the updated post
+        await existingPost.save();
+
+        logger.info(`Successfully ${userId} liked post in group ${groupId}`);
+
+        return { message: 'Post liked successfully' };
+        
+    }catch(error){
+        logger.error(`Error liking post in group: ${error.message}`);
+        throw error;
+    }
+}
+
+
 module.exports = {
     getAllGroups,
     getOneGroup,
@@ -363,4 +637,9 @@ module.exports = {
     removeGroupMember,
     joinGroup,
     leaveGroup,
+    getAllPostsInGroup,
+    createPostInGroup,
+    updatePostInGroup,
+    deletePostInGroup,
+    likePostInGroup
 }

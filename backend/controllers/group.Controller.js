@@ -32,9 +32,9 @@ const getGroupByIdController = async (req, res, next) => {
 const createGroupController = async (req, res, next) => {
     try {
         const userId = req.userId;
-        const {name, description} = req.body;
+        const { name, description } = req.body;
 
-        const group = await groupService.createGroup({name, description, userId});
+        const group = await groupService.createGroup({ name, description, userId });
 
         res.status(201).json({
             status: 'success',
@@ -50,9 +50,9 @@ const updateGroupController = async (req, res, next) => {
     try {
         const userId = req.userId;
         const groupId = req.params.id;
-        const {name, description} = req.body;
+        const { name, description } = req.body;
 
-        const group = await groupService.updateGroup(groupId, userId, {name, description});
+        const group = await groupService.updateGroup(groupId, userId, { name, description });
 
         res.status(200).json({
             status: 'success',
@@ -84,7 +84,7 @@ const limitGroupMembersController = async (req, res, next) => {
     try {
         const userId = req.userId;
         const groupId = req.params.id;
-        const {maxMembers} = req.body;
+        const { maxMembers } = req.body;
 
         const group = await groupService.limitGroupMembers(groupId, userId, maxMembers);
 
@@ -102,7 +102,7 @@ const removeGroupMemberController = async (req, res, next) => {
     try {
         const userId = req.userId;
         const groupId = req.params.id;
-        const {memberId} = req.body;
+        const { memberId } = req.body;
 
         await groupService.removeGroupMember(groupId, userId, memberId);
 
@@ -147,6 +147,106 @@ const leaveGroupController = async (req, res, next) => {
     }
 }
 
+const getAllPostsInGroupController = async (req, res, next) => {
+    try {
+        const groupId = req.params.id;
+        const userId = req.userId;
+        const posts = await groupService.getAllPostsInGroup(groupId, userId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Posts fetched successfully',
+            data: posts,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const createPostInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const { content } = req.body;
+        const images = req.fileUrls;
+
+        const post = await groupService.createPostInGroup(groupId, userId, { content, images });
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Post created successfully',
+            data: post,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const updatePostInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+        const { content, urls } = req.body;
+
+        // Initialize images to an empty array if not provided
+        const images = req.fileUrls || [];
+
+        // Ensure urls is always an array and filter out any undefined values
+        const normalizedUrls = Array.isArray(urls) ? urls.filter(url => url) : [urls].filter(url => url);
+
+        const postData = {
+            ...(content !== undefined && { content }),
+            ...(normalizedUrls.length > 0 && { urls: normalizedUrls }),
+            ...(images.length > 0 && { images }),
+        };
+
+        const post = await groupService.updatePostInGroup(groupId, userId, postId, postData);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Post updated successfully',
+            data: post,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const deletePostInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+
+        await groupService.deletePostInGroup(groupId, userId, postId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Post deleted successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const likePostInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+
+        await groupService.likePostInGroup(groupId, userId, postId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Post liked successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     getAllGroupsController,
     getGroupByIdController,
@@ -156,5 +256,10 @@ module.exports = {
     limitGroupMembersController,
     removeGroupMemberController,
     joinGroupController,
-    leaveGroupController
+    leaveGroupController,
+    getAllPostsInGroupController,
+    createPostInGroupController,
+    updatePostInGroupController,
+    deletePostInGroupController,
+    likePostInGroupController
 }
