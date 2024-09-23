@@ -247,6 +247,82 @@ const likePostInGroupController = async (req, res, next) => {
     }
 }
 
+const createCommentInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+        const { content } = req.body;
+
+        const comment = await groupService.createCommentInGroup(groupId, userId, postId, { content });
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Comment created successfully',
+            data: comment,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const updateCommentInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+        const commentId = req.params.commentId;
+        const { content } = req.body;
+        
+        const comment = await groupService.updateCommentInGroup(groupId, userId, postId, commentId, { content });
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Comment updated successfully',
+            data: comment,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const deleteCommentInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+        const commentId = req.params.commentId;
+        
+        await groupService.deleteCommentInGroup(groupId, userId, postId, commentId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Comment deleted successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const likeCommentInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+        const commentId = req.params.commentId;
+        
+        await groupService.likeCommentInGroup(groupId, userId, postId, commentId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Comment liked successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+}  
+
+
 module.exports = {
     getAllGroupsController,
     getGroupByIdController,
@@ -261,5 +337,9 @@ module.exports = {
     createPostInGroupController,
     updatePostInGroupController,
     deletePostInGroupController,
-    likePostInGroupController
+    likePostInGroupController,
+    createCommentInGroupController,
+    updateCommentInGroupController,
+    deleteCommentInGroupController,
+    likeCommentInGroupController
 }

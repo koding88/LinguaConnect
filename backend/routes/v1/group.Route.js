@@ -21,4 +21,10 @@ router.patch('/:id/posts/:postId', verifyToken, uploadImagesToCloudinary, groupC
 router.delete('/:id/posts/:postId', verifyToken, groupController.deletePostInGroupController);
 router.patch('/:id/posts/:postId/like', verifyToken, groupController.likePostInGroupController);
 
+// Comment in group
+router.post('/:id/posts/:postId/comments', verifyToken, groupController.createCommentInGroupController);
+router.patch('/:id/posts/:postId/comments/:commentId', verifyToken, groupController.updateCommentInGroupController);
+router.delete('/:id/posts/:postId/comments/:commentId', verifyToken, groupController.deleteCommentInGroupController);
+router.patch('/:id/posts/:postId/comments/:commentId/like', verifyToken, groupController.likeCommentInGroupController);
+
 module.exports = router;

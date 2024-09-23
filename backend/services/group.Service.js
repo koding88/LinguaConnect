@@ -1,15 +1,22 @@
 const groupModel = require('../models/group.Model');
 const userModel = require('../models/user.Model');
 const postModel = require('../models/post.Model');
+const commentModel = require('../models/comment.Model');
 const errorHandler = require('../utils/errorUtil');
 const logger = require('../utils/loggerUtil');
-const { deleteImages } = require("../utils/cloudinaryUtil");
+const {deleteImages} = require("../utils/cloudinaryUtil");
 const {
-    idValidation,
+    getOneGroupValidation,
     createGroupValidation,
     updateGroupValidation,
     deleteGroupValidation,
-    removeGroupMemberValidation, joinGroupValidation, leaveGroupValidation
+    removeGroupMemberValidation,
+    joinGroupValidation,
+    leaveGroupValidation,
+    getAllPostsInGroupValidation, createPostInGroupValidation, postInGroupValidation, updatePostInGroupValidation,
+    commentInGroupValidation,
+    updateCommentInGroupValidation,
+    likeAndDeleteCommentInGroupValidation
 } = require("../validations/groupValidation");
 
 const getAllGroups = async () => {
@@ -33,7 +40,7 @@ const getAllGroups = async () => {
 
 const getOneGroup = async (groupId) => {
     try {
-        const {error} = idValidation({id: groupId});
+        const {error} = getOneGroupValidation({groupId});
         if (error) {
             throw errorHandler(400, `Invalid validation error: ${error.message}`);
         }
@@ -358,13 +365,13 @@ const leaveGroup = async (groupId, userId) => {
 const getAllPostsInGroup = async (groupId, userId) => {
     try {
         // Validate groupId
-        const { error } = idValidation({ id: groupId });
+        const {error} = getAllPostsInGroupValidation({groupId});
         if (error) {
             throw errorHandler(400, `Invalid group ID: ${error.message}`);
         }
 
         // Check if the user is a member of the group or the owner
-        const group = await groupModel.findOne({ _id: groupId });
+        const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
         }
@@ -373,15 +380,15 @@ const getAllPostsInGroup = async (groupId, userId) => {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
 
-        const posts = await postModel.find({ group: groupId });
-        
+        const posts = await postModel.find({group: groupId});
+
         if (posts.length === 0) {
-            return { posts: [] };
+            return {posts: []};
         }
 
         logger.info(`Successfully retrieved ${posts.length} posts in group ${groupId}`);
 
-        return { posts };
+        return {posts};
     } catch (error) {
         logger.error(`Error getting all posts in group: ${error.message}`);
         throw error;
@@ -391,16 +398,16 @@ const getAllPostsInGroup = async (groupId, userId) => {
 const createPostInGroup = async (groupId, userId, postData) => {
     try {
         // Destructure the post data
-        const { content, images } = postData;
+        const {content, images} = postData;
 
         // Validate the group ID and user ID
-        // const {error} = createPostInGroupValidation({userId, groupId, content});
-        // if (error) {
-        //     throw errorHandler(400, `Invalid validation error: ${error.message}`);
-        // }
+        const {error} = createPostInGroupValidation({userId, groupId, content});
+        if (error) {
+            throw errorHandler(400, `Invalid validation error: ${error.message}`);
+        }
 
         // Check if the user is a member of the group or the owner
-        const group = await groupModel.findOne({ _id: groupId });
+        const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
         }
@@ -411,7 +418,7 @@ const createPostInGroup = async (groupId, userId, postData) => {
 
         // Create a new post
         const newPost = new postModel({
-            content, 
+            content,
             images,
             user: userId,
             group: groupId
@@ -430,15 +437,15 @@ const createPostInGroup = async (groupId, userId, postData) => {
 }
 
 const updatePostInGroup = async (groupId, userId, postId, postData) => {
-    try{
+    try {
         // Validate groupId, userId, postId
-        // const {error: idError} = postIdInGroupValidation({groupId, userId, postId});
-        // if (idError) {
-        //     throw errorHandler(400, `Invalid group ID: ${idError.message}`);
-        // }
+        const {error: idError} = postInGroupValidation({groupId: groupId, userId: userId, postId: postId});
+        if (idError) {
+            throw errorHandler(400, `Invalid group ID: ${idError.message}`);
+        }
 
         // Check if the user is a member of the group or the owner
-        const group = await groupModel.findOne({ _id: groupId });
+        const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
         }
@@ -448,7 +455,7 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({ _id: postId });
+        const existingPost = await postModel.findOne({_id: postId});
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }
@@ -459,13 +466,13 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
         }
 
         // Destructure content, urls (for removal), and images from postData
-        const { content, urls, images } = postData;
+        const {content, urls, images} = postData;
 
         // Validate the update data if necessary
-        // const { error: validationError } = updatePostValidation({ content: content, urls: urls, images: images });
-        // if (validationError) {
-        //     throw errorHandler(400, `Validation error: ${validationError.message}`);
-        // }
+        const {error: validationError} = updatePostInGroupValidation({content: content, urls: urls, images: images});
+        if (validationError) {
+            throw errorHandler(400, `Validation error: ${validationError.message}`);
+        }
 
         // Use existing images from the post
         let currentImages = existingPost.images || [];
@@ -478,7 +485,7 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
             }
 
             // Delete the images
-            const { deletedUrls, failedUrls } = await deleteImages(urls);
+            const {deletedUrls, failedUrls} = await deleteImages(urls);
             if (failedUrls.length > 0) {
                 throw errorHandler(500, 'Error deleting image');
             }
@@ -507,23 +514,22 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
 
         return existingPost;
 
-
-    }catch(error){
+    } catch (error) {
         logger.error(`Error updating post in group: ${error.message}`);
         throw error;
     }
 }
 
 const deletePostInGroup = async (groupId, userId, postId) => {
-    try{
+    try {
         // Validate groupId, userId, postId
-        // const {error: idError} = postIdInGroupValidation({groupId, userId, postId});
-        // if (idError) {
-        //     throw errorHandler(400, `Invalid group ID: ${idError.message}`);
-        // }
+        const {error: idError} = postInGroupValidation({groupId: groupId, userId: userId, postId: postId});
+        if (idError) {
+            throw errorHandler(400, `Invalid group ID: ${idError.message}`);
+        }
 
         // Check if the user is a member of the group or the owner
-        const group = await groupModel.findOne({ _id: groupId });
+        const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
         }
@@ -533,7 +539,7 @@ const deletePostInGroup = async (groupId, userId, postId) => {
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({ _id: postId });
+        const existingPost = await postModel.findOne({_id: postId});
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }
@@ -545,11 +551,11 @@ const deletePostInGroup = async (groupId, userId, postId) => {
 
         // Handle image deletion if the post has images
         if (existingPost.images.length > 0) {
-            const { deletedUrls, failedUrls } = await deleteImages(post.images);
+            const {deletedUrls, failedUrls} = await deleteImages(post.images);
             if (failedUrls.length > 0) {
                 throw errorHandler(500, 'Error deleting image');
             }
-        } 
+        }
 
         // Delete comment references from the post
         await commentModel.deleteMany({post: postId}).exec();
@@ -560,24 +566,24 @@ const deletePostInGroup = async (groupId, userId, postId) => {
         // Log successful deletion
         logger.info(`${existingPost.user?.username || 'Unknown user'} deleted post successfully`);
 
-        return { message: 'Post deleted successfully' };
+        return {message: 'Post deleted successfully'};
 
-    }catch(error){
+    } catch (error) {
         logger.error(`Error deleting post in group: ${error.message}`);
         throw error;
     }
 }
 
 const likePostInGroup = async (groupId, userId, postId) => {
-    try{
+    try {
         // Validate groupId, userId, postId
-        // const {error: idError} = postIdInGroupValidation({groupId, userId, postId});
-        // if (idError) {
-        //     throw errorHandler(400, `Invalid group ID: ${idError.message}`);
-        // }
+        const {error: idError} = postInGroupValidation({groupId: groupId, userId: userId, postId: postId});
+        if (idError) {
+            throw errorHandler(400, `Validation error: ${idError.message}`);
+        }
 
         // Check if the user is a member of the group or the owner
-        const group = await groupModel.findOne({ _id: groupId });
+        const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
         }
@@ -587,7 +593,7 @@ const likePostInGroup = async (groupId, userId, postId) => {
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({ _id: postId });
+        const existingPost = await postModel.findOne({_id: postId});
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }
@@ -601,10 +607,10 @@ const likePostInGroup = async (groupId, userId, postId) => {
         if (existingPost.group.toString() !== groupId) {
             throw errorHandler(409, 'Post does not belong to the specified group');
         }
-        
+
         // Check if the user has already liked the post
         const hasLiked = existingPost.likes.includes(userId);
-        
+
         if (hasLiked) {
             // Remove like if the user has already liked the post
             existingPost.likes.pull(userId);
@@ -618,10 +624,224 @@ const likePostInGroup = async (groupId, userId, postId) => {
 
         logger.info(`Successfully ${userId} liked post in group ${groupId}`);
 
-        return { message: 'Post liked successfully' };
-        
-    }catch(error){
+        return {message: 'Post liked successfully'};
+
+    } catch (error) {
         logger.error(`Error liking post in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const createCommentInGroup = async (groupId, userId, postId, commentData) => {
+    try {
+        // Validate groupId, userId, postId
+        const { error } = commentInGroupValidation({groupId: groupId, userId: userId, postId: postId, content: commentData.content});
+        if (error) {
+            throw errorHandler(400, `Validation error: ${error.message}`);
+        }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({_id: groupId});
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        // Check if the post exists
+        const existingPost = await postModel.findOne({_id: postId});
+        if (!existingPost) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Check if the post belongs to a group
+        if (existingPost.group === null) {
+            throw errorHandler(409, 'This post does not belong to any group');
+        }
+
+        // Check if the post belongs to the specified group
+        if (existingPost.group.toString() !== groupId) {
+            throw errorHandler(409, 'Post does not belong to the specified group');
+        }
+
+        // Create a new comment
+        const newComment = new commentModel({
+            content: commentData.content,
+            user: userId,
+            post: postId,   
+            postOwner: existingPost.user    
+        });
+
+        // Save the new comment
+        await newComment.save();
+
+        // Add the comment to the post
+        existingPost.comments.push(newComment._id);
+
+        // Save the updated post
+        await existingPost.save();
+
+        logger.info(`Successfully ${userId} created comment in group ${groupId}`);
+
+        return newComment;
+
+            
+    } catch (error) {
+        logger.error(`Error creating comment in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const updateCommentInGroup = async (groupId, userId, postId, commentId, commentData) => {
+    try {
+        // Validate groupId, userId, postId, commentId
+        const { error: idError } = updateCommentInGroupValidation({groupId: groupId, userId: userId, postId: postId, commentId: commentId, content: commentData.content});
+        if (idError) {
+            throw errorHandler(400, `Invalid group ID: ${idError.message}`);
+        }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({_id: groupId});
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        // Check if the post exists
+        const existingPost = await postModel.findOne({_id: postId});
+        if (!existingPost) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Check if the comment exists
+        const existingComment = await commentModel.findOne({_id: commentId});
+        if (!existingComment) {
+            throw errorHandler(404, 'Comment not found');
+        }
+
+        // Check if the user is the owner of the comment
+        if (existingComment.user.toString() !== userId) {
+            throw errorHandler(403, 'User is not the owner of the comment');
+        }
+    
+        // Update the comment content
+        existingComment.content = commentData.content;
+
+        // Save the updated comment
+        await existingComment.save();
+
+        logger.info(`Successfully ${userId} updated comment in group ${groupId}`);
+
+        return existingComment;
+    } catch (error) {
+        logger.error(`Error updating comment in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const deleteCommentInGroup = async (groupId, userId, postId, commentId) => {
+    try {
+        // Validate groupId, userId, postId, commentId
+        const { error: idError } = likeAndDeleteCommentInGroupValidation({groupId: groupId, userId: userId, postId: postId, commentId: commentId});
+        if (idError) {
+            throw errorHandler(400, `Invalid group ID: ${idError.message}`);
+        }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({_id: groupId});
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        // Check if the post exists
+        const existingPost = await postModel.findOne({_id: postId});
+        if (!existingPost) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Check if the comment exists
+        const existingComment = await commentModel.findOne({_id: commentId});
+        if (!existingComment) {
+            throw errorHandler(404, 'Comment not found');
+        }
+
+        // Check if the user is the owner of the comment
+        if (existingComment.user.toString() !== userId) {
+            throw errorHandler(403, 'User is not the owner of the comment');
+        }
+        
+        // Delete the comment
+        await commentModel.findByIdAndDelete(commentId);
+
+        logger.info(`Successfully ${userId} deleted comment in group ${groupId}`);
+
+        return {message: 'Comment deleted successfully'};
+    } catch (error) {
+        logger.error(`Error deleting comment in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const likeCommentInGroup = async (groupId, userId, postId, commentId) => {
+    try {
+        // Validate groupId, userId, postId, commentId
+        const { error: idError } = likeAndDeleteCommentInGroupValidation({groupId: groupId, userId: userId, postId: postId, commentId: commentId});
+        if (idError) {
+            throw errorHandler(400, `Invalid group ID: ${idError.message}`);
+        }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({_id: groupId});
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        // Check if the post exists
+        const existingPost = await postModel.findOne({_id: postId});
+        if (!existingPost) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        // Check if the comment exists
+        const existingComment = await commentModel.findOne({_id: commentId});
+        if (!existingComment) {
+            throw errorHandler(404, 'Comment not found');
+        }
+
+        // Check if the user has already liked the comment
+        const hasLiked = existingComment.likes.includes(userId);
+
+        if (hasLiked) {
+            // Remove like if the user has already liked the comment
+            existingComment.likes.pull(userId);
+        } else {
+            // Add like
+            existingComment.likes.push(userId);
+        }
+
+        // Save the updated comment
+        await existingComment.save();
+
+        logger.info(`Successfully ${userId} liked comment in group ${groupId}`);
+
+        return {message: 'Comment liked successfully'};
+        
+        
+    } catch (error) {
+        logger.error(`Error liking comment in group: ${error.message}`);
         throw error;
     }
 }
@@ -641,5 +861,9 @@ module.exports = {
     createPostInGroup,
     updatePostInGroup,
     deletePostInGroup,
-    likePostInGroup
+    likePostInGroup,
+    createCommentInGroup,
+    updateCommentInGroup,
+    deleteCommentInGroup,
+    likeCommentInGroup
 }
