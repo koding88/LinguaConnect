@@ -1,18 +1,12 @@
 const Joi = require('joi');
 
+const { objectIdValidation, createFieldMessages } = require("../utils/validationUtil");
+
 const postValidation = (data) => {
     const schema = Joi.object({
-        id: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
-            "string.base": "ID must be a string",
-            "string.pattern.base": "ID must be a valid MongoDB ObjectId",
-            "any.required": "ID is required",
-            "string.empty": "ID cannot be empty",
-        }),
+        id: objectIdValidation(),
         content: Joi.string().max(63206).required().messages({
-            "string.base": "Content must be a string",
-            "string.max": "Content can be up to 63206 characters long",
-            "any.required": "Content is required",
-            "string.empty": "Content cannot be empty",
+            ...createFieldMessages('content', 63206),
         })
     });
 
@@ -21,12 +15,7 @@ const postValidation = (data) => {
 
 const getPostValidation = (data) => {
     const schema = Joi.object({
-        id: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
-            "string.base": "ID must be a string",
-            "string.pattern.base": "ID must be a valid MongoDB ObjectId",
-            "any.required": "ID is required",
-            "string.empty": "ID cannot be empty",
-        }),
+        id: objectIdValidation()
     });
 
     return schema.validate(data);
@@ -34,18 +23,8 @@ const getPostValidation = (data) => {
 
 const postIdValidation = (data) => {
     const schema = Joi.object({
-        postId: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
-            "string.base": "ID must be a string",
-            "string.pattern.base": "ID must be a valid MongoDB ObjectId",
-            "any.required": "ID is required",
-            "string.empty": "ID cannot be empty",
-        }),
-        userId: Joi.string().pattern(new RegExp("^[0-9a-fA-F]{24}$")).required().messages({
-            "string.base": "ID must be a string",
-            "string.pattern.base": "ID must be a valid MongoDB ObjectId",
-            "any.required": "ID is required",
-            "string.empty": "ID cannot be empty",
-        }),
+        postId: objectIdValidation(),
+        userId: objectIdValidation()
     });
 
     return schema.validate(data);
@@ -54,9 +33,7 @@ const postIdValidation = (data) => {
 const updatePostValidation = (data) => {
     const schema = Joi.object({
         content: Joi.string().max(63206).allow('').messages({
-            "string.base": "Content must be a string",
-            "string.max": "Content can be up to 63206 characters long",
-            "string.empty": "Content cannot be empty",
+            ...createFieldMessages('content', 63206),
         }),
         urls: Joi.array().items(Joi.string().uri().messages({
             'string.uri': `"urls" contains invalid URL`,
@@ -69,7 +46,7 @@ const updatePostValidation = (data) => {
         })).optional()
     });
 
-    return schema.validate(data, {abortEarly: false});
+    return schema.validate(data, {abortEarly: false}); 
 }
 
 module.exports = {postValidation, postIdValidation, updatePostValidation, getPostValidation};

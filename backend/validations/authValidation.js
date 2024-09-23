@@ -1,20 +1,14 @@
 const Joi = require("joi");
 
+const { objectIdValidation, createFieldMessages } = require("../utils/validationUtil");
+
 const registerValidation = (data) => {
     const schema = Joi.object({
         full_name: Joi.string().min(5).max(50).required().messages({
-            "string.base": "Full name must be a string.",
-            "string.min": "Full name must be at least 5 characters long.",
-            "string.max": "Full name can be up to 50 characters long.",
-            "any.required": "Full name is required.",
-            "string.empty": "Full name cannot be empty",
+            ...createFieldMessages('full_name', 50),
         }),
         username: Joi.string().min(3).max(50).required().messages({
-            "string.base": "Username must be a string",
-            "string.min": "Username must be at least 3 characters long",
-            "string.max": "Username can be up to 50 characters long",
-            "any.required": "Username is required",
-            "string.empty": "Username cannot be empty",
+            ...createFieldMessages('username', 50),
         }),
         avatarUrl: Joi.string().uri().messages({
             "string.base": "Avatar URL must be a string",
@@ -68,9 +62,7 @@ const registerValidation = (data) => {
                 }
             }),
         location: Joi.string().required().messages({
-            "string.base": "Location must be a string",
-            "any.required": "Location is required",
-            "string.empty": "Location cannot be empty",
+            ...createFieldMessages('location', 50),
         }),
     });
     return schema.validate(data);
