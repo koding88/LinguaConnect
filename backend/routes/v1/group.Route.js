@@ -16,6 +16,7 @@ router.post('/leave/:id', verifyToken, groupController.leaveGroupController);
 
 // Post in group
 router.get('/:id/posts', verifyToken, groupController.getAllPostsInGroupController);
+router.get('/:id/posts/:postId', verifyToken, groupController.getPostInGroupController);
 router.post('/:id/posts', verifyToken, uploadImagesToCloudinary, groupController.createPostInGroupController);
 router.patch('/:id/posts/:postId', verifyToken, uploadImagesToCloudinary, groupController.updatePostInGroupController);
 router.delete('/:id/posts/:postId', verifyToken, groupController.deletePostInGroupController);

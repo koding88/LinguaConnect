@@ -6,6 +6,7 @@ const errorHandler = require('../utils/errorUtil');
 const logger = require('../utils/loggerUtil');
 const {deleteImages} = require("../utils/cloudinaryUtil");
 const {
+    idValidation,
     getOneGroupValidation,
     createGroupValidation,
     updateGroupValidation,
@@ -380,7 +381,10 @@ const getAllPostsInGroup = async (groupId, userId) => {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
 
-        const posts = await postModel.find({group: groupId});
+        const posts = await postModel.find({group: groupId})
+            .populate('user', 'username full_name')
+            .populate('likes', 'username full_name')
+            .populate('comments', 'content user')
 
         if (posts.length === 0) {
             return {posts: []};
@@ -391,6 +395,46 @@ const getAllPostsInGroup = async (groupId, userId) => {
         return {posts};
     } catch (error) {
         logger.error(`Error getting all posts in group: ${error.message}`);
+        throw error;
+    }
+}
+
+const getPostInGroup = async (groupId, postId, userId) => {
+    try {
+        // Validate groupId, postId, userId
+        const {error} = postInGroupValidation({groupId: groupId, postId: postId, userId: userId});
+        if (error) {
+            throw errorHandler(400, `Invalid group ID: ${error.message}`);
+        }
+
+        // Check if the user is a member of the group or the owner
+        const group = await groupModel.findOne({_id: groupId});
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        if (group.owner.toString() !== userId && !group.members.includes(userId)) {
+            throw errorHandler(409, 'User is neither the owner nor a member of the group');
+        }
+
+        const post = await postModel.findOne({_id: postId})
+            .populate('user', 'username full_name')
+            .populate('likes', 'username full_name')
+            .populate('comments', 'content user')
+        if (!post) {
+            throw errorHandler(404, 'Post not found');
+        }
+
+        console.log(post.group.toString())
+        console.log(groupId)
+        if (post.group.toString() !== groupId) {
+            throw errorHandler(409, 'Post does not belong to the specified group');
+        }
+
+        logger.info(`Successfully retrieved post ${postId} in group ${groupId}`);
+        return post;
+    } catch (error) {
+        logger.error(`Error getting post in group: ${error.message}`);
         throw error;
     }
 }
@@ -858,6 +902,7 @@ module.exports = {
     joinGroup,
     leaveGroup,
     getAllPostsInGroup,
+    getPostInGroup,
     createPostInGroup,
     updatePostInGroup,
     deletePostInGroup,

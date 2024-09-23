@@ -2,6 +2,14 @@ const Joi = require('joi');
 
 const { objectIdValidation, createFieldMessages } = require("../utils/validationUtil");
 
+const idValidation = (data) => {
+    const schema = Joi.object({
+        id: objectIdValidation()
+    });
+
+    return schema.validate(data);
+}
+
 const getOneGroupValidation = (data) => {
     const schema = Joi.object({
         groupId: objectIdValidation()
@@ -189,7 +197,7 @@ const likeAndDeleteCommentInGroupValidation = (data) => {
 
 // Export all validation functions
 module.exports = {
-    objectIdValidation,
+    idValidation,
     getOneGroupValidation,
     createGroupValidation,
     updateGroupValidation,

@@ -163,6 +163,24 @@ const getAllPostsInGroupController = async (req, res, next) => {
     }
 }
 
+const getPostInGroupController = async (req, res, next) => {
+    try {
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+        const userId = req.userId;
+
+        const post = await groupService.getPostInGroup(groupId, postId, userId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Post fetched successfully',
+            data: post,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 const createPostInGroupController = async (req, res, next) => {
     try {
         const userId = req.userId;
@@ -334,6 +352,7 @@ module.exports = {
     joinGroupController,
     leaveGroupController,
     getAllPostsInGroupController,
+    getPostInGroupController,
     createPostInGroupController,
     updatePostInGroupController,
     deletePostInGroupController,
