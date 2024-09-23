@@ -156,6 +156,8 @@ const updatePost = async (postId, userId, updateData) => {
         // Save the updated post
         await existingPost.save();
 
+        logger.info(`Successfully ${userId} updated post ${postId}`);
+
         return existingPost;
 
     } catch (error) {
