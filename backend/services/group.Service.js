@@ -425,8 +425,6 @@ const getPostInGroup = async (groupId, postId, userId) => {
             throw errorHandler(404, 'Post not found');
         }
 
-        console.log(post.group.toString())
-        console.log(groupId)
         if (post.group.toString() !== groupId) {
             throw errorHandler(409, 'Post does not belong to the specified group');
         }
@@ -470,6 +468,9 @@ const createPostInGroup = async (groupId, userId, postData) => {
 
         // Save the new post to the database
         await newPost.save();
+
+        // Add the post to the group
+        await groupModel.updateOne({_id: groupId}, {$push: {posts: newPost._id}});
 
         logger.info(`Successfully ${userId} created post in group ${groupId}`);
 
@@ -554,6 +555,9 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
         // Save the updated post
         await existingPost.save();
 
+        // Update the group with the new post
+        await groupModel.updateOne({_id: groupId}, {$push: {posts: existingPost._id}});
+
         logger.info(`Successfully ${userId} updated post in group ${groupId}`);
 
         return existingPost;
@@ -595,17 +599,20 @@ const deletePostInGroup = async (groupId, userId, postId) => {
 
         // Handle image deletion if the post has images
         if (existingPost.images.length > 0) {
-            const {deletedUrls, failedUrls} = await deleteImages(post.images);
+                const { deletedUrls, failedUrls } = await deleteImages(existingPost.images);
             if (failedUrls.length > 0) {
                 throw errorHandler(500, 'Error deleting image');
             }
         }
 
         // Delete comment references from the post
-        await commentModel.deleteMany({post: postId}).exec();
+        await commentModel.deleteMany({ post: postId }).exec();
 
         // Delete the post
         await postModel.findByIdAndDelete(postId).exec();
+
+        // Remove the post from the group
+        await groupModel.updateOne({ _id: groupId }, { $pull: { posts: postId } });
 
         // Log successful deletion
         logger.info(`${existingPost.user?.username || 'Unknown user'} deleted post successfully`);
@@ -724,6 +731,9 @@ const createCommentInGroup = async (groupId, userId, postId, commentData) => {
         // Add the comment to the post
         existingPost.comments.push(newComment._id);
 
+        // Update the group with the new comment
+        await groupModel.updateOne({_id: groupId}, {$push: {comments: newComment._id}});
+
         // Save the updated post
         await existingPost.save();
 
@@ -776,6 +786,9 @@ const updateCommentInGroup = async (groupId, userId, postId, commentId, commentD
         // Update the comment content
         existingComment.content = commentData.content;
 
+        // Update the group with the new comment
+        await groupModel.updateOne({_id: groupId}, {$push: {comments: existingComment._id}});
+
         // Save the updated comment
         await existingComment.save();
 
@@ -822,7 +835,13 @@ const deleteCommentInGroup = async (groupId, userId, postId, commentId) => {
         if (existingComment.user.toString() !== userId) {
             throw errorHandler(403, 'User is not the owner of the comment');
         }
-        
+
+        // Remove the comment from the post
+        existingPost.comments.pull(commentId);
+
+        // Update the group with the new comment
+        await groupModel.updateOne({_id: groupId}, {$pull: {comments: commentId}});
+
         // Delete the comment
         await commentModel.findByIdAndDelete(commentId);
 
@@ -882,8 +901,6 @@ const likeCommentInGroup = async (groupId, userId, postId, commentId) => {
         logger.info(`Successfully ${userId} liked comment in group ${groupId}`);
 
         return {message: 'Comment liked successfully'};
-        
-        
     } catch (error) {
         logger.error(`Error liking comment in group: ${error.message}`);
         throw error;
