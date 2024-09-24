@@ -28,7 +28,7 @@ const postSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["public", "private"],
+        enum: ["public", "hidden"],
         default: "public",
     },
     group: {

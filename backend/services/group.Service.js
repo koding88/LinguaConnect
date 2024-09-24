@@ -202,6 +202,12 @@ const deleteGroup = async (groupId, ownerId) => {
             throw errorHandler(404, 'Group is blocked');
         }
 
+        // Delete all posts in the group
+        await postModel.deleteMany({group: groupId});
+
+        // Delete all comments in the group
+        await commentModel.deleteMany({group: groupId});
+
         // Delete the group
         await groupModel.deleteOne({_id: groupId});
 
@@ -438,7 +444,7 @@ const getAllPostsInGroup = async (groupId, userId) => {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
 
-        const posts = await postModel.find({group: groupId})
+        const posts = await postModel.find({group: groupId, status: 'public'})
             .populate('user', 'username full_name')
             .populate('likes', 'username full_name')
             .populate('comments', 'content user')
@@ -480,7 +486,7 @@ const getPostInGroup = async (groupId, postId, userId) => {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
 
-        const post = await postModel.findOne({_id: postId})
+        const post = await postModel.findOne({_id: postId, status: 'public', group: groupId})
             .populate('user', 'username full_name')
             .populate('likes', 'username full_name')
             .populate('comments', 'content user')
@@ -575,7 +581,11 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({_id: postId});
+        const existingPost = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: groupId
+        });
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }
@@ -668,7 +678,11 @@ const deletePostInGroup = async (groupId, userId, postId) => {
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({_id: postId});
+        const existingPost = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: groupId
+        });
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }
@@ -731,7 +745,7 @@ const likePostInGroup = async (groupId, userId, postId) => {
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({_id: postId});
+        const existingPost = await postModel.findOne({_id: postId, status: 'public', group: groupId});
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }
@@ -795,7 +809,7 @@ const createCommentInGroup = async (groupId, userId, postId, commentData) => {
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({_id: postId});
+        const existingPost = await postModel.findOne({_id: postId, status: 'public', group: groupId});
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }
@@ -867,7 +881,11 @@ const updateCommentInGroup = async (groupId, userId, postId, commentId, commentD
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({_id: postId});
+        const existingPost = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: groupId
+        });
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }
@@ -985,7 +1003,7 @@ const likeCommentInGroup = async (groupId, userId, postId, commentId) => {
         }
 
         // Check if the post exists
-        const existingPost = await postModel.findOne({_id: postId});
+        const existingPost = await postModel.findOne({_id: postId, status: 'public', group: groupId});
         if (!existingPost) {
             throw errorHandler(404, 'Post not found');
         }

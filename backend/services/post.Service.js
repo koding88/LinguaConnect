@@ -2,15 +2,15 @@ const postModel = require('../models/post.Model');
 const commentModel = require('../models/comment.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
-const {postValidation, updatePostValidation, postIdValidation, getPostValidation} = require("../validations/postValidation");
-const {deleteImages} = require("../utils/cloudinaryUtil");
+const { postValidation, updatePostValidation, postIdValidation, getPostValidation } = require("../validations/postValidation");
+const { deleteImages } = require("../utils/cloudinaryUtil");
 
-let projection = {group: 0}
+let projection = { group: 0 }
 
 const getAllPosts = async () => {
     try {
-        // Retrieve all posts and populate user information
-        const posts = await postModel.find({}, projection)
+        // Retrieve all public posts and populate user information
+        const posts = await postModel.find({ status: 'public', group: null }, projection)
             .populate('user', 'username full_name')
             .populate({
                 path: 'comments',
@@ -20,15 +20,15 @@ const getAllPosts = async () => {
                 }
             })
 
-        if (!posts) {
-            throw errorHandler(404, 'No posts found');
+        if (!posts || posts.length === 0) {
+            throw errorHandler(404, 'No public posts found');
         }
 
-        logger.info(`Successfully retrieved ${posts.length} posts`);
+        logger.info(`Successfully retrieved ${posts.length} public posts`);
         return posts;
     } catch (error) {
         // Log and rethrow the error
-        logger.error(`Error getting all posts: ${error.message}`);
+        logger.error(`Error getting public posts: ${error.message}`);
         throw error
     }
 };
@@ -36,13 +36,17 @@ const getAllPosts = async () => {
 
 const getOnePost = async (postId) => {
     try {
-        const {error} = getPostValidation({id: postId});
+        const { error } = getPostValidation({ id: postId });
         if (error) {
             throw errorHandler(400, `Validation error: ${error.message}`);
         }
 
         // Find the post by ID and populate user information
-        const post = await postModel.findById(postId, projection)
+        const post = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        }, projection)
             .populate('user', 'username full_name')
             .exec();
 
@@ -63,10 +67,10 @@ const getOnePost = async (postId) => {
 const createPost = async (userId, postData) => {
     try {
         // Destructure content from postData
-        const {content, images} = postData;
+        const { content, images } = postData;
 
         // Validate the post data
-        const {error} = postValidation({id: userId, content});
+        const { error } = postValidation({ id: userId, content });
         if (error) {
             throw errorHandler(400, `Validation error: ${error.message}`);
         }
@@ -95,7 +99,7 @@ const createPost = async (userId, postData) => {
 const updatePost = async (postId, userId, updateData) => {
     try {
         // Validate the post ID and user ID
-        const {error: idError} = postIdValidation({postId: postId, userId: userId});
+        const { error: idError } = postIdValidation({ postId: postId, userId: userId });
         if (idError) {
             throw errorHandler(400, `Validation error: ${idError.message}`);
         }
@@ -107,15 +111,15 @@ const updatePost = async (postId, userId, updateData) => {
         }
 
         // Check ownership of the comment
-        if(existingPost.user.toString() !== userId) {
+        if (existingPost.user.toString() !== userId) {
             throw errorHandler(403, 'You are not allowed to update comment');
         }
 
         // Destructure content, urls (for removal), and images from updateData
-        const {content, urls, images} = updateData;
+        const { content, urls, images } = updateData;
 
         // Validate the update data if necessary
-        const {error: validationError} = updatePostValidation({content: content, urls: urls, images: images});
+        const { error: validationError } = updatePostValidation({ content: content, urls: urls, images: images });
         if (validationError) {
             throw errorHandler(400, `Validation error: ${validationError.message}`);
         }
@@ -131,7 +135,7 @@ const updatePost = async (postId, userId, updateData) => {
             }
 
             // Delete the images
-            const {deletedUrls, failedUrls} = await deleteImages(urls);
+            const { deletedUrls, failedUrls } = await deleteImages(urls);
             if (failedUrls.length > 0) {
                 throw errorHandler(500, 'Error deleting image');
             }
@@ -169,7 +173,7 @@ const updatePost = async (postId, userId, updateData) => {
 const deletePost = async (postId, userId) => {
     try {
         // Validate the post ID and user ID
-        const {error: idError} = postIdValidation({postId, userId});
+        const { error: idError } = postIdValidation({ postId, userId });
         if (idError) {
             throw errorHandler(400, `Validation error: ${idError.message}`);
         }
@@ -189,14 +193,14 @@ const deletePost = async (postId, userId) => {
 
         // Handle image deletion if the post has images
         if (post.images.length > 0) {
-            const {deletedUrls, failedUrls} = await deleteImages(post.images);
+            const { deletedUrls, failedUrls } = await deleteImages(post.images);
             if (failedUrls.length > 0) {
                 throw errorHandler(500, 'Error deleting image');
             }
         }
 
         // Delete comment references from the post
-        await commentModel.deleteMany({post: postId}).exec();
+        await commentModel.deleteMany({ post: postId }).exec();
 
         // Delete the post from the database
         await postModel.findByIdAndDelete(postId).exec();
@@ -204,7 +208,7 @@ const deletePost = async (postId, userId) => {
         // Log successful deletion
         logger.info(`${post.user?.username || 'Unknown user'} deleted post successfully`);
 
-        return {message: 'Post deleted successfully'};
+        return { message: 'Post deleted successfully' };
 
     } catch (error) {
         // Log and rethrow the error
@@ -216,13 +220,17 @@ const deletePost = async (postId, userId) => {
 const likePost = async (postId, userId) => {
     try {
         // Validate the post ID and user ID
-        const {error: idError} = postIdValidation({postId, userId});
+        const { error: idError } = postIdValidation({ postId, userId });
         if (idError) {
             throw errorHandler(400, `Validation error: ${idError.message}`);
         }
 
         // Fetch the post by ID
-        const post = await postModel.findById(postId);
+        const post = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        });
 
         // Handle case where post is not found
         if (!post) {
@@ -245,7 +253,7 @@ const likePost = async (postId, userId) => {
         // Log successful like
         logger.info(`User ${userId} liked post ${postId} successfully`);
 
-        return {message: 'Post liked successfully'};
+        return { message: 'Post liked successfully' };
 
     } catch (error) {
         // Log and rethrow the error
@@ -255,4 +263,4 @@ const likePost = async (postId, userId) => {
 }
 
 
-module.exports = {getAllPosts, getOnePost, createPost, updatePost, deletePost, likePost}
+module.exports = { getAllPosts, getOnePost, createPost, updatePost, deletePost, likePost }

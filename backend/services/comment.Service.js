@@ -17,7 +17,12 @@ const createComment = async (userId, postId, commentData) => {
         }
 
         // Find the post
-        const post = await postModel.findById(postId);
+        const post = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        });
+
         if (!post) {
             throw errorHandler(404, 'Post not found');
         }
@@ -62,7 +67,12 @@ const updateComment = async (userId, postId, commentId, commentData) => {
         }
 
         // Find the post
-        const post = await postModel.findById(postId);
+        const post = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        });
+
         if (!post) {
             throw errorHandler(404, 'Post not found');
         }
@@ -96,7 +106,12 @@ const deleteComment = async (userId, postId, commentId) => {
         }
 
         // Find the post
-        const post = await postModel.findById(postId);
+        const post = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        });
+
         if (!post) {
             throw errorHandler(404, 'Post not found');
         }
@@ -134,7 +149,11 @@ const likeComment = async (userId, postId, commentId) => {
         }
 
         // Find the post
-        const post = await postModel.findById(postId);
+        const post = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        });
         if (!post) {
             throw errorHandler(404, 'Post not found');
         }
