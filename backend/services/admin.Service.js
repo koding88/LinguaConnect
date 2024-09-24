@@ -2,13 +2,13 @@ const userModel = require('../models/user.Model');
 const groupModel = require('../models/group.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
-const {IdValidation, searchAccountValidation} = require("../validations/adminValidation");
+const { IdValidation, searchAccountValidation } = require("../validations/adminValidation");
 
-const projection = {password: 0};
+const projection = { password: 0 };
 
 const getAllUsers = async () => {
     try {
-        return await userModel.find({role: 'user'}, projection).exec();
+        return await userModel.find({ role: 'user' }, projection).exec();
     } catch (error) {
         logger.error(`Error in getAllUsers: ${error}`);
         throw error;
@@ -17,7 +17,7 @@ const getAllUsers = async () => {
 
 const getUserById = async (id) => {
     try {
-        const {error} = IdValidation({id});
+        const { error } = IdValidation({ id });
         if (error) {
             logger.error(`Error validating ID: ${error.message}`);
             throw errorHandler(400, error.message);
@@ -37,7 +37,7 @@ const getUserById = async (id) => {
 
 const lockUserById = async (id) => {
     try {
-        const {error} = IdValidation({id});
+        const { error } = IdValidation({ id });
         if (error) {
             logger.error(`Error validating ID: ${error.message}`);
             throw errorHandler(400, error.message);
@@ -65,7 +65,7 @@ const lockUserById = async (id) => {
 
 const unlockUserById = async (id) => {
     try {
-        const {error} = IdValidation({id});
+        const { error } = IdValidation({ id });
         if (error) {
             logger.error(`Error validating ID: ${error.message}`);
             throw errorHandler(400, error.message);
@@ -89,17 +89,17 @@ const unlockUserById = async (id) => {
 
 const searchAccount = async (key) => {
     try {
-        const {error} = searchAccountValidation({key});
-        if(error) {
+        const { error } = searchAccountValidation({ key });
+        if (error) {
             logger.error(`Error validating search key: ${error.message}`);
             throw errorHandler(400, error.message);
         }
 
         const users = await userModel.find({
             $or: [
-                {email: {$regex: key, $options: 'i'}},
-                {username: {$regex: key, $options: 'i'}},
-                {full_name: {$regex: key, $options: 'i'}}
+                { email: { $regex: key, $options: 'i' } },
+                { username: { $regex: key, $options: 'i' } },
+                { full_name: { $regex: key, $options: 'i' } }
             ]
         }, projection).exec();
 
@@ -116,7 +116,7 @@ const getAllGroups = async () => {
         const groups = await groupModel.find({})
             .populate('owner', 'username full_name')
             .populate('members', 'username full_name')
-            .exec();   
+            .exec();
         return groups;
     } catch (error) {
         logger.error(`Error fetching all groups: ${error}`);
@@ -126,7 +126,7 @@ const getAllGroups = async () => {
 
 const getGroupById = async (id) => {
     try {
-        const {error} = IdValidation({id});
+        const { error } = IdValidation({ id });
         if (error) {
             logger.error(`Error validating ID: ${error.message}`);
             throw errorHandler(400, error.message);
@@ -153,12 +153,12 @@ const getGroupById = async (id) => {
                     }
                 }
             })
-            .exec(); 
+            .exec();
 
-        if(!group) {
+        if (!group) {
             throw errorHandler(404, `Group with ID ${id} not found`);
         }
-            
+
         return group;
     } catch (error) {
         logger.error(`Error fetching group with ID ${id}:`, error);
@@ -166,6 +166,69 @@ const getGroupById = async (id) => {
     }
 }
 
+const blockGroupById = async (id) => {
+    try {
+        const { error } = IdValidation({ id });
+        if (error) {
+            logger.error(`Error validating ID: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        const group = await groupModel.findById(id).exec();
+
+        if (!group) {
+            throw errorHandler(404, `Group with ID ${id} not found`);
+        }
+
+        if (group.status === "blocked") {
+            throw errorHandler(400, `Group with ID ${id} is already blocked`);
+        }
+
+        group.status = "blocked";
+        await group.save();
+        return group;
+    } catch (error) {
+        logger.error(`Error blocking group with ID ${id}:`, error);
+        throw error;
+    }
+}
+
+const unblockGroupById = async (id) => {
+    try {
+        const { error } = IdValidation({ id });
+        if (error) {
+            logger.error(`Error validating ID: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        const group = await groupModel.findById(id).exec();
+
+        if (!group) {
+            throw errorHandler(404, `Group with ID ${id} not found`);
+        }
+
+        if (group.status === "active") {
+            throw errorHandler(400, `Group with ID ${id} is already unblocked`);
+        }
+
+        group.status = "active";
+        await group.save();
+        return group;
+    } catch (error) {
+        logger.error(`Error unblocking group with ID ${id}:`, error);
+        throw error;
+    }
+}
 
 
-module.exports = {getAllUsers, getUserById, lockUserById, unlockUserById, searchAccount, getAllGroups, getGroupById}
+module.exports = {
+    getAllUsers, 
+    getUserById, 
+    lockUserById, 
+    unlockUserById, 
+    searchAccount, 
+    getAllGroups, 
+    getGroupById, 
+    blockGroupById,     
+    unblockGroupById
+}

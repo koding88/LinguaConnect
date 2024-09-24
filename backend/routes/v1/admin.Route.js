@@ -10,6 +10,8 @@ router.patch("/account/lock/:id", verifyToken, isAdmin, adminController.lockUser
 router.patch("/account/unlock/:id", verifyToken, isAdmin, adminController.unlockUserByIdController);
 router.get("/groups", verifyToken, isAdmin, adminController.getAllGroupsController);
 router.get("/groups/:id", verifyToken, isAdmin, adminController.getGroupByIdController);
+router.patch("/groups/block/:id", verifyToken, isAdmin, adminController.blockGroupByIdController);
+router.patch("/groups/unblock/:id", verifyToken, isAdmin, adminController.unblockGroupByIdController);
 
 module.exports = router;
 

@@ -96,6 +96,35 @@ const getGroupByIdController = async (req, res, next) => {
     }
 }
 
+const blockGroupByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const group = await adminService.blockGroupById(id);
+        res.status(200).json({
+            status: 'success',
+            message: 'Group blocked successfully',
+            data: group,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const unblockGroupByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const group = await adminService.unblockGroupById(id);
+        res.status(200).json({
+            status: 'success',
+            message: 'Group unblocked successfully',
+            data: group,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
 module.exports = {
     getAllUsersController,
     getUserByIdController,
@@ -103,5 +132,7 @@ module.exports = {
     unlockUserByIdController,
     searchAccountController,
     getAllGroupsController,
-    getGroupByIdController
+    getGroupByIdController,
+    blockGroupByIdController,
+    unblockGroupByIdController
 }

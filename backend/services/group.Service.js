@@ -14,6 +14,7 @@ const {
     removeGroupMemberValidation,
     joinGroupValidation,
     leaveGroupValidation,
+    limitGroupMembersValidation,
     getAllPostsInGroupValidation, createPostInGroupValidation, postInGroupValidation, updatePostInGroupValidation,
     commentInGroupValidation,
     updateCommentInGroupValidation,
@@ -22,7 +23,7 @@ const {
 
 const getAllGroups = async () => {
     try {
-        const groups = await groupModel.find({})
+        const groups = await groupModel.find({status: 'active'})
             .populate('owner', 'username full_name')
             .populate('members', 'username full_name')
             .exec();
@@ -50,6 +51,11 @@ const getOneGroup = async (groupId) => {
             .populate('owner', 'username full_name')
             .populate('members', 'username full_name')
             .exec();
+
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
 
         if (!group) {
             throw errorHandler(404, 'No group found');
@@ -128,6 +134,12 @@ const updateGroup = async (groupId, ownerId, groupData) => {
             throw errorHandler(403, 'Access denied');
         }
 
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
+
         // Destructure the new group data
         const {name, description} = groupData;
 
@@ -184,6 +196,12 @@ const deleteGroup = async (groupId, ownerId) => {
             throw errorHandler(403, 'Access denied');
         }
 
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
+
         // Delete the group
         await groupModel.deleteOne({_id: groupId});
 
@@ -197,7 +215,7 @@ const deleteGroup = async (groupId, ownerId) => {
 const limitGroupMembers = async (groupId, userId, maxMembers) => {
     try {
         // Validate the group ID and owner ID
-        const {error} = deleteGroupValidation({userId, groupId, maxMembers});
+        const { error } = limitGroupMembersValidation({userId, groupId, maxMembers});
         if (error) {
             throw errorHandler(400, `Invalid validation error: ${error.message}`);
         }
@@ -206,6 +224,12 @@ const limitGroupMembers = async (groupId, userId, maxMembers) => {
         const group = await groupModel.findById(groupId);
         if (!group) {
             throw errorHandler(404, 'Group not found');
+        }
+
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
         }
 
         // Check if the owner exists
@@ -262,6 +286,12 @@ const removeGroupMember = async (groupId, ownerId, memberId) => {
             throw errorHandler(404, 'Member not found');
         }
 
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
+
         // Check owner == member
         const isOwner = await groupModel.findOne({_id: groupId, owner: memberId});
         if (isOwner) {
@@ -311,6 +341,12 @@ const joinGroup = async (groupId, userId) => {
             throw errorHandler(404, 'Group not found');
         }
 
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
+
         // Check if the group has reached the maximum number of members
         if (group.members.length >= group.maxMembers) {
             throw errorHandler(403, 'Group has reached maximum number of members');
@@ -341,10 +377,25 @@ const leaveGroup = async (groupId, userId) => {
             throw errorHandler(404, 'User not found');
         }
 
-        // Check user == owner
-        const group = await groupModel.findOne({_id: groupId, owner: userId});
-        if (group) {
+        // Find the group first
+        const group = await groupModel.findOne({ _id: groupId });
+        if (!group) {
+            throw errorHandler(404, 'Group not found');
+        }
+
+        // Check if user is the owner
+        if (group.owner.toString() === userId) {
             throw errorHandler(403, 'Owner cannot leave group');
+        }
+
+        // Check if the group is blocked
+        if (group.status !== 'active') {
+            throw errorHandler(403, 'Group is blocked');
+        }
+
+        // Check if user is a member of the group
+        if (!group.members.includes(userId)) {
+            throw errorHandler(403, 'User is not a member of this group');
         }
 
         // Check if the user is a member of the group
@@ -375,6 +426,12 @@ const getAllPostsInGroup = async (groupId, userId) => {
         const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
+        }
+
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
         }
 
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
@@ -411,6 +468,12 @@ const getPostInGroup = async (groupId, postId, userId) => {
         const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
+        }
+
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
         }
 
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
@@ -454,6 +517,12 @@ const createPostInGroup = async (groupId, userId, postData) => {
             throw errorHandler(404, 'Group not found');
         }
 
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
+
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
@@ -493,6 +562,12 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
         const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
+        }
+
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
         }
 
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
@@ -582,6 +657,12 @@ const deletePostInGroup = async (groupId, userId, postId) => {
             throw errorHandler(404, 'Group not found');
         }
 
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
+
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
@@ -637,6 +718,12 @@ const likePostInGroup = async (groupId, userId, postId) => {
         const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
+        }
+
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
         }
 
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
@@ -695,6 +782,12 @@ const createCommentInGroup = async (groupId, userId, postId, commentData) => {
         const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
+        }
+
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
         }
 
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
@@ -762,6 +855,13 @@ const updateCommentInGroup = async (groupId, userId, postId, commentId, commentD
             throw errorHandler(404, 'Group not found');
         }
 
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
+
+
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
@@ -815,6 +915,12 @@ const deleteCommentInGroup = async (groupId, userId, postId, commentId) => {
             throw errorHandler(404, 'Group not found');
         }
 
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
+        }
+
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
@@ -866,6 +972,12 @@ const likeCommentInGroup = async (groupId, userId, postId, commentId) => {
         const group = await groupModel.findOne({_id: groupId});
         if (!group) {
             throw errorHandler(404, 'Group not found');
+        }
+
+        // Check if the group is blocked
+        const isActive = group.status === 'active';
+        if (!isActive) {
+            throw errorHandler(404, 'Group is blocked');
         }
 
         if (group.owner.toString() !== userId && !group.members.includes(userId)) {
