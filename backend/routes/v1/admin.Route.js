@@ -12,6 +12,10 @@ router.get("/groups", verifyToken, isAdmin, adminController.getAllGroupsControll
 router.get("/groups/:id", verifyToken, isAdmin, adminController.getGroupByIdController);
 router.patch("/groups/block/:id", verifyToken, isAdmin, adminController.blockGroupByIdController);
 router.patch("/groups/unblock/:id", verifyToken, isAdmin, adminController.unblockGroupByIdController);
+router.get("/posts", verifyToken, isAdmin, adminController.getAllPostsController);
+router.get("/posts/:id", verifyToken, isAdmin, adminController.getPostByIdController);
+router.patch("/posts/hide/:id", verifyToken, isAdmin, adminController.hidePostByIdController);
+router.patch("/posts/unhide/:id", verifyToken, isAdmin, adminController.unhidePostByIdController);
 
 module.exports = router;
 

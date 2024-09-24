@@ -124,6 +124,61 @@ const unblockGroupByIdController = async (req, res, next) => {
     }
 }
 
+const getAllPostsController = async (req, res, next) => {
+    try {
+        const posts = await adminService.getAllPosts();
+        res.status(200).json({
+            status: 'success',
+            message: 'Posts retrieved successfully',
+            data: posts,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getPostByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const post = await adminService.getPostById(id);
+        res.status(200).json({
+            status: 'success',
+            message: 'Post retrieved successfully',
+            data: post,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const hidePostByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const post = await adminService.hidePostById(id);
+        res.status(200).json({
+            status: 'success',
+            message: 'Post hidden successfully',
+            data: post,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const unhidePostByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const post = await adminService.unhidePostById(id);
+        res.status(200).json({
+            status: 'success',
+            message: 'Post unhidden successfully',
+            data: post,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 
 module.exports = {
     getAllUsersController,
@@ -134,5 +189,9 @@ module.exports = {
     getAllGroupsController,
     getGroupByIdController,
     blockGroupByIdController,
-    unblockGroupByIdController
+    unblockGroupByIdController,
+    getAllPostsController,
+    getPostByIdController,
+    hidePostByIdController,
+    unhidePostByIdController
 }

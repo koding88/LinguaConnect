@@ -1,5 +1,6 @@
 const userModel = require('../models/user.Model');
 const groupModel = require('../models/group.Model');
+const postModel = require('../models/post.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
 const { IdValidation, searchAccountValidation } = require("../validations/adminValidation");
@@ -220,6 +221,98 @@ const unblockGroupById = async (id) => {
     }
 }
 
+const getAllPosts = async () => {
+    try {
+        const posts = await postModel.find({})
+            .populate('user', 'username full_name')
+            .populate('likes', 'username full_name')
+            .populate('comments', 'content user likes')
+            .populate('group', 'name')
+            .exec();
+        return posts;
+    } catch (error) {
+        logger.error(`Error fetching all posts: ${error}`);
+        throw error;
+    }
+}
+
+const getPostById = async (id) => {
+    try {
+        const { error } = IdValidation({ id });
+        if (error) {
+            logger.error(`Error validating ID: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        const post = await postModel.findById(id)
+            .populate('user', 'username full_name')
+            .populate('likes', 'username full_name')
+            .populate('comments', 'content user likes')
+            .populate('group', 'name')
+            .exec();
+
+        if(!post){
+            throw errorHandler(404, `Post with ID ${id} not found`);
+        }
+
+        logger.info(`Post with ID ${id} retrieved successfully`);
+
+        return post;
+    } catch (error) {
+        logger.error(`Error fetching post with ID ${id}:`, error);
+        throw error;
+    }
+}
+
+const hidePostById = async (id) => {
+    try {
+        const { error } = IdValidation({ id });
+        if (error) {
+            logger.error(`Error validating ID: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        const post = await postModel.findById(id).exec();
+
+        if(!post){
+            throw errorHandler(404, `Post with ID ${id} not found`);
+        }
+
+        post.status = "hidden";
+        await post.save();
+        return post;
+    } catch (error) {
+        logger.error(`Error hiding post with ID ${id}:`, error);
+        throw error;
+    }
+}
+
+const unhidePostById = async (id) => {
+    try {
+        const { error } = IdValidation({ id });
+        if (error) {
+            logger.error(`Error validating ID: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        const post = await postModel.findById(id).exec();
+
+        if (!post) {
+            throw errorHandler(404, `Post with ID ${id} not found`);
+        }
+
+        post.status = "public";
+        await post.save();
+        return post;
+    } catch (error) {
+        logger.error(`Error unhiding post with ID ${id}:`, error);
+        throw error;
+    }
+}
+
+
+
+
 
 module.exports = {
     getAllUsers, 
@@ -230,5 +323,9 @@ module.exports = {
     getAllGroups, 
     getGroupById, 
     blockGroupById,     
-    unblockGroupById
+    unblockGroupById,
+    getAllPosts,
+    getPostById,
+    hidePostById,
+    unhidePostById
 }
