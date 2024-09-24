@@ -8,6 +8,8 @@ router.get("/account/search", verifyToken, isAdmin, adminController.searchAccoun
 router.get("/account/:id", verifyToken, isAdmin, adminController.getUserByIdController);
 router.patch("/account/lock/:id", verifyToken, isAdmin, adminController.lockUserByIdController);
 router.patch("/account/unlock/:id", verifyToken, isAdmin, adminController.unlockUserByIdController);
+router.get("/groups", verifyToken, isAdmin, adminController.getAllGroupsController);
+router.get("/groups/:id", verifyToken, isAdmin, adminController.getGroupByIdController);
 
 module.exports = router;
 

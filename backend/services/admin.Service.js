@@ -1,4 +1,5 @@
 const userModel = require('../models/user.Model');
+const groupModel = require('../models/group.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
 const {IdValidation, searchAccountValidation} = require("../validations/adminValidation");
@@ -110,6 +111,61 @@ const searchAccount = async (key) => {
     }
 };
 
+const getAllGroups = async () => {
+    try {
+        const groups = await groupModel.find({})
+            .populate('owner', 'username full_name')
+            .populate('members', 'username full_name')
+            .exec();   
+        return groups;
+    } catch (error) {
+        logger.error(`Error fetching all groups: ${error}`);
+        throw error;
+    }
+}
+
+const getGroupById = async (id) => {
+    try {
+        const {error} = IdValidation({id});
+        if (error) {
+            logger.error(`Error validating ID: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        const group = await groupModel.findById(id)
+            .populate('owner', 'username full_name')
+            .populate('members', 'username full_name')
+            .populate({
+                path: 'posts',
+                populate: {
+                    path: 'user',
+                    select: 'username full_name'
+                }
+            })
+            .populate({
+                path: 'posts',
+                populate: {
+                    path: 'comments',
+                    select: 'content user likes',
+                    populate: {
+                        path: 'user likes',
+                        select: 'username full_name'
+                    }
+                }
+            })
+            .exec(); 
+
+        if(!group) {
+            throw errorHandler(404, `Group with ID ${id} not found`);
+        }
+            
+        return group;
+    } catch (error) {
+        logger.error(`Error fetching group with ID ${id}:`, error);
+        throw error;
+    }
+}
 
 
-module.exports = {getAllUsers, getUserById, lockUserById, unlockUserById, searchAccount}
+
+module.exports = {getAllUsers, getUserById, lockUserById, unlockUserById, searchAccount, getAllGroups, getGroupById}

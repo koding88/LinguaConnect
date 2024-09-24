@@ -69,4 +69,39 @@ const searchAccountController = async (req, res, next) => {
     }
 };
 
-module.exports = {getAllUsersController, getUserByIdController, lockUserByIdController, unlockUserByIdController, searchAccountController}
+const getAllGroupsController = async (req, res, next) => {
+    try {
+        const groups = await adminService.getAllGroups();
+        res.status(200).json({
+            status: 'success',
+            message: 'Groups retrieved successfully',
+            data: groups,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getGroupByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const group = await adminService.getGroupById(id);
+        res.status(200).json({
+            status: 'success',
+            message: 'Group retrieved successfully',
+            data: group,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports = {
+    getAllUsersController,
+    getUserByIdController,
+    lockUserByIdController,
+    unlockUserByIdController,
+    searchAccountController,
+    getAllGroupsController,
+    getGroupByIdController
+}
