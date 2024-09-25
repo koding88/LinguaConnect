@@ -11,6 +11,15 @@ const {
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID_MAIL, process.env.GOOGLE_CLIENT_SECRET_MAIL);
 client.setCredentials({refresh_token: process.env.GOOGLE_REFRESH_TOKEN_MAIL});
 
+const getAccessToken = async () => {
+    try {
+        const accessToken = await client.getAccessToken();
+        return accessToken;
+    } catch (error) {
+        logger.error(`Error getting access token: ${error.message}`);
+    }
+}
+
 // NodeMailer
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -20,7 +29,7 @@ const transporter = nodemailer.createTransport({
         clientId: process.env.GOOGLE_CLIENT_ID_MAIL,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET_MAIL,
         refreshToken: process.env.GOOGLE_REFRESH_TOKEN_MAIL,
-        accessToken: client.getAccessToken(),
+        accessToken: getAccessToken
     },
 });
 
