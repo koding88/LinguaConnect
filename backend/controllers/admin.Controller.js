@@ -1,4 +1,5 @@
 const adminService = require('../services/admin.Service');
+const topicService = require('../services/topic.Service');
 
 const getAllUsersController = async (req, res, next) => {
     try {
@@ -179,6 +180,76 @@ const unhidePostByIdController = async (req, res, next) => {
     }
 }
 
+const getAllTopicsController = async (req, res, next) => {
+    try {
+        const topics = await topicService.getAllTopics();
+        res.status(200).json({
+            status: 'success',
+            message: 'Topics retrieved successfully',
+            data: topics,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getTopicByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const topic = await topicService.getTopicById(id);
+        res.status(200).json({
+            status: 'success',
+            message: 'Topic retrieved successfully',
+            data: topic,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const createTopicController = async (req, res, next) => {
+    try {
+        const topic = await topicService.createTopic(req.body);
+        res.status(201).json({
+            status: 'success',
+            message: 'Topic created successfully',
+            data: topic,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const updateTopicByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const topic = await topicService.updateTopicById(id, req.body);
+        res.status(200).json({
+            status: 'success',
+            message: 'Topic updated successfully',
+            data: topic,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const deleteTopicByIdController = async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const topic = await topicService.deleteTopicById(id);
+        res.status(200).json({
+            status: 'success',
+            message: 'Topic deleted successfully',
+            data: topic,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
 
 module.exports = {
     getAllUsersController,
@@ -193,5 +264,10 @@ module.exports = {
     getAllPostsController,
     getPostByIdController,
     hidePostByIdController,
-    unhidePostByIdController
+    unhidePostByIdController,
+    getAllTopicsController,
+    getTopicByIdController,
+    createTopicController,
+    updateTopicByIdController,
+    deleteTopicByIdController
 }

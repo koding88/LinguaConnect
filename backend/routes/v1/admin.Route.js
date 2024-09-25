@@ -16,6 +16,11 @@ router.get("/posts", verifyToken, isAdmin, adminController.getAllPostsController
 router.get("/posts/:id", verifyToken, isAdmin, adminController.getPostByIdController);
 router.patch("/posts/hide/:id", verifyToken, isAdmin, adminController.hidePostByIdController);
 router.patch("/posts/unhide/:id", verifyToken, isAdmin, adminController.unhidePostByIdController);
+router.get("/topics", verifyToken, isAdmin, adminController.getAllTopicsController);
+router.get("/topics/:id", verifyToken, isAdmin, adminController.getTopicByIdController);
+router.post("/topics", verifyToken, isAdmin, adminController.createTopicController);
+router.patch("/topics/:id", verifyToken, isAdmin, adminController.updateTopicByIdController);
+router.delete("/topics/:id", verifyToken, isAdmin, adminController.deleteTopicByIdController);
 
 module.exports = router;
 

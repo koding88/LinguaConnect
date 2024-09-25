@@ -310,10 +310,6 @@ const unhidePostById = async (id) => {
     }
 }
 
-
-
-
-
 module.exports = {
     getAllUsers, 
     getUserById, 
