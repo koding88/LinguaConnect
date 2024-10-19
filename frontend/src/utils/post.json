@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "owner": "Duong Nguyen",
+        "createdAt": "2024-01-01",
+        "content": "Hello world! Excited to start this new year!",
+        "images": ["https://picsum.photos/800/600", "https://picsum.photos/800/601", "https://picsum.photos/800/602", "https://picsum.photos/800/601",
+            "https://picsum.photos/800/602"
+        ],
+        "likes": ["66666666666666666666666"],
+        "comments": ["22222222222222222222222"],
+        "bookmarks": ["19191919191919191919191"]
+    }
+]
