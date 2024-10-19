@@ -21,7 +21,16 @@ const createComment = async (userId, postId, commentData) => {
             _id: postId,
             status: 'public',
             group: null
-        });
+        }).populate({
+            path: 'user',
+            select: 'username full_name avatarUrl'
+        }).populate({
+            path: 'comments',
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        })
 
         if (!post) {
             throw errorHandler(404, 'Post not found');
@@ -44,7 +53,23 @@ const createComment = async (userId, postId, commentData) => {
 
         logger.info(`User ${userId} created comment in ${postId} successfully`);
 
-        return newComment;
+        const postInfo = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        }).populate({
+            path: 'user',
+            select: 'username full_name avatarUrl location'
+        }).populate({
+            path: 'comments',
+            options: { sort: { createdAt: -1 } },
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        })
+
+        return postInfo;
 
     } catch (error) {
         // Log the error and rethrow it
@@ -77,19 +102,36 @@ const updateComment = async (userId, postId, commentId, commentData) => {
             throw errorHandler(404, 'Post not found');
         }
 
-        // Check ownership of the comment
-        if (post.user.toString() !== userId) {
-            throw errorHandler(403, 'You are not allowed to modify comment');
-        }
-
         // Find the comment
         const comment = await commentModel.findByIdAndUpdate(commentId, commentData, {new: true});
         if (!comment) {
             throw errorHandler(404, 'Comment not found');
         }
 
+        // Check ownership of the comment
+        if (comment.user.toString() !== userId) {
+            throw errorHandler(403, 'You are not allowed to modify comment');
+        }
+
         logger.info(`User ${userId} updated comment in ${postId} successfully`);
-        return comment;
+        const postInfo = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        }).populate({
+            path: 'user',
+            select: 'username full_name avatarUrl location'
+        }).populate({
+            path: 'comments',
+            options: { sort: { createdAt: -1 } },
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        })
+
+        return postInfo;
+
     } catch (error) {
         // Log the error and rethrow it
         logger.error(`Error updating comment: ${error.message}`);
@@ -116,11 +158,6 @@ const deleteComment = async (userId, postId, commentId) => {
             throw errorHandler(404, 'Post not found');
         }
 
-        // Check ownership of the comment
-        if (post.user.toString() !== userId) {
-            throw errorHandler(403, 'You are not allowed to delete comment');
-        }
-
         // Find the comment
         const comment = await commentModel.findByIdAndDelete(commentId);
         if (!comment) {
@@ -132,7 +169,25 @@ const deleteComment = async (userId, postId, commentId) => {
         await post.save();
 
         logger.info(`User ${userId} deleted comment in ${postId} successfully`);
-        return {message: 'Comment deleted successfully'};
+
+        const postInfo = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        }).populate({
+            path: 'user',
+            select: 'username full_name avatarUrl location'
+        }).populate({
+            path: 'comments',
+            options: { sort: { createdAt: -1 } },
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        })
+
+        return postInfo;
+
     } catch (error) {
         // Log the error and rethrow it
         logger.error(`Error deleting comment: ${error.message}`);
@@ -153,7 +208,17 @@ const likeComment = async (userId, postId, commentId) => {
             _id: postId,
             status: 'public',
             group: null
-        });
+        }).populate({
+            path: 'user',
+            select: 'username full_name avatarUrl location'
+        }).populate({
+            path: 'comments',
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        })
+
         if (!post) {
             throw errorHandler(404, 'Post not found');
         }
@@ -177,7 +242,24 @@ const likeComment = async (userId, postId, commentId) => {
         await comment.save();
 
         logger.info(`User ${userId} liked comment in ${postId} successfully`);
-        return {message: 'Comment liked successfully'};
+
+        // Find the post
+        const postInfo = await postModel.findOne({
+            _id: postId,
+            status: 'public',
+            group: null
+        }).populate({
+            path: 'user',
+            select: 'username full_name avatarUrl location'
+        }).populate({
+            path: 'comments',
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        })
+
+        return postInfo;
     } catch (error) {
         // Log the error and rethrow it
         logger.error(`Error liking comment: ${error.message}`);
@@ -188,4 +270,3 @@ const likeComment = async (userId, postId, commentId) => {
 module.exports = {
     createComment, updateComment, deleteComment, likeComment
 };
-

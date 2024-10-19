@@ -14,5 +14,7 @@ router.get("/enable-2fa", verifyToken, authController.enable2FAController);
 router.get("/disable-2fa", verifyToken, authController.disable2FAController);
 router.get("/google", authController.loginGoogleController)
 router.get("/google/redirect", authController.loginGoogleRedirectController);
+router.post('/forgot-password', authController.forgotPasswordController);
+router.post('/reset-password', authController.resetPasswordController);
 
 module.exports = router;

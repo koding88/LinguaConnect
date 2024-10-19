@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
         },
         avatarUrl: {
             type: String,
-            default: "https://i.sstatic.net/SE2cv.jpg",
+            default: "",
         },
         email: {
             type: String,
@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema(
             required: true,
         },
         location: {
+            type: String,
+            default: "",
+        },
+        bio: {
             type: String,
             default: "",
         },
@@ -66,12 +70,6 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        saved_posts: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Post",
-            },
-        ],
     },
     {timestamps: true}
 );

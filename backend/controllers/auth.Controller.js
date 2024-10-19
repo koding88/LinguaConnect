@@ -17,16 +17,17 @@ const registerController = async (req, res, next) => {
 
 const loginController = async (req, res, next) => {
     try {
-        const {identifier, password, otp} = req.body;
+        const { identifier, password, otp } = req.body;
 
         // Call login service to authenticate user
-        const {accessToken, refreshToken} = await authService.login(identifier, password, otp);
+        const {accessToken, refreshToken, user} = await authService.login(identifier, password, otp);
 
         // Respond with tokens if login is successful
         res.status(200).json({
             status: "success",
             message: "User logged in successfully",
             data: {
+                user,
                 accessToken: accessToken,
                 refreshToken: refreshToken,
             },
@@ -58,7 +59,7 @@ const loginGoogleRedirectController = (req, res, next) => {
         const {accessToken, refreshToken} = token;
 
         res.redirect(
-            `http://localhost:3000/login/oauth?access_token=${accessToken}&refresh_token=${refreshToken}`
+            `http://localhost:5173/login/oauth?access_token=${accessToken}&refresh_token=${refreshToken}`
         )
     })(req, res, next);
 };
@@ -112,11 +113,11 @@ const changePasswordController = async (req, res, next) => {
 
 const forgotPasswordController = async (req, res, next) => {
     try {
-        const {email} = req.query;
+        const { email } = req.body;
         await authService.forgotPassword(email);
         res.status(200).json({
             status: "success",
-            message: "Password reset link sent successfully",
+            message: "Password reset OTP sent successfully",
         });
     } catch (error) {
         next(error);
@@ -125,8 +126,8 @@ const forgotPasswordController = async (req, res, next) => {
 
 const resetPasswordController = async (req, res, next) => {
     try {
-        const {email, otp} = req.query
-        const {newPassword} = req.body;
+        const { email, otp } = req.query;
+        const { newPassword } = req.body;
 
         await authService.resetPassword(email, otp, newPassword);
         res.status(200).json({

@@ -2,7 +2,7 @@ const userService = require('../services/user.Service');
 
 const getProfileController = async (req, res, next) => {
     try {
-        const userId = req.userId;
+        const userId = req.params.id;
         const profile = await userService.getProfile(userId);
         res.status(200).json({
             status: 'success',
@@ -16,12 +16,13 @@ const getProfileController = async (req, res, next) => {
 
 const getUserController = async (req, res, next) => {
     try {
+        const userId = req.userId;
         const userInfo = req.query.username;
-        const user = await userService.getUser(userInfo);
+        const users = await userService.getUser(userInfo, userId);
         res.status(200).json({
             status: 'success',
             message: 'User retrieved successfully',
-            data: user,
+            data: users,
         });
     } catch (error) {
         next(error);
@@ -46,16 +47,32 @@ const updateUserController = async (req, res, next) => {
     }
 }
 
-
 const followUserController = async (req, res, next) => {
     try {
         const userId = req.userId;
         const targetId = req.params.id;
-        await userService.followUser(userId, targetId);
+        const profile = await userService.followUser(userId, targetId);
         res.status(201).json({
             status: 'success',
             message: 'User followed successfully',
+            data: profile,
         })
+    } catch (error) {
+        next(error);
+    }
+}
+
+const updateAvatarController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const avatar = Array.isArray(req.fileUrls) ? req.fileUrls[0] : req.fileUrls; // Ensure avatar is a string
+        console.log("Avatar controller: ", avatar)
+        const user = await userService.updateAvatar(userId, avatar);
+        res.status(200).json({
+            status: 'success',
+            message: 'Avatar updated successfully',
+            data: user,
+        });
     } catch (error) {
         next(error);
     }
@@ -65,5 +82,6 @@ module.exports = {
     followUserController,
     getUserController,
     updateUserController,
-    getProfileController
+    getProfileController,
+    updateAvatarController
 }

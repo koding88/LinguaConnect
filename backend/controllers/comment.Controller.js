@@ -40,15 +40,17 @@ const deleteCommentController = async (req, res, next) => {
     try {
         const userId = req.userId;
         const commentId = req.params.id;
-        const {postId} = req.body;
+        const { postId } = req.body;
 
-        await commentService.deleteComment(userId, postId, commentId);
+        const comment = await commentService.deleteComment(userId, postId, commentId);
 
         res.status(200).json({
             status: 'success',
             message: 'Comment deleted successfully',
+            data: comment,
         });
     } catch (error) {
+        console.error('Delete Comment Error:', error);
         next(error);
     }
 }
@@ -59,11 +61,12 @@ const likeCommentController = async (req, res, next) => {
         const commentId = req.params.id;
         const {postId} = req.body;
 
-        await commentService.likeComment(userId, postId, commentId);
+        const post = await commentService.likeComment(userId, postId, commentId);
 
         res.status(200).json({
             status: 'success',
             message: 'Comment liked successfully',
+            data: post,
         });
     } catch (error) {
         next(error);

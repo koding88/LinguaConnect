@@ -7,11 +7,13 @@ const getBirthdayForAge = (age) => {
 };
 
 const createUsername = (familyName) => {
+    if (!familyName) return '';
     return familyName + "_" + Math.random().toString(36).slice(-3).toLowerCase();
 };
 
 const getFullName = (familyName, givenName) => {
-    return familyName + ' ' + givenName;
+    if (!familyName && !givenName) return '';
+    return (familyName || '') + (familyName && givenName ? ' ' : '') + (givenName || '');
 }
 
 module.exports = {getBirthdayForAge, createUsername, getFullName}

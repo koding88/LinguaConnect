@@ -8,10 +8,11 @@ const generateAccessToken = (payload) => {
             {
                 userId: payload._id,
                 role: payload.role,
+                ...payload
             },
             process.env.JWT_SECRET,
             {
-                expiresIn: "1h",
+                expiresIn: "1d",
             }
         );
         return accessToken;
@@ -25,6 +26,7 @@ const generateRefreshToken = (payload) => {
         const refreshToken = jwt.sign(
             {
                 userId: payload._id,
+                ...payload
             },
             process.env.REFRESH_TOKEN_SECRET,
             {
@@ -51,6 +53,9 @@ const accessTokenVerify = (accessToken) => {
         const payload = jwt.verify(accessToken, process.env.JWT_SECRET);
         return payload;
     } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            throw new Error("Access token has expired");
+        }
         throw new Error("Access token verify error");
     }
 };
@@ -63,6 +68,9 @@ const refreshTokenVerify = (refreshToken) => {
         );
         return payload;
     } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            throw new Error("Refresh token has expired");
+        }
         throw new Error("Refresh token verify error");
     }
 };

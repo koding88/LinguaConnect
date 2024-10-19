@@ -9,27 +9,55 @@ let projection = { group: 0 }
 
 const getAllPosts = async () => {
     try {
-        // Retrieve all public posts and populate user information
-        const posts = await postModel.find({ status: 'public', group: null }, projection)
-            .populate('user', 'username full_name')
+        const currentTime = new Date();
+        const thirtyMinutesAgo = new Date(currentTime.getTime() - 30 * 60 * 1000);
+
+        // Retrieve recent posts within the last 30 minutes
+        const recentPosts = await postModel.find({
+            status: 'public',
+            group: null,
+            createdAt: { $gte: thirtyMinutesAgo }
+        }, projection)
+            .populate('user', 'username full_name avatarUrl location')
             .populate({
                 path: 'comments',
                 populate: {
                     path: 'user',
-                    select: 'username full_name'
+                    select: 'username full_name avatarUrl location'
                 }
             })
+            .sort({ createdAt: -1 });
 
-        if (!posts || posts.length === 0) {
-            throw errorHandler(404, 'No public posts found');
+        // Retrieve all other posts randomly
+        const otherPosts = await postModel.aggregate([
+            { $match: { status: 'public', group: null, createdAt: { $lt: thirtyMinutesAgo } } },
+            { $sample: { size: 50 } } // Adjust the size as needed
+        ]);
+
+        // Populate user and comments for other posts
+        await postModel.populate(otherPosts, {
+            path: 'user',
+            select: 'username full_name avatarUrl location'
+        });
+        await postModel.populate(otherPosts, {
+            path: 'comments',
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        });
+
+        const allPosts = [...recentPosts, ...otherPosts];
+
+        if (allPosts.length === 0) {
+            return [];
         }
 
-        logger.info(`Successfully retrieved ${posts.length} public posts`);
-        return posts;
+        logger.info(`Successfully retrieved ${allPosts.length} public posts`);
+        return allPosts;
     } catch (error) {
-        // Log and rethrow the error
         logger.error(`Error getting public posts: ${error.message}`);
-        throw error
+        throw error;
     }
 };
 
@@ -47,7 +75,14 @@ const getOnePost = async (postId) => {
             status: 'public',
             group: null
         }, projection)
-            .populate('user', 'username full_name')
+            .populate('user', 'username full_name avatarUrl location')
+            .populate({
+                path: 'comments',
+                options: { sort: { createdAt: -1 } },
+                populate: {
+                    path: 'user', select: 'username full_name avatarUrl location'
+                }
+            })
             .exec();
 
         // Handle case where post is not found
@@ -206,7 +241,7 @@ const deletePost = async (postId, userId) => {
         await postModel.findByIdAndDelete(postId).exec();
 
         // Log successful deletion
-        logger.info(`${post.user?.username || 'Unknown user'} deleted post successfully`);
+        logger.info(`User ${userId} deleted post successfully`);
 
         return { message: 'Post deleted successfully' };
 
@@ -253,7 +288,7 @@ const likePost = async (postId, userId) => {
         // Log successful like
         logger.info(`User ${userId} liked post ${postId} successfully`);
 
-        return { message: 'Post liked successfully' };
+        return post;
 
     } catch (error) {
         // Log and rethrow the error

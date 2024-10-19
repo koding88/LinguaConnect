@@ -5,14 +5,14 @@ const { objectIdValidation, createFieldMessages } = require("../utils/validation
 const idValidation = (data) => {
     const schema = Joi.object({
         userId: objectIdValidation()
-    }); 
+    });
 
     return schema.validate(data);
 }
 
 const getUserValidation = (data) => {
     const schema = Joi.object({
-        username: Joi.string().min(3).max(50).required().messages({
+        username: Joi.string().min(1).max(50).required().messages({
             ...createFieldMessages('username', 50),
         }),
     });
@@ -22,7 +22,7 @@ const getUserValidation = (data) => {
 
 const updateUserValidation = (data) => {
     const schema = Joi.object({
-        full_name: Joi.string().min(5).max(50).required().messages({ 
+        full_name: Joi.string().min(5).max(50).required().messages({
             ...createFieldMessages('full_name', 50),
         }),
         username: Joi.string().min(3).max(50).required().messages({
@@ -75,10 +75,25 @@ const followUserValidation = (data) => {
     return schema.validate(data);
 }
 
+const updateAvatarValidation = (data) => {
+    const schema = Joi.object({
+        avatarUrl: Joi.array().items(Joi.string().uri().messages({
+            'string.uri': `"avatarUrl" contains invalid URL`,
+            'string.base': `"avatarUrl" must be a valid URL string`,
+        })).required().messages({
+            'array.base': `"avatarUrl" must be an array`,
+            'any.required': `"avatarUrl" is required`,
+        }),
+    });
+
+    return schema.validate(data);
+}
+
 
 module.exports = {
     idValidation,
     getUserValidation,
     updateUserValidation,
-    followUserValidation
+    followUserValidation,
+    updateAvatarValidation
 }

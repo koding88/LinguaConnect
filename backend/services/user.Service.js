@@ -1,7 +1,9 @@
 const userModel = require('../models/user.Model');
 const logger = require('../utils/loggerUtil')
 const errorHandler = require('../utils/errorUtil');
-const {idValidation, getUserValidation, updateUserValidation, followUserValidation} = require("../validations/userValidation");
+const { idValidation, getUserValidation, updateUserValidation, followUserValidation, updateAvatarValidation } = require("../validations/userValidation");
+const { deleteImages } = require('../utils/cloudinaryUtil');
+
 
 const getProfile = async (userId) => {
     try {
@@ -13,8 +15,8 @@ const getProfile = async (userId) => {
         }
 
         const profile = await userModel.findById(userId, projection)
-            .populate('followers', 'username full_name')
-            .populate('following', 'username full_name')
+            .populate('followers', 'username full_name avatarUrl')
+            .populate('following', 'username full_name avatarUrl')
             .exec();
 
         if (!profile) {
@@ -29,7 +31,7 @@ const getProfile = async (userId) => {
     }
 }
 
-const getUser = async (userInfo) => {
+const getUser = async (userInfo, userId) => {
     try {
         let projection = {email: 0, password: 0, role: 0, status: 0, isVerify: 0, isEnable2FA: 0}
 
@@ -39,18 +41,18 @@ const getUser = async (userInfo) => {
             throw errorHandler(400, error.message);
         }
 
-        const user = await userModel.findOne({username: userInfo}, projection)
-            .populate('followers', 'username full_name')
-            .populate('following', 'username full_name')
+        const users = await userModel.find({username: { $regex: userInfo, $options: 'i' }, _id: { $ne: userId }}, projection)
+            .populate('followers', 'username full_name avatarUrl')
+            .populate('following', 'username full_name avatarUrl')
             .exec();
-        if (!user) {
-            throw errorHandler(404, 'User not found');
+        if (users.length === 0) {
+            throw errorHandler(404, 'No users found');
         }
 
-        return user;
+        return users;
 
     } catch (error) {
-        logger.error(`Error getting user: ${error.message}`);
+        logger.error(`Error getting users: ${error.message}`);
         throw error;
     }
 }
@@ -102,6 +104,8 @@ const updateUser = async (userId, userData) => {
 
 const followUser = async (follower, following) => {
     try {
+        let projection = { password: 0, role: 0, status: 0 }
+
         const {error} = followUserValidation({follower: follower, following: following});
         if (error) {
             logger.error(`Error validating follow ID: ${error.message}`);
@@ -132,7 +136,12 @@ const followUser = async (follower, following) => {
 
         await Promise.all([userFollower.save(), userFollowing.save()]);
 
-        return {message: 'User followed successfully'};
+        const profile = await userModel.findById(follower, projection)
+            .populate('followers', 'username full_name avatarUrl')
+            .populate('following', 'username full_name avatarUrl')
+            .exec();
+
+        return profile;
 
     } catch (error) {
         logger.error(`Error following user: ${error.message}`);
@@ -140,10 +149,58 @@ const followUser = async (follower, following) => {
     }
 }
 
+const updateAvatar = async (userId, avatar) => {
+    try {
+        // Validate userId
+        const {error} = idValidation({userId: userId});
+        if (error) {
+            logger.error(`Error validating ID: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        // Validate avatar
+        // const {error: avatarError} = updateAvatarValidation({avatarUrl: avatar});
+        // if (avatarError) {
+        //     logger.error(`Error validating avatar URL: ${avatarError.message}`);
+        //     throw errorHandler(400, avatarError.message);
+        // }
+
+        const user = await userModel.findById(userId);
+        if (!user) {
+            throw errorHandler(404, 'User not found');
+        }
+
+        const oldAvatar = user.avatarUrl;
+        console.log("Old avatar: ", oldAvatar)
+
+        // Only delete old avatar if it exists and is different from the new one
+        if (oldAvatar && oldAvatar !== avatar) {
+            const { deletedUrls, failedUrls } = await deleteImages([oldAvatar]); // Pass as array
+            if (failedUrls.length > 0) {
+                logger.warn(`Failed to delete old avatar: ${oldAvatar}`);
+                // Continue with update even if old avatar deletion fails
+                throw errorHandler(500, 'Error deleting old avatar');
+            }
+        }
+
+        user.avatarUrl = avatar;
+        user.updatedAt = new Date(); // Update the 'updatedAt' timestamp
+
+        const updatedUser = await user.save();
+
+        // Return only necessary user information
+        const { password, ...userWithoutPassword } = updatedUser.toObject();
+        return userWithoutPassword;
+    } catch (error) {
+        logger.error(`Error updating avatar for user ${userId}: ${error.message}`);
+        throw error;
+    }
+}
 
 module.exports = {
     followUser,
     getUser,
     updateUser,
-    getProfile
+    getProfile,
+    updateAvatar
 }

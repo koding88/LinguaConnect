@@ -97,11 +97,12 @@ const likePostController = async (req, res, next) => {
     try {
         const userId = req.userId;
         const postId = req.params.id;
-        await postService.likePost(postId, userId);
+        const post = await postService.likePost(postId, userId);
 
         res.status(201).json({
             status: 'success',
             message: 'Post liked successfully',
+            data: post,
         });
     } catch (error) {
         next(error);

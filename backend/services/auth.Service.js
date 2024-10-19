@@ -42,14 +42,21 @@ const register = async (userData) => {
         // Hash the password
         const hashedPassword = await passwordUtil.hashPassword(userData.password);
 
+        // Avatar
+        const avatarMale = 'https://res.cloudinary.com/du4g4aoew/image/upload/v1728963954/uploads/z0e6nozebi9z7ovrcma2.png'
+        const avatarFemale = 'https://res.cloudinary.com/du4g4aoew/image/upload/v1728963954/uploads/qhrlwfbjumeghzehcgib.png'
+        if (userData.gender) {
+            userData.avatarUrl = avatarMale;
+        } else {
+            userData.avatarUrl = avatarFemale;
+        }
+
         // Create a new user instance
         const newUser = new userModel({
             ...userData,
             password: hashedPassword,
         });
 
-        // Save the new user to the database
-        await newUser.save();
         logger.info(`User ${userData.email} registered successfully`);
 
         // Generate confirmation token and store it in Redis
@@ -67,6 +74,9 @@ const register = async (userData) => {
             full_name: userData.full_name,
             token: confirmToken,
         });
+
+        // Save the new user to the database
+        await newUser.save();
 
         return newUser;
     } catch (error) {
@@ -112,7 +122,7 @@ const login = async (identifier, password, otp) => {
             }
 
             logger.error(`Account not verified for user: ${identifier}`);
-            throw errorHandler(401, "Account not verified");
+            throw errorHandler(401, "Account not verified. Please check your email for a confirmation message.");
         }
 
         // Check if the user's account is blocked
@@ -154,16 +164,27 @@ const login = async (identifier, password, otp) => {
             }
         }
 
+        // Create a user object without sensitive information
+        const userWithoutSensitiveInfo = user.toObject({
+            transform: (doc, ret) => {
+                const { password, isVerify, status, ...safeUserData } = ret;
+                return safeUserData;
+            }
+        });
+
         // Generate and store tokens
-        const accessToken = generateAccessToken(user);
-        const refreshToken = generateRefreshToken(user);
+        const accessToken = generateAccessToken(userWithoutSensitiveInfo);
+        const refreshToken = generateRefreshToken(userWithoutSensitiveInfo);
 
         await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 24 * 24); // 1 day
         await redisClient.set(`refreshToken:${user._id}`, refreshToken, "EX", 60 * 60 * 24 * 7); // 7 days
 
         logger.info(`User ${identifier} logged in successfully`);
 
-        return {accessToken, refreshToken};
+        return {
+            accessToken,
+            refreshToken
+        };
     } catch (error) {
         logger.error(`Login error for user ${identifier}: ${error.message}`);
         throw error;
@@ -186,8 +207,9 @@ const loginGoogle = async (profile) => {
             email: profileData?.email,
             password: await passwordUtil.generatePassword(),
             gender: true,
+            avatarUrl: 'https://res.cloudinary.com/du4g4aoew/image/upload/v1728963954/uploads/z0e6nozebi9z7ovrcma2.png',
             birthday: getBirthdayForAge(18),
-            location: "",
+            location: "gb",
             isVerify: true,
         };
 
@@ -205,9 +227,17 @@ const loginGoogle = async (profile) => {
             logger.info(`User ${userInfo.email} already exists. Generating tokens.`);
         }
 
-        // Generate and store tokens for the user
-        const accessToken = generateAccessToken(user);
-        const refreshToken = generateRefreshToken(user);
+        // Create a user object without sensitive information
+        const userWithoutSensitiveInfo = user.toObject({
+            transform: (doc, ret) => {
+                const { password, isVerify, status, ...safeUserData } = ret;
+                return safeUserData;
+            }
+        });
+
+        // Generate and store tokens
+        const accessToken = generateAccessToken(userWithoutSensitiveInfo);
+        const refreshToken = generateRefreshToken(userWithoutSensitiveInfo);
 
         await redisClient.set(`accessToken:${user._id}`, accessToken, "EX", 60 * 60 * 24); // 1 day
         await redisClient.set(`refreshToken:${user._id}`, refreshToken, "EX", 60 * 60 * 24 * 7); // 7 days
