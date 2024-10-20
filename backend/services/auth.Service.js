@@ -43,8 +43,8 @@ const register = async (userData) => {
         const hashedPassword = await passwordUtil.hashPassword(userData.password);
 
         // Avatar
-        const avatarMale = 'https://res.cloudinary.com/du4g4aoew/image/upload/v1728963954/uploads/z0e6nozebi9z7ovrcma2.png'
-        const avatarFemale = 'https://res.cloudinary.com/du4g4aoew/image/upload/v1728963954/uploads/qhrlwfbjumeghzehcgib.png'
+        const avatarMale = 'https://res.cloudinary.com/du4g4aoew/image/upload/v1729415013/uploads/vwnrkxbficfmkikltmdw.png'
+        const avatarFemale = 'https://res.cloudinary.com/du4g4aoew/image/upload/v1729415013/uploads/r3vkhk9hehrshpze27g3.png'
         if (userData.gender) {
             userData.avatarUrl = avatarMale;
         } else {
