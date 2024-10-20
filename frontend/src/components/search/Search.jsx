@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-const Search = ({ onSearch, placeholder = "Search...", buttonText = "Search" }) => {
+const Search = ({ onSearch, placeholder = "Search...", buttonText = "Search", otherStyles = "" }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
-    const handleSearch = () => onSearch(searchTerm);
+    const handleSearch = () => {
+        onSearch(searchTerm);
+        setSearchTerm('');
+    }
 
     return (
-        <div className="w-full mx-6 h-12 relative">
+        <div className={`w-full mx-6 h-12 relative ${otherStyles}`}>
             <input
                 type="text"
                 value={searchTerm}

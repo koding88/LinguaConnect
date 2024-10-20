@@ -9,7 +9,6 @@ import { RiMessengerLine } from "react-icons/ri";
 import { IoAddCircleOutline } from "react-icons/io5";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { IoIosLogOut } from "react-icons/io";
-import useUserZ from '@/zustand/useUserZ';
 import { useAuthContext } from '@/context/AuthContext'
 
 const SideBar = () => {

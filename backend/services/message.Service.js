@@ -1,6 +1,9 @@
-const messageModel = require("../models/message.model");
-const conversationModel = require("../models/conversation.model");
+const messageModel = require("../models/message.Model");
+const userModel = require('../models/user.Model');
+const conversationModel = require("../models/conversation.Model");
 const logger = require("../utils/loggerUtil");
+const errorHandler = require("../utils/errorUtil");
+const { idValidation } = require("../validations/userValidation");
 
 const getAllMessages = async (userId, userToChatId) => {
     try {
@@ -11,7 +14,7 @@ const getAllMessages = async (userId, userToChatId) => {
 
         if (!conversation) {
             logger.warn(`Conversation not found for users ${userId} and ${userToChatId}`);
-            throw new Error("Conversation not found");
+            return [];
         }
 
         logger.info(`Successfully fetched messages for conversation between users ${userId} and ${userToChatId}`);
@@ -58,7 +61,34 @@ const sendMessage = async (senderId, receiverId, message) => {
     }
 }
 
+const getConversations = async (userId) => {
+    try {
+        // Validate userId
+        const { error } = idValidation({ userId });
+        if (error) {
+            logger.error(`Error validating user ID: ${error.message}`);
+            throw errorHandler(400, error.message);
+        }
+
+        // Find conversations, excluding the current user
+        const conversations = await userModel.find({ _id: { $ne: userId } })
+            .select("_id username full_name avatarUrl")
+            .lean();
+
+        if (conversations.length === 0) {
+            logger.info(`No conversations found for user ${userId}`);
+            return []; // Return an empty array instead of throwing an error
+        }
+
+        return conversations;
+    } catch (error) {
+        logger.error(`Error getting conversations for user ${userId}: ${error.message}`);
+        throw error;
+    }
+};
+
 module.exports = {
     getAllMessages,
     sendMessage,
+    getConversations,
 };

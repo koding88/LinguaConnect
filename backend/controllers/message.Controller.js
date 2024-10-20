@@ -34,7 +34,22 @@ const sendMessageController = async (req, res, next) => {
     }
 }
 
+const getConversationsController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const conversations = await messageService.getConversations(userId);
+        res.status(200).json({
+            status: 'success',
+            message: 'Conversations retrieved successfully',
+            data: conversations,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     getAllMessagesController,
     sendMessageController,
+    getConversationsController
 };
