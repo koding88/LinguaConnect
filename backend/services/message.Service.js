@@ -4,6 +4,7 @@ const conversationModel = require("../models/conversation.Model");
 const logger = require("../utils/loggerUtil");
 const errorHandler = require("../utils/errorUtil");
 const { idValidation } = require("../validations/userValidation");
+const { getReceiverSocketId, io } = require("../sockets/sockets");
 
 const getAllMessages = async (userId, userToChatId) => {
     try {
@@ -52,6 +53,12 @@ const sendMessage = async (senderId, receiverId, message) => {
         conversation.messages.push(newMessage._id);
 
         await Promise.all([conversation.save(), newMessage.save()]);
+
+        // emit
+        const receiverSocketId = getReceiverSocketId(receiverId)
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", newMessage)
+        }
 
         logger.info(`Successfully sent message from user ${senderId} to user ${receiverId}`);
         return newMessage;

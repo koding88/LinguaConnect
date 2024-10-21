@@ -6,21 +6,11 @@ const mongoDB = require("./config/db");
 const redis = require("./config/redis");
 const cors = require("cors");
 const passport = require("./config/passport");
-const {redisClient} = require("./config/redis");
+const { redisClient } = require("./config/redis");
+const { app, server } = require("./sockets/sockets");
 const logger = require("./utils/loggerUtil");
 const errorMiddleware = require("./middlewares/error.Middleware");
 require("dotenv").config();
-
-const app = express();
-// Cors
-app.use(cors(
-    {
-        origin: "*"
-    }
-));
-
-// Create server
-const server = http.createServer(app);
 
 // Body parser
 app.use(bodyParser.json());

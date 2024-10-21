@@ -2,9 +2,12 @@ import React, { useEffect } from 'react'
 import useConversationZ from '@/zustand/useConversationZ'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
+import { useSocketContext } from '@/context/SocketContext'
 
 const MessageContainer = () => {
     const { selectedConversation, setSelectedConversation } = useConversationZ();
+    const { onlineUsers } = useSocketContext()
+    const isOnline = onlineUsers?.includes(selectedConversation?._id)
 
     useEffect(() => {
         // cleanup function(when component unmounts)
@@ -18,7 +21,12 @@ const MessageContainer = () => {
             <>
                 {/* Header */}
                 <div className="p-4 border-b border-gray-200 flex items-center">
-                    <img src={selectedConversation.avatarUrl} alt="User avatar" className="w-10 h-10 rounded-full mr-3" />
+                    <div className="relative">
+                        <img src={selectedConversation.avatarUrl} alt="User avatar" className="w-10 h-10 rounded-full mr-3" />
+                        {isOnline && (
+                            <div className="absolute top-0 right-[8px] w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                        )}
+                    </div>
                     <h2 className="text-xl font-semibold">{selectedConversation.full_name || selectedConversation.username}</h2>
                 </div>
 

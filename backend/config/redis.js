@@ -10,13 +10,18 @@ redisClient.on("error", (error) => {
 });
 
 const connectRedisDB = async () => {
-    try {
-        await redisClient.connect();
-        logger.info("Redis connected");
-    } catch (error) {
-        logger.error("Redis connection failed:", error.message);
-        throw new Error("Redis connection failed");
-    }
+    const reconnect = async () => {
+        try {
+            await redisClient.connect();
+            logger.info("Redis connected");
+        } catch (error) {
+            logger.error("Redis connection failed:", error.message);
+            logger.info("Attempting to reconnect in 30 seconds...");
+            setTimeout(reconnect, 30000);
+        }
+    };
+
+    await reconnect();
 };
 
 module.exports = {

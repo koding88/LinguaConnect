@@ -17,6 +17,7 @@ const MessageItem = ({ message }) => {
     const chatClassName = fromMe ? 'chat-end' : 'chat-start'
     const profilePic = fromMe ? authUser?.avatarUrl : selectedConversation?.avatarUrl
     const bubbleBgColor = fromMe ? "bg-blue-200" : "bg-gray-200";
+    const shakeClass = message.shouldShake ? "shake" : "";
     const time = useMemo(() => extractTimeMessage(message.createdAt), [message.createdAt])
 
     const [selectedWord, setSelectedWord] = useState(null);
@@ -57,7 +58,7 @@ const MessageItem = ({ message }) => {
                             />
                         </div>
                     </div>
-                    <div className={`chat-bubble ${bubbleBgColor} text-black`}>
+                    <div className={`chat-bubble ${bubbleBgColor} ${shakeClass} text-black`}>
                         {message.message}
                     </div>
                     <div className='chat-footer opacity-50 text-xs flex gap-1 items-center'>{time}</div>

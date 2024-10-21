@@ -10,7 +10,7 @@ const Search = ({ onSearch, placeholder = "Search...", buttonText = "Search", ot
     }
 
     return (
-        <div className={`w-full mx-6 h-12 relative ${otherStyles}`}>
+        <div className={`w-full ${otherStyles || "mx-6"}  h-12 relative`}>
             <input
                 type="text"
                 value={searchTerm}
