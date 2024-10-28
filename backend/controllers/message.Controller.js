@@ -16,6 +16,22 @@ const getAllMessagesController = async (req, res, next) => {
     }
 }
 
+const getAllMessagesToAIController = async (req, res, next) => {
+    try {
+        const { id: userToChatId } = req.params;
+        const { userId } = req.body;
+        const messages = await messageService.getAllMessagesToAI(userId, userToChatId);
+
+        res.status(200).json({
+            status: "success",
+            message: "Messages fetched successfully",
+            data: messages,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 const sendMessageController = async (req, res, next) => {
     try {
         const { message } = req.body;
@@ -51,5 +67,6 @@ const getConversationsController = async (req, res, next) => {
 module.exports = {
     getAllMessagesController,
     sendMessageController,
-    getConversationsController
+    getConversationsController,
+    getAllMessagesToAIController
 };

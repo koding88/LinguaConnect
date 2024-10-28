@@ -26,6 +26,40 @@ const getAllMessages = async (userId, userToChatId) => {
     }
 }
 
+const getAllMessagesToAI = async (userId, userToChatId) => {
+    try {
+        logger.info(`Fetching messages for conversation between users ${userId} and ${userToChatId}`);
+        const conversation = await conversationModel.findOne({
+            participants: { $all: [userId, userToChatId] }
+        }).populate({
+            path: "messages",
+            populate: [
+                {
+                    path: "senderId",
+                    model: "User",
+                    select: "full_name"
+                },
+                {
+                    path: "receiverId",
+                    model: "User",
+                    select: "full_name"
+                }
+            ]
+        });
+
+        if (!conversation) {
+            logger.warn(`Conversation not found for users ${userId} and ${userToChatId}`);
+            return [];
+        }
+
+        logger.info(`Successfully fetched messages for conversation between users ${userId} and ${userToChatId}`);
+        return conversation.messages;
+    } catch (error) {
+        logger.error(`Error in getAllMessages: ${error.message}`, { error });
+        throw error;
+    }
+}
+
 const sendMessage = async (senderId, receiverId, message) => {
     try {
         if (senderId === receiverId) {
@@ -98,4 +132,5 @@ module.exports = {
     getAllMessages,
     sendMessage,
     getConversations,
+    getAllMessagesToAI
 };

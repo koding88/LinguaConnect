@@ -5,6 +5,10 @@ const useConversationZ = create((set) => ({
     setSelectedConversation: (conversation) => set({ selectedConversation: conversation }),
     messages: [],
     setMessages: (messages) => set({ messages }),
+    aiMessages: [],
+    setAIMessages: (aiMessages) => set((state) => ({
+        aiMessages: Array.isArray(aiMessages) ? aiMessages : [...state.aiMessages, aiMessages]
+    })),
 }));
 
 export default useConversationZ;
