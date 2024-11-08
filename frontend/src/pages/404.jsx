@@ -10,7 +10,7 @@ const NotFound = () => {
             <p className="text-lg text-gray-500 mb-8">The page you are looking for might have been removed or is temporarily unavailable.</p>
             <Link to="/">
                 <Button className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition duration-300">
-                    Go Back Login
+                    Go Back
                 </Button>
             </Link>
         </div>

@@ -35,9 +35,11 @@ exports.uploadImagesToCloudinary = (req, res, next) => {
             return handleMulterError(err, res, upload.limits);
         }
 
-        // if (!req.files || req.files.length === 0) {
-        //     return res.status(400).json({error: "No files uploaded"});
-        // }
+        // Handle case when no files are uploaded
+        if (!req.files) {
+            req.fileUrls = [];
+            return next();
+        }
 
         try {
             const uploadPromises = req.files.map((file) => {
@@ -66,13 +68,16 @@ exports.uploadImagesToCloudinary = (req, res, next) => {
         } catch (error) {
             logger.error("Upload to Cloudinary Failed: ", error);
 
-            req.files.forEach(file => {
-                fs.unlink(file.path, (unlinkErr) => {
-                    if (unlinkErr) {
-                        logger.error("Failed to delete local file: ", unlinkErr);
-                    }
+            // Only try to delete files if they exist
+            if (req.files) {
+                req.files.forEach(file => {
+                    fs.unlink(file.path, (unlinkErr) => {
+                        if (unlinkErr) {
+                            logger.error("Failed to delete local file: ", unlinkErr);
+                        }
+                    });
                 });
-            });
+            }
 
             res.status(500).json({error: error.message});
         }

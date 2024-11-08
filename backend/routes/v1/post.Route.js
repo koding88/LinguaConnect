@@ -10,5 +10,6 @@ router.get("/:id", verifyToken, postController.getPostByIdController);
 router.patch("/:id", verifyToken, uploadImagesToCloudinary, postController.updatePostController);
 router.delete("/:id", verifyToken, postController.deletePostController);
 router.patch("/:id/like", verifyToken, postController.likePostController);
+router.patch("/:id/report", verifyToken, postController.reportPostController);
 
 module.exports = router;

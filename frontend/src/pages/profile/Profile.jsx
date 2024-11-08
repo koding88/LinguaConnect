@@ -128,63 +128,63 @@ const Profile = () => {
                             <>
                                 <div className="border-b border-[#D5D5D5] p-4">
                                     <div className="p-4">
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1 pr-4">
-                                        <h2 className="text-2xl font-semibold">{user?.full_name}</h2>
-                                        <p className="text-gray-500">@{user?.username}</p>
-                                        <p className="mt-4 text-sm text-justify flex items-center">
-                                            {user?.gender ? "He" : "She"} from {user?.location}
-                                            {user?.location && (
-                                                <span className="ml-2">
-                                                    <img
-                                                        src={getFlagImage(user?.location)}
-                                                        width="30"
-                                                        alt={user?.location}
-                                                    />
-                                                </span>
-                                            )}
-                                        </p>
-                                        <Follower followersCount={followersCount} followers={user?.followers} />
-                                    </div>
-                                    <div className="flex-shrink-0 relative">
-                                        <img
-                                            src={user?.avatarUrl}
-                                            alt={user?.username}
-                                            className={`w-28 h-28 rounded-full border-2 border-gray-300`}
-                                        />
-                                        {authUser?._id === user?._id && (
-                                            <>
-                                                <input
-                                                    type="file"
-                                                    ref={fileInputRef}
-                                                    onChange={handleFileChange}
-                                                    className="hidden"
-                                                    accept="image/*"
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-1 pr-4">
+                                                <h2 className="text-2xl font-semibold">{user?.full_name}</h2>
+                                                <p className="text-gray-500">@{user?.username}</p>
+                                                <p className="mt-4 text-sm text-justify flex items-center">
+                                                    {user?.gender ? "He" : "She"} from {user?.location}
+                                                    {user?.location && (
+                                                        <span className="ml-2">
+                                                            <img
+                                                                src={getFlagImage(user?.location)}
+                                                                width="30"
+                                                                alt={user?.location}
+                                                            />
+                                                        </span>
+                                                    )}
+                                                </p>
+                                                <Follower followersCount={followersCount} followers={user?.followers} />
+                                            </div>
+                                            <div className="flex-shrink-0 relative">
+                                                <img
+                                                    src={user?.avatarUrl}
+                                                    alt={user?.username}
+                                                    className={`w-28 h-28 rounded-full border-2 border-gray-300`}
                                                 />
-                                                <div
-                                                    className="absolute bottom-0 right-0 bg-white p-1 rounded-full cursor-pointer"
-                                                    onClick={() => fileInputRef.current.click()}
-                                                >
-                                                    <CiCamera size={24} />
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                                {authUser?._id === user?._id ? (
-                                    <UProfileDialog props={user} onSubmit={handleSubmit} />
-                                ) : (
-                                    <div className="mt-4 flex gap-2">
-                                        <button
-                                            className={`flex-1 py-2 w-24 ${isFollowing ? 'bg-white text-black border border-black' : 'bg-black text-white'} rounded-[8px] transition-all duration-200 ease-linear`}
-                                            onClick={handleFollowToggle}
-                                        >
-                                            <span className='text-md transition-all duration-200 ease-linear'>{isFollowing ? 'Unfollow' : 'Follow'}</span>
-                                        </button>
-                                        <button className="flex-1 py-2 w-24 bg-black text-white border border-black rounded-[8px]">
-                                            Message
-                                            </button>
+                                                {authUser?._id === user?._id && (
+                                                    <>
+                                                        <input
+                                                            type="file"
+                                                            ref={fileInputRef}
+                                                            onChange={handleFileChange}
+                                                            className="hidden"
+                                                            accept="image/*"
+                                                        />
+                                                        <div
+                                                            className="absolute bottom-0 right-0 bg-white p-1 rounded-full cursor-pointer"
+                                                            onClick={() => fileInputRef.current.click()}
+                                                        >
+                                                            <CiCamera size={24} />
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
+                                        {authUser?._id === user?._id ? (
+                                            <UProfileDialog props={user} onSubmit={handleSubmit} />
+                                        ) : (
+                                            <div className="mt-4 flex gap-2">
+                                                <button
+                                                    className={`flex-1 py-2 w-24 ${isFollowing ? 'bg-white text-black border border-black' : 'bg-black text-white'} rounded-[8px] transition-all duration-200 ease-linear`}
+                                                    onClick={handleFollowToggle}
+                                                >
+                                                    <span className='text-md transition-all duration-200 ease-linear'>{isFollowing ? 'Unfollow' : 'Follow'}</span>
+                                                </button>
+                                                <button className="flex-1 py-2 w-24 bg-black text-white border border-black rounded-[8px]">
+                                                    Message
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -193,9 +193,9 @@ const Profile = () => {
                             <Error content='profile' />
                         )}
                         <div className="flex-1 overflow-y-auto">
-                                <div className="flex-1 overflow-y-auto">
-                                    <div className="p-4">
-                                <h3 className="text-xl font-semibold mb-4">Posts</h3>
+                            <div className="flex-1 overflow-y-auto">
+                                <div className="p-4">
+                                    <h3 className="text-xl font-semibold mb-4">Posts</h3>
                                     <ListPost posts={userPosts} />
                                 </div>
                             </div>

@@ -29,6 +29,21 @@ const getGroupByIdController = async (req, res, next) => {
     }
 }
 
+const searchGroupsController = async (req, res, next) => {
+    try {
+        const searchTerm = req.query.searchTerm;
+        const groups = await groupService.searchGroups(searchTerm);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Groups fetched ok successfully',
+            data: groups,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 const createGroupController = async (req, res, next) => {
     try {
         const userId = req.userId;
@@ -120,11 +135,12 @@ const joinGroupController = async (req, res, next) => {
         const userId = req.userId;
         const groupId = req.params.id;
 
-        await groupService.joinGroup(groupId, userId);
+        const groups = await groupService.joinGroup(groupId, userId);
 
         res.status(200).json({
             status: 'success',
             message: 'Joined group successfully',
+            data: groups,
         });
     } catch (error) {
         next(error);
@@ -141,6 +157,24 @@ const leaveGroupController = async (req, res, next) => {
         res.status(200).json({
             status: 'success',
             message: 'Left group successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const updateAvatarGroupController = async (req, res, next) => {
+    try {
+        const groupId = req.params.id;
+        const userId = req.userId;
+        const avatar = Array.isArray(req.fileUrls) ? req.fileUrls[0] : req.fileUrls;
+
+        const group = await groupService.updateAvatarGroup(groupId, userId, avatar);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Avatar group updated successfully',
+            data: group,
         });
     } catch (error) {
         next(error);
@@ -221,7 +255,7 @@ const updatePostInGroupController = async (req, res, next) => {
 
         const post = await groupService.updatePostInGroup(groupId, userId, postId, postData);
 
-        res.status(200).json({
+        res.status(201).json({
             status: 'success',
             message: 'Post updated successfully',
             data: post,
@@ -254,11 +288,12 @@ const likePostInGroupController = async (req, res, next) => {
         const groupId = req.params.id;
         const postId = req.params.postId;
 
-        await groupService.likePostInGroup(groupId, userId, postId);
+        const post = await groupService.likePostInGroup(groupId, userId, postId);
 
         res.status(200).json({
             status: 'success',
             message: 'Post liked successfully',
+            data: post,
         });
     } catch (error) {
         next(error);
@@ -291,10 +326,10 @@ const updateCommentInGroupController = async (req, res, next) => {
         const postId = req.params.postId;
         const commentId = req.params.commentId;
         const { content } = req.body;
-        
+
         const comment = await groupService.updateCommentInGroup(groupId, userId, postId, commentId, { content });
 
-        res.status(200).json({
+        res.status(201).json({
             status: 'success',
             message: 'Comment updated successfully',
             data: comment,
@@ -310,12 +345,13 @@ const deleteCommentInGroupController = async (req, res, next) => {
         const groupId = req.params.id;
         const postId = req.params.postId;
         const commentId = req.params.commentId;
-        
-        await groupService.deleteCommentInGroup(groupId, userId, postId, commentId);
+
+        const post = await groupService.deleteCommentInGroup(groupId, userId, postId, commentId);
 
         res.status(200).json({
             status: 'success',
             message: 'Comment deleted successfully',
+            data: post,
         });
     } catch (error) {
         next(error);
@@ -328,17 +364,36 @@ const likeCommentInGroupController = async (req, res, next) => {
         const groupId = req.params.id;
         const postId = req.params.postId;
         const commentId = req.params.commentId;
-        
-        await groupService.likeCommentInGroup(groupId, userId, postId, commentId);
+
+        const post = await groupService.likeCommentInGroup(groupId, userId, postId, commentId);
 
         res.status(200).json({
             status: 'success',
             message: 'Comment liked successfully',
+            data: post,
         });
     } catch (error) {
         next(error);
     }
-}  
+}
+
+const reportPostInGroupController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const groupId = req.params.id;
+        const postId = req.params.postId;
+
+        const post = await groupService.reportPostInGroup(groupId, userId, postId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Post reported successfully',
+            data: post,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
 
 module.exports = {
@@ -360,5 +415,8 @@ module.exports = {
     createCommentInGroupController,
     updateCommentInGroupController,
     deleteCommentInGroupController,
-    likeCommentInGroupController
+    likeCommentInGroupController,
+    searchGroupsController,
+    updateAvatarGroupController,
+    reportPostInGroupController
 }

@@ -31,6 +31,11 @@ const postSchema = new mongoose.Schema({
         enum: ["public", "hidden"],
         default: "public",
     },
+    report: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+    },
+    ],
     group: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Group",

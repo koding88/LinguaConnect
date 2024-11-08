@@ -10,10 +10,11 @@ import Name from '../avatar/Name'
 import DropdownCustom from '../dropdown/dropdownCustom'
 
 const Post = ({ post }) => {
-    const { likePost, editPost, deletePost } = usePostZ();
+    const { likePost, editPost, deletePost, reportPost } = usePostZ();
     const { authUser } = useContext(AuthContext);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [currentPost, setCurrentPost] = useState(post);
+    const [isReported, setIsReported] = useState(false);
 
     useEffect(() => {
         setCurrentPost(post);
@@ -41,6 +42,10 @@ const Post = ({ post }) => {
         await deletePost(postId);
     };
 
+    const handleReport = async (postId) => {
+        await reportPost(postId);
+    };
+
 
     if (!currentPost) return null;
 
@@ -63,6 +68,7 @@ const Post = ({ post }) => {
                             canEdit={true}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
+                            onReport={handleReport}
                         />
 
                     </div>

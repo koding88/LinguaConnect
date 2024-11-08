@@ -7,6 +7,8 @@ const {
     updateCommentValidation,
     likeAndDeleteCommentValidation
 } = require("../validations/commentValidation");
+const { getReceiverSocketId, io } = require('../sockets/sockets');
+const notificationModel = require('../models/notification.Model');
 
 const createComment = async (userId, postId, commentData) => {
     try {
@@ -49,6 +51,22 @@ const createComment = async (userId, postId, commentData) => {
 
         // Update the post with the new comment
         post.comments.push(newComment._id);
+
+        // Create notification
+        await notificationModel.create({
+            user: userId,
+            recipients: [post.user],
+            content: `commented on your post "${post.content}"`,
+            type: "post_comment",
+            url: `/post/${postId}`,
+        });
+
+        // Add this socket emit
+        const receiverSocketId = getReceiverSocketId(post.user._id.toString())
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newNotification")
+        }
+
         await post.save();
 
         logger.info(`User ${userId} created comment in ${postId} successfully`);
@@ -237,6 +255,24 @@ const likeComment = async (userId, postId, commentId) => {
         } else {
             // Add like
             comment.likes.push(userId);
+
+            // Only create notification if someone else likes your comment
+            if (userId !== comment.user.toString()) {
+                // Create notification
+                await notificationModel.create({
+                    user: userId,
+                    recipients: [comment.user],
+                    content: `liked your comment "${comment.content}"`,
+                    type: "comment_like",
+                    url: `/post/${postId}`,
+                });
+
+                // Add socket emit for real-time notification
+                const receiverSocketId = getReceiverSocketId(comment.user.toString())
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit("newNotification")
+                }
+            }
         }
 
         await comment.save();

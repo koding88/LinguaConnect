@@ -1,15 +1,12 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
 import useLogin from '@/hooks/useLogin';
 
 const OAuthCallback = () => {
     const { handleGoogleRedirect } = useLogin();
-    const navigate = useNavigate();
-    const location = useLocation();
 
-    useEffect(() => {
+    React.useEffect(() => {
         handleGoogleRedirect();
-    }, []);
+    }, [handleGoogleRedirect]);
 
     return (
         <div className="flex items-center justify-center min-h-screen">

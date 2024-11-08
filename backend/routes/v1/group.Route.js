@@ -4,11 +4,13 @@ const groupController = require('../../controllers/group.Controller');
 const {verifyToken, isAdmin} = require('../../middlewares/auth.Middleware');
 const {uploadImagesToCloudinary} = require('../../middlewares/upload.Middleware');
 
+router.get('/search', verifyToken, groupController.searchGroupsController);
 router.get('/', verifyToken, groupController.getAllGroupsController);
 router.get('/:id', verifyToken, groupController.getGroupByIdController);
 router.post('/', verifyToken, groupController.createGroupController);
 router.put('/:id', verifyToken, groupController.updateGroupController);
 router.delete('/:id', verifyToken, groupController.deleteGroupController);
+router.patch('/settings/avatar/:id', verifyToken, uploadImagesToCloudinary, groupController.updateAvatarGroupController);
 router.patch('/settings/limit-members/:id', verifyToken, groupController.limitGroupMembersController);
 router.post('/settings/remove-member/:id', verifyToken, groupController.removeGroupMemberController);
 router.post('/join/:id', verifyToken, groupController.joinGroupController);
@@ -21,6 +23,7 @@ router.post('/:id/posts', verifyToken, uploadImagesToCloudinary, groupController
 router.patch('/:id/posts/:postId', verifyToken, uploadImagesToCloudinary, groupController.updatePostInGroupController);
 router.delete('/:id/posts/:postId', verifyToken, groupController.deletePostInGroupController);
 router.patch('/:id/posts/:postId/like', verifyToken, groupController.likePostInGroupController);
+router.patch('/:id/posts/:postId/report', verifyToken, groupController.reportPostInGroupController);
 
 // Comment in group
 router.post('/:id/posts/:postId/comments', verifyToken, groupController.createCommentInGroupController);

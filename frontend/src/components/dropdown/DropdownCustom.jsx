@@ -40,7 +40,11 @@ const DropdownCustom = ({ ...props }) => {
                         </>
                     )}
                     {props?.owner !== authUser?._id && (
-                        <DropdownMenuItem>Report</DropdownMenuItem>
+                        props?.post?.report?.includes(authUser?._id) ? (
+                            <DropdownMenuItem className="cursor-not-allowed opacity-50">Reported</DropdownMenuItem>
+                        ) : (
+                            <DropdownMenuItem onClick={() => props?.onReport(props?.post?._id)} className="hover:cursor-pointer">Report</DropdownMenuItem>
+                        )
                     )}
                 </DropdownMenuContent>
             </DropdownMenu>

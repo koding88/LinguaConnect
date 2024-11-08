@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useSwipeable } from 'react-swipeable'
 import logo from '@/assets/logo.png'
 import { FaHome, FaRegHeart } from "react-icons/fa";
@@ -16,6 +16,7 @@ const SideBar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const menuTimeoutRef = useRef(null);
+    const location = useLocation();
 
     const navItems = [
         { icon: <FaHome className="w-8 h-8" />, path: '/' },
@@ -23,7 +24,6 @@ const SideBar = () => {
         { icon: <MdGroups2 className="w-8 h-8" />, path: '/groups' },
         { icon: <RiMessengerLine className="w-8 h-8" />, path: '/messages' },
         { icon: <FaRegHeart className="w-8 h-8" />, path: '/notifications' },
-        { icon: <IoAddCircleOutline className="w-8 h-8" />, path: '/create' },
     ];
 
     const handlers = useSwipeable({
@@ -34,6 +34,7 @@ const SideBar = () => {
 
     const logout = () => {
         localStorage.clear();
+        document.cookie = '';
         window.location.href = '/login';
     }
 
@@ -76,14 +77,22 @@ const SideBar = () => {
                 </div>
                 <nav className="flex-1 flex flex-col justify-start space-y-4 mt-8">
                     {navItems.map((item, index) => (
-                        <SideBarIcon key={index} icon={item.icon} path={item.path} />
+                        <Link
+                            key={index}
+                            to={item.path}
+                            className={`sidebar-icon flex justify-center items-center h-12 w-12 transition-colors duration-300 hover:bg-gray-200 mx-auto rounded-lg ${location.pathname === item.path ? 'bg-gray-200' : ''}`}
+                        >
+                            {item.icon}
+                        </Link>
                     ))}
                 </nav>
                 <div className="mb-4">
-                    <SideBarIcon
-                        icon={<img src={authUser?.avatarUrl} alt={authUser?.username} className="w-8 h-8 rounded-lg border-2 border-gray-300" />}
-                        path={`/profile/${authUser?._id}`}
-                    />
+                    <Link
+                        to={`/profile/${authUser?._id}`}
+                        className={`sidebar-icon flex justify-center items-center h-12 w-12 transition-colors duration-300 hover:bg-gray-200 mx-auto rounded-lg ${location.pathname === `/profile/${authUser?._id}` ? 'bg-gray-200' : ''}`}
+                    >
+                        <img src={authUser?.avatarUrl} alt={authUser?.username} className="w-8 h-8 rounded-lg border-2 border-gray-300" />
+                    </Link>
                 </div>
                 <div className="p-4 relative">
                     <button
@@ -98,7 +107,10 @@ const SideBar = () => {
                             onMouseEnter={() => clearTimeout(menuTimeoutRef.current)}
                             onMouseLeave={handleHideMenu}
                         >
-                            <Link to="/settings" className="flex items-center px-4 py-2 hover:bg-gray-100 w-full rounded-t-lg">
+                            <Link
+                                to="/settings"
+                                className={`flex items-center px-4 py-2 hover:bg-gray-100 w-full rounded-t-lg ${location.pathname === '/settings' ? 'bg-gray-100' : ''}`}
+                            >
                                 <CiSettings className="mr-2 w-5 h-5" /> Settings
                             </Link>
                             <button onClick={logout} className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left rounded-b-lg">
@@ -111,11 +123,5 @@ const SideBar = () => {
         </div>
     )
 }
-
-const SideBarIcon = ({ icon, path }) => (
-    <Link to={path} className="sidebar-icon flex justify-center items-center h-12 w-12 transition-colors duration-300 hover:bg-gray-200 mx-auto rounded-lg">
-        {icon}
-    </Link>
-)
 
 export default SideBar

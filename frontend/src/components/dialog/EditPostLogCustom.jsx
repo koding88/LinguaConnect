@@ -42,6 +42,9 @@ const EditPostLogCustom = ({ ...props }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            console.log("newImages", newImages);
+            console.log("existingImages", existingImages);
+            console.log("originalImages", originalImages);
             await props?.onEdit(props?.post?._id, content, newImages, existingImages, originalImages);
             props?.onClose();
         } catch (error) {

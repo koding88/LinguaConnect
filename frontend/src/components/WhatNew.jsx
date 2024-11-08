@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 
 const WhatNew = ({ avatarUrl, handleOpenDialog }) => {
     return (
-        <div className='border-b-[1px] border-[#D5D5D5] p-4 flex items-center justify-between'>
+        <div className='p-4 border-b-[1px] border-[#D5D5D5] flex items-center justify-between'>
             <div className='flex items-center w-[535px]'>
                 <Avatar className='w-10 h-10 mr-4'>
                     <Avatar className="w-10 h-10">

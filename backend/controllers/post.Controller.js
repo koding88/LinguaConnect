@@ -99,9 +99,25 @@ const likePostController = async (req, res, next) => {
         const postId = req.params.id;
         const post = await postService.likePost(postId, userId);
 
-        res.status(201).json({
+        res.status(200).json({
             status: 'success',
             message: 'Post liked successfully',
+            data: post,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const reportPostController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const postId = req.params.id;
+        const post = await postService.reportPost(postId, userId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Post reported successfully',
             data: post,
         });
     } catch (error) {
@@ -115,5 +131,6 @@ module.exports = {
     createPostController,
     updatePostController,
     deletePostController,
-    likePostController
+    likePostController,
+    reportPostController
 }

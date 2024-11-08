@@ -12,7 +12,7 @@ const generateAccessToken = (payload) => {
             },
             process.env.JWT_SECRET,
             {
-                expiresIn: "3m",
+                expiresIn: "7d",
             }
         );
         return accessToken;

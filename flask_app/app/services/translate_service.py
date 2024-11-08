@@ -54,6 +54,8 @@ class TranslateService:
             context = "\n".join(conversation) if conversation else ""
             prompt = PromptTemplateService.create_translation_prompt(context, content, language)
 
+            print("Prompt content: ", content)
+
             translate_chain = prompt | chat_together
 
             response = translate_chain.invoke({
@@ -78,7 +80,7 @@ class TranslateService:
                 formatted_translation = TranslateService.format_translation_response(response)
                 if formatted_translation is None:
                     logger.error("Failed to format translation response")
-                    return "An error occurred while formatting the translation. Please try again."
+                    return "I'm sorry, but I couldn't translate that text. It appears to be empty, contain only numbers, or be too short. Please provide a proper sentence or paragraph to translate."
 
                 logger.info("Successfully formatted translation response")
                 return formatted_translation
@@ -111,7 +113,7 @@ class TranslateService:
             if isinstance(response, str):
                 root = ET.fromstring(response)
             else:
-                root = ET.fromstring(response.content)
+                root = ET.fromstring(response)
 
             original_text = root.find('originalText').text
             translated_text = root.find('translatedText').text
@@ -142,7 +144,7 @@ class TranslateService:
             if isinstance(response, str):
                 root = ET.fromstring(response)
             else:
-                root = ET.fromstring(response.content)
+                root = ET.fromstring(response)
 
             return {
                 'original_text': root.find('originalText').text,

@@ -18,7 +18,9 @@ const {
     ChangePasswordValidation, forgotPasswordValidation, resetPasswordValidation
 } = require("../validations/authValidation");
 const {generateTotpSecret, verifyTotpToken, enable2FA} = require("../utils/totpCodeUtil");
-const {getBirthdayForAge, createUsername, getFullName} = require("../utils/profileUtil")
+const { getBirthdayForAge, createUsername, getFullName } = require("../utils/profileUtil")
+const { getReceiverSocketId, io } = require('../sockets/sockets');
+const notificationModel = require('../models/notification.Model');
 
 const register = async (userData) => {
     try {
@@ -73,6 +75,24 @@ const register = async (userData) => {
             email: userData.email,
             full_name: userData.full_name,
             token: confirmToken,
+        });
+
+        // Create notification for admins
+        const admins = await userModel.find({ role: 'admin' });
+        await notificationModel.create({
+            user: newUser._id,
+            recipients: admins.map(admin => admin._id),
+            content: `(${newUser.email}) registered a new account`,
+            type: "admin_user_registered",
+            url: `/admin/manage/users`,
+        });
+
+        // Emit socket event to all admins
+        admins.forEach(admin => {
+            const receiverSocketId = getReceiverSocketId(admin._id.toString())
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit("admin-notification")
+            }
         });
 
         // Save the new user to the database

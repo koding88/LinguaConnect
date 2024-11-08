@@ -11,7 +11,7 @@ const ListImage = ({ ...props }) => {
                         key={index}
                         src={image}
                         alt={`Post image ${index + 1}`}
-                        className={`h-auto rounded-[6px] ${props?.images?.length === 1 ? 'w-full' : 'w-[48%] flex-shrink-0'}`}
+                        className={`h-auto max-h-[250px] object-contain rounded-[6px] ${props?.images?.length === 1 ? 'w-full' : 'w-[48%] flex-shrink-0'}`}
                     />
                 ))}
             </div>

@@ -22,6 +22,26 @@ const usePostZ = create((set, get) => ({
         }
     },
 
+    getPosts: async () => {
+        try {
+            const { data } = await axiosClient.get(`/admin/posts`);
+            set({ posts: data.data, loading: false });
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Error fetching posts");
+            return null;
+        }
+    },
+
+    getPostByIdManage: async (postId) => {
+        try {
+            const { data } = await axiosClient.get(`/admin/posts/${postId}`);
+            return data.data;
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Error fetching post");
+            return null;
+        }
+    },
+
     getPostById: async (postId) => {
         try {
             const { data } = await axiosClient.get(`/posts/${postId}`);
@@ -29,6 +49,32 @@ const usePostZ = create((set, get) => ({
         } catch (error) {
             // toast.error(error.response?.data?.message || "Error fetching post");
             return null;
+        }
+    },
+
+    hidePost: async (postId) => {
+        try {
+            const { data } = await axiosClient.patch(`admin/posts/hide/${postId}`);
+            set(state => ({
+                posts: state.posts.map(post => post._id === postId ? { ...post, status: data.data.status } : post),
+                loading: false
+            }));
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Error hiding post");
+        }
+    },
+
+    unhidePost: async (postId) => {
+        try {
+            const { data } = await axiosClient.patch(`admin/posts/unhide/${postId}`);
+            set(state => ({
+                posts: state.posts.map(post => post._id === postId ? { ...post, status: data.data.status } : post),
+                loading: false
+            }));
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Error unhiding post");
         }
     },
 
@@ -106,6 +152,20 @@ const usePostZ = create((set, get) => ({
         } catch (error) {
             toast.error(error.response?.data?.message || "Error liking post");
             return null;
+        }
+    },
+
+    reportPost: async (postId) => {
+        try {
+            const { data } = await axiosClient.patch(`/posts/${postId}/report`);
+            set(state => ({
+                posts: state.posts.map(post =>
+                    post._id === postId ? { ...post, report: data.data.report } : post
+                ),
+            }));
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Error reporting post");
         }
     },
 

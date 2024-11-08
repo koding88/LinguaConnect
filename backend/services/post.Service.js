@@ -1,9 +1,12 @@
 const postModel = require('../models/post.Model');
 const commentModel = require('../models/comment.Model');
+const userModel = require('../models/user.Model');
 const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
 const { postValidation, updatePostValidation, postIdValidation, getPostValidation } = require("../validations/postValidation");
 const { deleteImages } = require("../utils/cloudinaryUtil");
+const notificationModel = require('../models/notification.Model');
+const { getReceiverSocketId, io } = require("../sockets/sockets");
 
 let projection = { group: 0 }
 
@@ -254,6 +257,50 @@ const deletePost = async (postId, userId) => {
 
 const likePost = async (postId, userId) => {
     try {
+        const post = await postModel.findById(postId);
+        if (!post) {
+            throw new Error("Post not found");
+        }
+
+        // Check if user already liked the post
+        const isLiked = post.likes.includes(userId);
+
+        if (isLiked) {
+            // Unlike post
+            post.likes = post.likes.filter((id) => id.toString() !== userId);
+        } else {
+            // Like post and create notification (only if the post owner is not the same as liker)
+            if (post.user.toString() !== userId) {
+                post.likes.push(userId);
+
+                // Create notification
+                await notificationModel.create({
+                    user: userId,
+                    recipients: [post.user],
+                    content: `liked your post "${post.content}"`,
+                    type: "post_like",
+                    url: `/post/${postId}`,
+                });
+
+                // emit
+                const receiverSocketId = getReceiverSocketId(post.user.toString())
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit("newNotification")
+                }
+            } else {
+                post.likes.push(userId);
+            }
+        }
+
+        await post.save();
+        return post;
+    } catch (error) {
+        throw error;
+    }
+};
+
+const reportPost = async (postId, userId) => {
+    try {
         // Validate the post ID and user ID
         const { error: idError } = postIdValidation({ postId, userId });
         if (idError) {
@@ -272,30 +319,45 @@ const likePost = async (postId, userId) => {
             throw errorHandler(404, 'Post not found');
         }
 
-        // Check if the user has already liked the post
-        const hasLiked = post.likes.includes(userId);
-        if (hasLiked) {
-            // Remove like if the user has already liked the post
-            post.likes.pull(userId);
-        } else {
-            // Add like
-            post.likes.push(userId);
+        // Check if the user has already reported the post
+        const hasReported = post.report.includes(userId);
+        if (hasReported) {
+            throw errorHandler(400, 'You have already reported this post');
         }
+
+        // Add the user to the report array
+        post.report.push(userId);
+
+        // Create notification for admins
+        const admins = await userModel.find({ role: 'admin' });
+        await notificationModel.create({
+            user: userId,
+            recipients: admins.map(admin => admin._id),
+            content: `reported a post "${post.content}"`,
+            type: "admin_post_report",
+            url: `/admin/manage/posts/${postId}`,
+        });
+
+        // Emit socket event to all admins
+        admins.forEach(admin => {
+            const receiverSocketId = getReceiverSocketId(admin._id.toString())
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit("admin-notification")
+            }
+        });
 
         // Save the updated post
         await post.save();
 
-        // Log successful like
-        logger.info(`User ${userId} liked post ${postId} successfully`);
+        logger.info(`User ${userId} reported post ${postId} successfully`);
 
         return post;
 
     } catch (error) {
-        // Log and rethrow the error
-        logger.error(`Error liking post: ${error.message}`);
+        logger.error(`Error reporting post: ${error.message}`);
         throw error;
     }
 }
 
 
-module.exports = { getAllPosts, getOnePost, createPost, updatePost, deletePost, likePost }
+module.exports = { getAllPosts, getOnePost, createPost, updatePost, deletePost, likePost, reportPost }

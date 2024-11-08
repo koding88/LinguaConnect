@@ -65,9 +65,9 @@ const followUserController = async (req, res, next) => {
 const updateAvatarController = async (req, res, next) => {
     try {
         const userId = req.userId;
-        const avatar = Array.isArray(req.fileUrls) ? req.fileUrls[0] : req.fileUrls; // Ensure avatar is a string
-        console.log("Avatar controller: ", avatar)
+        const avatar = Array.isArray(req.fileUrls) ? req.fileUrls[0] : req.fileUrls;
         const user = await userService.updateAvatar(userId, avatar);
+        
         res.status(200).json({
             status: 'success',
             message: 'Avatar updated successfully',

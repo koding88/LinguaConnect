@@ -3,6 +3,8 @@ const logger = require('../utils/loggerUtil')
 const errorHandler = require('../utils/errorUtil');
 const { idValidation, getUserValidation, updateUserValidation, followUserValidation, updateAvatarValidation } = require("../validations/userValidation");
 const { deleteImages } = require('../utils/cloudinaryUtil');
+const { getReceiverSocketId, io } = require('../sockets/sockets');
+const notificationModel = require('../models/notification.Model');
 
 
 const getProfile = async (userId) => {
@@ -135,6 +137,23 @@ const followUser = async (follower, following) => {
         isFollower ? userFollowing.followers.pull(follower) : userFollowing.followers.push(follower);
 
         await Promise.all([userFollower.save(), userFollowing.save()]);
+
+        // Create notification when following (not unfollowing)
+        if (!isFollowing) {
+            await notificationModel.create({
+                user: follower,
+                recipients: [following],
+                content: "started following you",
+                type: "follow",
+                url: `/profile/${follower}`,
+            });
+
+            // Add socket emit for real-time notification
+            const receiverSocketId = getReceiverSocketId(following.toString())
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit("newNotification")
+            }
+        }
 
         const profile = await userModel.findById(follower, projection)
             .populate('followers', 'username full_name avatarUrl')

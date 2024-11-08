@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react'
 import Header from '@/components/header/Header'
 import Search from '@/components/search/Search'
 import useUserZ from '@/zustand/useUserZ'
-import ListUserSearch from '@/components/search/ListUserSearch'
+import ListUserSearch from '@/components/search/ListSearch'
 import { useAuthContext } from '@/context/AuthContext'
 
 const SearchPage = () => {
