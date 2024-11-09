@@ -5,14 +5,14 @@ import App from './App.jsx'
 import './index.css'
 import { SocketContextProvider } from '@/context/SocketContext'
 import { AuthContextProvider } from '@/context/AuthContext'
-import { PeerContextProvider } from '@/context/PeerContext'
+import { StringeeContextProvider } from '@/context/StringeeContext'
 
 createRoot(document.getElementById('root')).render(
     <AuthContextProvider>
         <SocketContextProvider>
-            <PeerContextProvider>
+            <StringeeContextProvider>
                 <App />
-            </PeerContextProvider>
+            </StringeeContextProvider>
         </SocketContextProvider>
     </AuthContextProvider>
 )

@@ -8,6 +8,7 @@ import DebugInfo from './DebugInfo';
 const VideoCallDialog = ({
     isVideoCall,
     selectedConversation,
+    callerInfo,
     localStream,
     remoteStream,
     isMuted,
@@ -17,15 +18,13 @@ const VideoCallDialog = ({
     handleEndVideoCall,
     markdown
 }) => {
-    console.log("Local stream in VideoCallDialog:", localStream);
-    console.log("Remote stream in VideoCallDialog:", remoteStream);
 
     return (
         <AlertDialog open={isVideoCall}>
             <AlertDialogContent className="flex flex-col items-center p-8 max-w-6xl mx-auto rounded-2xl">
                 <AlertDialogHeader className="text-center w-full mb-6">
                     <AlertDialogTitle className="text-3xl font-semibold">
-                        Video Call with {selectedConversation.full_name || selectedConversation.username}
+                        Video Call with {selectedConversation?.full_name || selectedConversation?.username}
                     </AlertDialogTitle>
                 </AlertDialogHeader>
 
@@ -40,7 +39,7 @@ const VideoCallDialog = ({
                         id="remoteVideo"
                         stream={remoteStream}
                         isMuted={false}
-                        label={selectedConversation.full_name || selectedConversation.username}
+                        label={callerInfo?.full_name || callerInfo?.username}
                     />
                     <TopicsSection markdown={markdown} />
                 </div>

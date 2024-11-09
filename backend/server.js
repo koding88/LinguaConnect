@@ -31,10 +31,7 @@ const userRoute = require("./routes/v1/user.Route");
 const groupRoute = require("./routes/v1/group.Route");
 const messageRoute = require("./routes/v1/message.Route");
 const notificationRoute = require("./routes/v1/notification.Route");
-
-const peerServer = ExpressPeerServer(server, {
-    path: "/peerjs",
-});
+const stringeeRoute = require("./routes/v1/stringeeRoute");
 
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/admin", adminRoute);
@@ -44,7 +41,7 @@ app.use("/api/v1/users", userRoute);
 app.use("/api/v1/groups", groupRoute);
 app.use("/api/v1/messages", messageRoute);
 app.use("/api/v1/notifications", notificationRoute);
-app.use("/api/v1/video-call", peerServer);
+app.use("/api/v1/stringee", stringeeRoute);
 
 // Route test login google
 app.get("/", (req, res) => {
