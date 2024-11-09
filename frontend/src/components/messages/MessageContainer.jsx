@@ -9,11 +9,17 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle } 
 
 // Video Call Dialog
 import VideoCallDialog from './video-call/VideoCallDialog'
+import { usePeerContext } from '@/context/PeerContext'
+import { toast } from 'react-toastify'
+import { useAuthContext } from '@/context/AuthContext'
 
 const MessageContainer = () => {
     const { selectedConversation, setSelectedConversation } = useConversationZ();
     const { onlineUsers } = useSocketContext()
     const isOnline = onlineUsers?.includes(selectedConversation?._id)
+    const { peer, createRoom, joinRoom, leaveRoom, localStream, remoteStream } = usePeerContext();
+    const { socket } = useSocketContext();
+    const { authUser } = useAuthContext();
 
     useEffect(() => {
         // cleanup function(when component unmounts)
@@ -27,79 +33,71 @@ const MessageContainer = () => {
     const [isVideoCall, setIsVideoCall] = React.useState(false);
     const [isMuted, setIsMuted] = React.useState(false);
     const [isVideoEnabled, setIsVideoEnabled] = React.useState(true);
-    const [localStream, setLocalStream] = React.useState(null);
-    const [remoteStream, setRemoteStream] = React.useState(null);
+    const [currentRoom, setCurrentRoom] = React.useState(null);
 
-    const handleStartCall = () => {
-        setIsCalling(true);
-        setIsIncomingCall(false);
+    const handleEndVideoCall = () => {
+        leaveRoom();
+        setIsVideoCall(false);
+        setIsMuted(false);
+        setIsVideoEnabled(true);
     }
+
+    useEffect(() => {
+        socket?.on("call:incoming", async ({ from, roomId }) => {
+            console.log("Incoming call from:", from, "roomId:", roomId);
+            setIsIncomingCall(true);
+            setCurrentRoom(roomId);
+        });
+
+        socket?.on("call:accepted", ({ userId }) => {
+            console.log("Call accepted by:", userId);
+            setIsCalling(false);
+            setIsVideoCall(true);
+        });
+
+        socket?.on("call:rejected", () => {
+            setIsCalling(false);
+            toast.info("Call was rejected");
+        });
+
+        socket?.on("call:ended", () => {
+            handleEndVideoCall();
+            toast.info("Call ended");
+        });
+
+        return () => {
+            socket?.off("call:incoming");
+            socket?.off("call:accepted");
+            socket?.off("call:rejected");
+            socket?.off("call:ended");
+        };
+    }, [socket, handleEndVideoCall]);
+
+    const handleStartCall = async () => {
+        const roomId = await createRoom();
+        if (roomId) {
+            console.log("Created room:", roomId);
+            setIsCalling(true);
+            socket?.emit("call:request", {
+                from: authUser._id,
+                to: selectedConversation._id,
+                roomId
+            });
+        }
+    };
 
     const handleAcceptCall = async () => {
-        try {
-            console.log('Requesting media permissions...');
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true
-            });
-            console.log('Stream obtained:', stream);
-            console.log('Video tracks:', stream.getVideoTracks());
-            console.log('Audio tracks:', stream.getAudioTracks());
-
-            setLocalStream(stream);
-            const localVideo = document.getElementById('localVideo');
-            if (localVideo) {
-                console.log('Local video element found');
-                localVideo.srcObject = stream;
-                localVideo.onloadedmetadata = () => {
-                    console.log('Local video metadata loaded');
-                    localVideo.play()
-                        .then(() => console.log('Local video playing'))
-                        .catch(err => console.error("Error playing local video:", err));
-                };
-            } else {
-                console.log('Local video element not found');
-            }
-
-            setIsCalling(false);
+        console.log("Accepting call, room:", currentRoom);
+        const success = await joinRoom(currentRoom, selectedConversation._id);
+        if (success) {
             setIsIncomingCall(false);
             setIsVideoCall(true);
-
-            localStorage.setItem('mediaPermissionsGranted', 'true');
-        } catch (err) {
-            console.error('Detailed error accessing media devices:', err);
-            alert(`Không thể truy cập camera hoặc microphone. Lỗi: ${err.message}`);
         }
-    }
+    };
 
     const handleRejectCall = () => {
         setIsCalling(false);
         setIsIncomingCall(false);
-    }
-
-    const handleEndVideoCall = () => {
-        // Stop all tracks in the streams
-        if (localStream) {
-            localStream.getTracks().forEach(track => {
-                track.stop();
-                track.enabled = false;
-            });
-            const localVideo = document.getElementById('localVideo');
-            if (localVideo) localVideo.srcObject = null;
-        }
-        if (remoteStream) {
-            remoteStream.getTracks().forEach(track => {
-                track.stop();
-                track.enabled = false;
-            });
-            const remoteVideo = document.getElementById('remoteVideo');
-            if (remoteVideo) remoteVideo.srcObject = null;
-        }
-        setLocalStream(null);
-        setRemoteStream(null);
-        setIsVideoCall(false);
-        setIsMuted(false);
-        setIsVideoEnabled(true);
     }
 
     // Thêm các hàm xử lý riêng cho mic và video

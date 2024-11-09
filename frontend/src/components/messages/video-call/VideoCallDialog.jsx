@@ -17,6 +17,9 @@ const VideoCallDialog = ({
     handleEndVideoCall,
     markdown
 }) => {
+    console.log("Local stream in VideoCallDialog:", localStream);
+    console.log("Remote stream in VideoCallDialog:", remoteStream);
+
     return (
         <AlertDialog open={isVideoCall}>
             <AlertDialogContent className="flex flex-col items-center p-8 max-w-6xl mx-auto rounded-2xl">
@@ -52,6 +55,7 @@ const VideoCallDialog = ({
 
                 <DebugInfo
                     localStream={localStream}
+                    remoteStream={remoteStream}
                     isMuted={isMuted}
                     isVideoEnabled={isVideoEnabled}
                 />

@@ -34,7 +34,9 @@ const useLogin = () => {
             if (error.response?.data?.message === "Invalid OTP format") {
                 navigate('/login/2fa', { state: { identifier, password } });
             } else {
-                toast.error(error.response?.data?.message || "An error occurred during login");
+                toast.info("ooo")
+                toast.error(error.response?.data?.message)
+                // toast.error(error.response?.data?.message || "An error occurred during login");
             }
         } finally {
             setLoading(false);

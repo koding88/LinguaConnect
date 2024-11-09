@@ -26,5 +26,5 @@ const connectRedisDB = async () => {
 
 module.exports = {
     connectRedisDB,
-    redisClient,
+    redisClient
 };
