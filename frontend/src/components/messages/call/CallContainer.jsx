@@ -1,5 +1,6 @@
 import React from 'react'
 import { useStringeeContext } from '@/context/StringeeContext'
+import { useAuthContext } from '@/context/AuthContext'
 import CallDialogs from '@/components/messages/call/CallDialogs'
 import VideoCallDialog from '@/components/messages/video-call/VideoCallDialog'
 
@@ -21,15 +22,7 @@ const CallContainer = () => {
         toggleMic,
         toggleVideo
     } = useStringeeContext();
-
-    // Markdown content for video call
-    const markdown = `
-    ### 🌅 Morning Routine Discussion
-
-    **A**: Good morning! What time do you usually wake up? ⏰
-
-    **B**: Hi! I&apos;m an early bird - I wake up at 6 AM every day. How about you? 🌄
-    `
+    const { authUser } = useAuthContext();
 
     return (
         <>
@@ -47,6 +40,7 @@ const CallContainer = () => {
             <VideoCallDialog
                 selectedConversation={selectedConversation}
                 callerInfo={callerInfo}
+                authUser={authUser}
                 isVideoCall={isVideoCall}
                 localStream={localStream}
                 remoteStream={remoteStream}
@@ -55,7 +49,6 @@ const CallContainer = () => {
                 toggleMic={toggleMic}
                 toggleVideo={toggleVideo}
                 handleEndVideoCall={handleEndVideoCall}
-                markdown={markdown}
             />
         </>
     )

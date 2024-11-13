@@ -36,7 +36,10 @@ const registerValidation = (data) => {
         gender: Joi.boolean().required().messages({
             "boolean.base": "Gender must be a boolean value.",
             "any.required": "Gender is required.",
-            "boolean.empty": "Boolean cannot be empty",
+            "boolean.empty": "Gender cannot be empty",
+        }),
+        favoriteTopics: Joi.array().items(objectIdValidation).messages({
+            "array.base": "Favorite topics must be an array",
         }),
         birthday: Joi.date()
             .required()
@@ -76,22 +79,16 @@ const authValidation = (data) => {
                 Joi.string().min(3).max(50).required()
             )
             .messages({
-                "string.base": "Identifier must be a string.",
-                "string.email": "Identifier must be a valid email address.",
-                "string.min": "Identifier must be at least 3 characters long.",
-                "string.max": "Identifier can be up to 50 characters long.",
-                "any.required": "Identifier is required.",
-                "string.empty": "Identifier cannot be empty.",
+                "string.base": "Account must be a string.",
+                "string.email": "Account must be a valid email address.",
+                "string.min": "Account must be at least 3 characters long.",
+                "string.max": "Account can be up to 50 characters long.",
+                "any.required": "Account is required.",
+                "string.empty": "Account cannot be empty.",
             }),
         password: Joi.string()
-            .min(8)
-            .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])"))
             .required()
             .messages({
-                "string.base": "Password must be a string.",
-                "string.min": "Password must be at least 8 characters long.",
-                "string.pattern.base":
-                    "Password must include at least one uppercase letter, one lowercase letter, and one number.",
                 "any.required": "Password is required.",
                 "string.empty": "Password cannot be empty",
             }),

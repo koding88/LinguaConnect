@@ -19,23 +19,32 @@ import {
 } from "@/components/ui/popover";
 import { getFlagImage } from "@/utils/flag";
 
-export const LocationSelection = ({ value, onChange, error }) => {
+export const LocationSelection = ({ value, onChange, error, state }) => {
     const [open, setOpen] = useState(false);
 
     const selectedCountry = countries.find((country) => country.code === value);
 
+    const getButtonClassName = () => {
+        const baseClass = "w-full justify-between transition-all duration-200";
+        if (state === 'error') {
+            return `${baseClass} border-red-500 focus:border-red-500 focus:ring-red-500`;
+        }
+        if (state === 'success') {
+            return `${baseClass} border-green-500 focus:border-green-500 focus:ring-green-500`;
+        }
+        return `${baseClass} border-gray-200 hover:border-gray-300`;
+    };
+
     return (
-        <div className="space-y-2">
-            <Label htmlFor="location" className="block text-gray-700 font-medium mb-2 text-left">
-                Location
-            </Label>
+        <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Location</Label>
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="w-full justify-between"
+                        className={getButtonClassName()}
                     >
                         {value ? (
                             <div className="flex items-center">
@@ -52,9 +61,9 @@ export const LocationSelection = ({ value, onChange, error }) => {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
-                    <Command>
-                        <CommandInput placeholder="Search country..." />
-                        <CommandList>
+                    <Command className="w-full">
+                        <CommandInput placeholder="Search country..." className="h-9" />
+                        <CommandList className="max-h-[200px] overflow-y-auto">
                             <CommandEmpty>No country found.</CommandEmpty>
                             <CommandGroup>
                                 {countries.map((country) => (
@@ -86,7 +95,7 @@ export const LocationSelection = ({ value, onChange, error }) => {
                     </Command>
                 </PopoverContent>
             </Popover>
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
         </div>
     );
 };

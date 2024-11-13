@@ -8,6 +8,7 @@ const { uploadImagesToCloudinary } = require("../../middlewares/upload.Middlewar
 router.patch('/follow/:id', verifyToken, userController.followUserController);
 router.get('/profile/:id', verifyToken, userController.getProfileController);
 router.patch('/profile/avatar', verifyToken, uploadImagesToCloudinary, userController.updateAvatarController);
+router.get('/topics', userController.getTopicsController);
 router.get('/', verifyToken, userController.getUserController);
 router.post('/', verifyToken, userController.updateUserController);
 

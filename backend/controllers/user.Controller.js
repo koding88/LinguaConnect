@@ -32,8 +32,8 @@ const getUserController = async (req, res, next) => {
 const updateUserController = async (req, res, next) => {
     try {
         const userId = req.userId;
-        const {full_name, username, gender, birthday, location} = req.body;
-        const userData = {full_name, username, gender, birthday, location};
+        const {full_name, username, gender, birthday, location, favoriteTopics} = req.body;
+        const userData = {full_name, username, gender, birthday, location, favoriteTopics};
 
         const user = await userService.updateUser(userId, userData);
 
@@ -41,6 +41,19 @@ const updateUserController = async (req, res, next) => {
             status: 'success',
             message: 'User updated successfully',
             data: user,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getTopicsController = async (req, res, next) => {
+    try {
+        const topics = await userService.getTopics();
+        res.status(200).json({
+            status: 'success',
+            message: 'Topics retrieved successfully',
+            data: topics,
         });
     } catch (error) {
         next(error);
@@ -67,7 +80,7 @@ const updateAvatarController = async (req, res, next) => {
         const userId = req.userId;
         const avatar = Array.isArray(req.fileUrls) ? req.fileUrls[0] : req.fileUrls;
         const user = await userService.updateAvatar(userId, avatar);
-        
+
         res.status(200).json({
             status: 'success',
             message: 'Avatar updated successfully',
@@ -83,5 +96,6 @@ module.exports = {
     getUserController,
     updateUserController,
     getProfileController,
-    updateAvatarController
+    updateAvatarController,
+    getTopicsController
 }

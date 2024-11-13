@@ -12,16 +12,13 @@ import DropdownCustom from '../dropdown/dropdownCustom'
 const Post = ({ post }) => {
     const { likePost, editPost, deletePost, reportPost } = usePostZ();
     const { authUser } = useContext(AuthContext);
-    const [isBookmarked, setIsBookmarked] = useState(false);
     const [currentPost, setCurrentPost] = useState(post);
-    const [isReported, setIsReported] = useState(false);
 
     useEffect(() => {
         setCurrentPost(post);
     }, [post]);
 
     const isLiked = currentPost?.likes?.includes(authUser?._id);
-    const handleBookmark = () => setIsBookmarked(!isBookmarked);
 
     const handleEdit = async (postId, ...args) => {
         await editPost(postId, ...args);
@@ -46,41 +43,60 @@ const Post = ({ post }) => {
         await reportPost(postId);
     };
 
-
     if (!currentPost) return null;
 
     return (
-        <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-start mb-4">
-                <div className="relative mr-4">
-                    <AvatarCustom {...currentPost} />
-                </div>
-                <div className="flex-grow">
-                    <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center">
-                            <Name {...currentPost} />
+        <div className="p-4 md:p-6">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <Link to={`/profile/${currentPost?.user?._id}`} className="block">
+                        <div className="relative">
+                            <AvatarCustom {...currentPost} className="ring-2 ring-purple-100" />
                         </div>
-
-                        {/* need check owner */}
-                        <DropdownCustom
-                            owner={currentPost?.user?._id}
-                            post={currentPost}
-                            canEdit={true}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                            onReport={handleReport}
-                        />
-
-                    </div>
-                    <Link to={`/post/${currentPost?._id}`}>
-                        <p className="text-sm mb-4">{currentPost?.content}</p>
                     </Link>
-
-                    <ListImage {...currentPost} />
-
-                    {/* Like, Comment, Bookmark */}
-                    <Reaction post={currentPost} isLiked={isLiked} isBookmarked={isBookmarked} handleLike={handleLike} handleBookmark={handleBookmark} />
+                    <div>
+                        <Name {...currentPost} className="font-medium text-gray-900 hover:text-blue-600 transition-colors" />
+                    </div>
                 </div>
+
+                <DropdownCustom
+                    owner={currentPost?.user?._id}
+                    post={currentPost}
+                    canEdit={true}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onReport={handleReport}
+                />
+            </div>
+
+            {/* Content */}
+            <Link to={`/post/${currentPost?._id}`}>
+                <div className="space-y-4">
+                    {currentPost?.content && (
+                        <p className="text-gray-700 leading-relaxed">
+                            {currentPost.content}
+                        </p>
+                    )}
+
+                    {/* Images */}
+                    <div className="rounded-xl overflow-hidden">
+                        <ListImage {...currentPost} />
+                    </div>
+                </div>
+            </Link>
+
+            {/* Divider */}
+            <div className="my-4 border-t border-gray-100" />
+
+            {/* Reactions */}
+            <div className="flex items-center justify-between">
+                <Reaction
+                    post={currentPost}
+                    isLiked={isLiked}
+                    handleLike={handleLike}
+                    className="hover:bg-blue-50 transition-colors"
+                />
             </div>
         </div>
     )

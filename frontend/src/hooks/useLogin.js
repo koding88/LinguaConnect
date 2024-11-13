@@ -34,9 +34,7 @@ const useLogin = () => {
             if (error.response?.data?.message === "Invalid OTP format") {
                 navigate('/login/2fa', { state: { identifier, password } });
             } else {
-                toast.info("ooo")
-                toast.error(error.response?.data?.message)
-                // toast.error(error.response?.data?.message || "An error occurred during login");
+                toast.error(error.response?.data?.message || "An error occurred during login");
             }
         } finally {
             setLoading(false);
@@ -86,11 +84,6 @@ function handleInputErrors(identifier, password) {
 
     if (!password.trim()) {
         toast.error("Password is required.");
-        return false;
-    }
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/;
-    if (!passwordRegex.test(password)) {
-        toast.error("Password must be at least 8 characters and include a mix of letters and numbers.");
         return false;
     }
 

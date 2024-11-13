@@ -19,14 +19,15 @@ const SideBar = () => {
     }
 
     return <>
-        <div className="flex flex-col gap-4 p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
-            <h2 className="text-xl font-semibold">Chats</h2>
+        <div className="flex flex-col gap-4 p-4 border-b border-gray-100 sticky top-0 bg-gradient-to-r from-blue-50 to-purple-50 z-10">
+            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                Chats
+            </h2>
             {/* Search bar */}
             <Search onSearch={onSearch} placeholder="Search messages" buttonText="Search" otherStyles="mx-0" />
         </div>
 
-        <div className="divide-y divide-gray-200">
-            {/* Repeat this block for each conversation */}
+        <div className="divide-y divide-gray-100">
             <Conversations />
         </div>
     </>

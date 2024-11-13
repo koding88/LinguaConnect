@@ -47,75 +47,82 @@ const ChangePassword = ({ onSubmit }) => {
 
     return (
         <div className='p-8'>
-            <div className='p-4 rounded-md border border-[#d5d5d5]'>
-                <h2 className="text-lg font-semibold mb-4">Change Password</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <Label className="block text-sm font-medium text-black mb-1">Old Password</Label>
-                        <div className="relative">
-                            <Input
-                                type={showOldPassword ? "text" : "password"}
-                                className="w-full h-11 border border-[#d5d5d5] rounded-md p-2 pr-10"
-                                placeholder="Enter your old password"
-                                value={oldPassword}
-                                onChange={(e) => setOldPassword(e.target.value)}
-                            />
-                            <button
-                                type="button"
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                onClick={() => setShowOldPassword(!showOldPassword)}
-                            >
-                                {showOldPassword ? <FaRegEyeSlash /> : <FaRegEye />}
-                            </button>
-                        </div>
+            <h2 className="text-xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                Change Password
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+                Choose a strong password to protect your account
+            </p>
+            <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                    <Label className="block text-sm font-medium text-black mb-1">Old Password</Label>
+                    <div className="relative">
+                        <Input
+                            type={showOldPassword ? "text" : "password"}
+                            className="w-full h-11 border border-[#d5d5d5] rounded-md p-2 pr-10"
+                            placeholder="Enter your old password"
+                            value={oldPassword}
+                            onChange={(e) => setOldPassword(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            onClick={() => setShowOldPassword(!showOldPassword)}
+                        >
+                            {showOldPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                        </button>
                     </div>
-                    <div className="mb-4">
-                        <Label className="block text-sm font-medium text-black mb-1">New Password</Label>
-                        <div className="relative">
-                            <Input
-                                type={showNewPassword ? "text" : "password"}
-                                className="w-full h-11 border border-[#d5d5d5] rounded-md p-2 pr-10"
-                                placeholder="Enter your new password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                            />
-                            <button
-                                type="button"
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                onClick={() => setShowNewPassword(!showNewPassword)}
-                            >
-                                {showNewPassword ? <FaRegEyeSlash /> : <FaRegEye />}
-                            </button>
-                        </div>
+                </div>
+                <div className="mb-4">
+                    <Label className="block text-sm font-medium text-black mb-1">New Password</Label>
+                    <div className="relative">
+                        <Input
+                            type={showNewPassword ? "text" : "password"}
+                            className="w-full h-11 border border-[#d5d5d5] rounded-md p-2 pr-10"
+                            placeholder="Enter your new password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                            {showNewPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                        </button>
                     </div>
-                    <div className="mb-4">
-                        <Label className="block text-sm font-medium text-black mb-1">Confirm Password</Label>
-                        <div className="relative">
-                            <Input
-                                type={showConfirmPassword ? "text" : "password"}
-                                className="w-full h-11 border border-[#d5d5d5] rounded-md p-2 pr-10"
-                                placeholder="Confirm your new password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                            />
-                            <button
-                                type="button"
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            >
-                                {showConfirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
-                            </button>
-                        </div>
+                </div>
+                <div className="mb-4">
+                    <Label className="block text-sm font-medium text-black mb-1">Confirm Password</Label>
+                    <div className="relative">
+                        <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            className="w-full h-11 border border-[#d5d5d5] rounded-md p-2 pr-10"
+                            placeholder="Confirm your new password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                            {showConfirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                        </button>
                     </div>
-                    {error && <p className="text-red-500 text-sm mt-1 mb-2">{error}</p>}
-                    <Button
-                        type="submit"
-                        className="w-full h-11 bg-black text-white rounded-md"
-                    >
-                        Submit
-                    </Button>
-                </form>
-            </div>
+                </div>
+                {error && (
+                    <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
+                        <p className="text-red-600 text-sm">{error}</p>
+                    </div>
+                )}
+                <Button
+                    type="submit"
+                    className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-md transition-all duration-200"
+                >
+                    Update Password
+                </Button>
+            </form>
         </div>
     );
 };

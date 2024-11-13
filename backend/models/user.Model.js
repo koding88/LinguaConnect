@@ -37,6 +37,12 @@ const userSchema = new mongoose.Schema(
             type: Date,
             required: true,
         },
+        favoriteTopics: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Topic",
+            },
+        ],
         location: {
             type: String,
             default: "",

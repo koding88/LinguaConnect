@@ -1,18 +1,38 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import Header from '@/components/header/Header'
-import { Button } from '@/components/ui/button'
 import ListPost from '@/components/posts/ListPost'
 import usePostZ from '@/zustand/usePostZ'
 import useUserZ from '@/zustand/useUserZ'
 import { useAuthContext } from '@/context/AuthContext'
 import Follower from '@/components/follower/Follower'
 import { toast } from 'react-toastify'
-import { CiCamera } from "react-icons/ci";
 import UProfileDialog from '@/components/dialog/UProfileDiaglog'
 import { getFlagImage } from '@/utils/flag'
 import Error from '@/components/Error'
-import Spinner from '@/components/Spinner' // Giả sử bạn có component Spinner
+import Spinner from '@/components/Spinner'
+import {
+    MessageCircle,
+    UserPlus,
+    UserMinus,
+    MapPin,
+    Mail,
+    Users,
+    PenSquare,
+    ImagePlus,
+    Calendar,
+    Image,
+    Cake,
+    User2
+} from 'lucide-react'
+import useConversationZ from '@/zustand/useConversationZ'
+import { useNavigate } from 'react-router-dom'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { extractTime } from '@/utils/extractTime';
 
 const Profile = () => {
     const { userId } = useParams()
@@ -27,13 +47,40 @@ const Profile = () => {
     const fileInputRef = useRef(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
+    const { setSelectedConversation } = useConversationZ()
+    const navigate = useNavigate()
 
     const handleSubmit = async (data) => {
-        const { full_name, username, gender, birthday, location } = await updateProfile(data);
-        const updatedInfo = { full_name, username, gender, birthday, location };
-        setUser((prev) => ({ ...prev, ...updatedInfo }));
-        setAuthUser((prev) => ({ ...prev, ...updatedInfo }));
-        await getAllPosts(true)
+        try {
+            const formattedData = {
+                ...data,
+                birthday: data.birthday,
+                favoriteTopics: Array.isArray(data.favoriteTopics) ? data.favoriteTopics : []
+            };
+
+            console.log('Sending update data:', formattedData);
+            const updatedUser = await updateProfile(formattedData);
+
+            console.log('Updated user:', updatedUser);
+
+            if (updatedUser) {
+                const newUserData = {
+                    ...user,
+                    ...updatedUser,
+                };
+
+                setUser(newUserData);
+                setAuthUser(prev => ({
+                    ...prev,
+                    ...newUserData,
+                }));
+
+                await getAllPosts(true);
+            }
+        } catch (error) {
+            console.error('Update error:', error);
+            toast.error(error.response?.data?.message || "Failed to update profile");
+        }
     };
 
     useEffect(() => {
@@ -96,6 +143,16 @@ const Profile = () => {
         }
     }
 
+    const handleMessageClick = () => {
+        setSelectedConversation({
+            _id: user._id,
+            full_name: user.full_name,
+            username: user.username,
+            avatarUrl: user.avatarUrl
+        })
+        navigate('/messages')
+    }
+
     if (isLoading) {
         return (
             <>
@@ -121,37 +178,31 @@ const Profile = () => {
     return (
         <>
             <Header props={{ path: -1, title: user?.username }} />
-            <div className='flex-grow flex flex-col h-screen overflow-hidden'>
-                <div className='bg-white rounded-tl-[28px] rounded-tr-[28px] flex-1 border-[1px] border-[#D5D5D5] flex flex-col overflow-hidden'>
-                    <div className="flex flex-col h-full">
-                        {user ? (
-                            <>
-                                <div className="border-b border-[#D5D5D5] p-4">
-                                    <div className="p-4">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex-1 pr-4">
-                                                <h2 className="text-2xl font-semibold">{user?.full_name}</h2>
-                                                <p className="text-gray-500">@{user?.username}</p>
-                                                <p className="mt-4 text-sm text-justify flex items-center">
-                                                    {user?.gender ? "He" : "She"} from {user?.location}
-                                                    {user?.location && (
-                                                        <span className="ml-2">
-                                                            <img
-                                                                src={getFlagImage(user?.location)}
-                                                                width="30"
-                                                                alt={user?.location}
-                                                            />
-                                                        </span>
-                                                    )}
-                                                </p>
-                                                <Follower followersCount={followersCount} followers={user?.followers} />
-                                            </div>
-                                            <div className="flex-shrink-0 relative">
-                                                <img
-                                                    src={user?.avatarUrl}
-                                                    alt={user?.username}
-                                                    className={`w-28 h-28 rounded-full border-2 border-gray-300`}
-                                                />
+            <div className='flex-grow flex flex-col h-screen pb-20 md:pb-0'>
+                <div className='space-y-6 max-w-4xl px-4'>
+                    {user ? (
+                        <>
+                            {/* Profile Header Card */}
+                            <div className='bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden'>
+                                {/* Cover Image */}
+                                <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500">
+                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"/>
+                                    <div className="absolute inset-0 bg-[url('/patterns/pattern-1.svg')] opacity-30"/>
+                                </div>
+
+                                <div className="px-8 pb-8">
+                                    {/* Avatar & Actions Section */}
+                                    <div className="relative -mt-24 mb-6 flex flex-col items-center sm:flex-row sm:items-end sm:justify-between gap-4">
+                                        {/* Avatar */}
+                                        <div className="relative z-10">
+                                            <div className="relative inline-block">
+                                                <div className="w-36 h-36 rounded-2xl border-4 border-white shadow-xl overflow-hidden">
+                                                    <img
+                                                        src={user?.avatarUrl}
+                                                        alt={user?.username}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
                                                 {authUser?._id === user?._id && (
                                                     <>
                                                         <input
@@ -161,48 +212,188 @@ const Profile = () => {
                                                             className="hidden"
                                                             accept="image/*"
                                                         />
-                                                        <div
-                                                            className="absolute bottom-0 right-0 bg-white p-1 rounded-full cursor-pointer"
+                                                        <button
                                                             onClick={() => fileInputRef.current.click()}
+                                                            className="absolute bottom-2 right-2 p-2 bg-white/90 backdrop-blur rounded-xl shadow-lg hover:bg-white transition-all group"
                                                         >
-                                                            <CiCamera size={24} />
-                                                        </div>
+                                                            <ImagePlus className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" />
+                                                        </button>
                                                     </>
                                                 )}
                                             </div>
                                         </div>
-                                        {authUser?._id === user?._id ? (
-                                            <UProfileDialog props={user} onSubmit={handleSubmit} />
-                                        ) : (
-                                            <div className="mt-4 flex gap-2">
-                                                <button
-                                                    className={`flex-1 py-2 w-24 ${isFollowing ? 'bg-white text-black border border-black' : 'bg-black text-white'} rounded-[8px] transition-all duration-200 ease-linear`}
-                                                    onClick={handleFollowToggle}
-                                                >
-                                                    <span className='text-md transition-all duration-200 ease-linear'>{isFollowing ? 'Unfollow' : 'Follow'}</span>
-                                                </button>
-                                                <button className="flex-1 py-2 w-24 bg-black text-white border border-black rounded-[8px]">
-                                                    Message
-                                                </button>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto sm:self-end">
+                                            {authUser?._id === user?._id ? (
+                                                <UProfileDialog
+                                                    props={user}
+                                                    onSubmit={handleSubmit}
+                                                    trigger={
+                                                        <button className="flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:translate-y-[-1px] active:translate-y-0 transition-all w-full sm:w-auto">
+                                                            <PenSquare className="w-4 h-4" />
+                                                            Edit Profile
+                                                        </button>
+                                                    }
+                                                />
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={handleFollowToggle}
+                                                        className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl transition-all w-full sm:w-auto ${
+                                                            isFollowing
+                                                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                                : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg hover:translate-y-[-1px] active:translate-y-0'
+                                                        }`}
+                                                    >
+                                                        {isFollowing ? (
+                                                            <><UserMinus className="w-4 h-4" /> Unfollow</>
+                                                        ) : (
+                                                            <><UserPlus className="w-4 h-4" /> Follow</>
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        onClick={handleMessageClick}
+                                                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:translate-y-[-1px] active:translate-y-0 transition-all w-full sm:w-auto"
+                                                    >
+                                                        <MessageCircle className="w-4 h-4" />
+                                                        Message
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* User Info */}
+                                    <div className="space-y-6">
+                                        {/* Basic Info */}
+                                        <div>
+                                            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500">
+                                                {user?.full_name}
+                                            </h2>
+                                            <p className="text-gray-500 flex items-center gap-2 mt-1">
+                                                <Mail className="w-4 h-4" />
+                                                @{user?.username}
+                                            </p>
+                                        </div>
+
+                                        {/* Stats Grid */}
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-2xl border border-gray-100 shadow-sm">
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <div className="text-center p-4 rounded-xl bg-white hover:shadow-md transition-all cursor-pointer group">
+                                                        <div className="flex flex-col items-center">
+                                                            <Users className="w-6 h-6 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
+                                                            <div className="text-lg font-semibold text-gray-800">{followersCount}</div>
+                                                            <div className="text-sm text-gray-500">Followers</div>
+                                                        </div>
+                                                    </div>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-80 p-0 rounded-xl shadow-lg" align="start">
+                                                    <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
+                                                        <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                                                            <Users className="w-5 h-5 text-blue-500" />
+                                                            Followers
+                                                        </h4>
+                                                        <p className="text-sm text-gray-500">People following {user?.username}</p>
+                                                    </div>
+                                                    <div className="max-h-[300px] overflow-y-auto">
+                                                        {user?.followers?.length > 0 ? (
+                                                            <div className="p-2">
+                                                                {user.followers.map((follower) => (
+                                                                    <div
+                                                                        key={follower._id}
+                                                                        className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                                                                    >
+                                                                        <img
+                                                                            src={follower.avatarUrl}
+                                                                            alt={follower.username}
+                                                                            className="w-12 h-12 rounded-full object-cover border-2 border-blue-100"
+                                                                        />
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="font-medium text-gray-800 truncate">
+                                                                                {follower.full_name}
+                                                                            </p>
+                                                                            <p className="text-sm text-gray-500 truncate">
+                                                                                @{follower.username}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="p-6 text-center text-gray-500">
+                                                                <Users className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                                                                No followers yet
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+
+                                            <div className="text-center p-4 rounded-xl bg-white hover:shadow-md transition-all group">
+                                                <div className="flex flex-col items-center">
+                                                    <Image className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+                                                    <div className="text-lg font-semibold text-gray-800">{userPosts.length}</div>
+                                                    <div className="text-sm text-gray-500">Posts</div>
+                                                </div>
                                             </div>
-                                        )}
+                                        </div>
+
+                                        {/* Additional Info */}
+                                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl">
+                                                <MapPin className="w-4 h-4 text-blue-500" />
+                                                {user?.location ? (
+                                                    <>
+                                                        <img
+                                                            src={getFlagImage(user.location)}
+                                                        width="24"
+                                                        alt={user.location}
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <span className="text-gray-500">Not specified</span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl">
+                                                <Cake className="w-4 h-4 text-pink-500" />
+                                                <span>{user?.birthday ? extractTime(user.birthday) : 'Not specified'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl">
+                                                <User2 className="w-4 h-4 text-purple-500" />
+                                                <span className="capitalize">{user?.gender === true ? 'Male' : user?.gender === false ? 'Female' : 'Not specified'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl">
+                                                <Calendar className="w-4 h-4 text-green-500" />
+                                                <span>Joined 2024</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </>
-                        ) : (
-                            <Error content='profile' />
-                        )}
-                        <div className="flex-1 overflow-y-auto">
-                            <div className="flex-1 overflow-y-auto">
-                                <div className="p-4">
-                                    <h3 className="text-xl font-semibold mb-4">Posts</h3>
+                            </div>
+
+                            {/* Posts Section */}
+                            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                                <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-purple-50/50 backdrop-blur-sm">
+                                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                                        <Image className="w-5 h-5 text-blue-600" />
+                                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                                            Posts & Photos
+                                        </span>
+                                    </h3>
+                                </div>
+                                <div className="p-8">
                                     <ListPost posts={userPosts} />
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </>
+                    ) : (
+                        <Error content='profile' />
+                    )}
                 </div>
             </div>
+
         </>
     );
 }

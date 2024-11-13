@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react'
-import Header from '@/components/header/Header'
 import Search from '@/components/search/Search'
 import useUserZ from '@/zustand/useUserZ'
 import ListUserSearch from '@/components/search/ListSearch'
@@ -31,23 +30,28 @@ const SearchPage = () => {
     }, [authUser?._id]);
 
     return (
-        <div>
-            <Header props={{ path: '/', title: 'Search' }} />
-            <div className='flex-grow flex flex-col h-screen'>
-                <div className='bg-white rounded-tl-[28px] rounded-tr-[28px] flex-1 border-[1px] border-[#D5D5D5] flex flex-col overflow-hidden'>
-                    <div className="flex-grow overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b border-[#D5D5D5] p-4 w-full z-10">
-                            <div className="flex items-center justify-center">
-                                <Search onSearch={handleSearch} />
-                            </div>
-                        </div>
+        <div className="space-y-6">
+            {/* Header */}
+            <h1 className='text-3xl font-bold text-center animate-fade-in'>
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                    Search Users
+                </span>
+            </h1>
 
-                        <ListUserSearch
-                            items={users}
-                            currentUser={authUser}
-                            onFollowToggle={handleFollowToggle}
-                        />
-                    </div>
+            {/* Main Content */}
+            <div className='bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden'>
+                {/* Search Bar Section */}
+                <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 p-4">
+                    <Search onSearch={handleSearch} />
+                </div>
+
+                {/* Results Section */}
+                <div className="divide-y divide-gray-100">
+                    <ListUserSearch
+                        items={users}
+                        currentUser={authUser}
+                        onFollowToggle={handleFollowToggle}
+                    />
                 </div>
             </div>
         </div>

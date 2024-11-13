@@ -21,10 +21,6 @@ const MessageItem = ({ message }) => {
     const { translateMessage, loading: translateLoading } = useTranslateMessage();
     const { getWritingTips, loading: writingTipsLoading } = useWritingTips();
     const fromMe = useMemo(() => message.senderId === authUser._id, [message.senderId, authUser._id])
-    const chatClassName = fromMe ? 'chat-end' : 'chat-start'
-    const profilePic = fromMe ? authUser?.avatarUrl : selectedConversation?.avatarUrl
-    const bubbleBgColor = fromMe ? "bg-blue-200" : "bg-gray-200";
-    const shakeClass = message.shouldShake ? "shake" : "";
     const time = useMemo(() => extractTimeMessage(message.createdAt), [message.createdAt])
 
     const [selectedWord, setSelectedWord] = useState(null);
@@ -35,17 +31,10 @@ const MessageItem = ({ message }) => {
         const word = selection.toString().trim();
         if (word) {
             const rect = selection.getRangeAt(0).getBoundingClientRect();
-            const { innerHeight: viewportHeight, innerWidth: viewportWidth, scrollY } = window;
-
-            let x = Math.max(0, Math.min(rect.left, viewportWidth - 300)); // Assuming popup width is 300px
-            let y = rect.bottom + scrollY;
-
-            // Adjust position if the popup would be out of the viewport
-            if (y + 400 > viewportHeight + scrollY) { // Assuming popup height is 400px
-                y = Math.max(0, rect.top + scrollY - 400);
-            }
-
-            setPopupPosition({ x, y });
+            setPopupPosition({
+                x: Math.min(rect.left, window.innerWidth - 350),
+                y: Math.min(rect.bottom + window.scrollY, window.innerHeight - 400)
+            });
             setSelectedWord(word);
         }
     }, []);
@@ -58,7 +47,6 @@ const MessageItem = ({ message }) => {
     };
 
     const handleTranslate = () => {
-        // Get country name from country code using countries.json
         const countryCode = authUser.location?.toLowerCase();
         const country = countries.find(c => c.code.toLowerCase() === countryCode)?.name || 'English';
         translateMessage(message.message, selectedConversation._id, country);
@@ -70,23 +58,30 @@ const MessageItem = ({ message }) => {
         toast.info(`Getting writing tips: ${message.message}`);
     };
 
+    const chatClassName = fromMe ? 'chat-end' : 'chat-start';
+    const bubbleClassName = fromMe
+        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+        : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800';
+
     return (
         <ContextMenu>
             <ContextMenuTrigger onDoubleClick={handleDoubleClick}>
-                <div className={`chat ${chatClassName} mb-4`}>
+                <div className={`chat ${chatClassName}`}>
                     <div className="chat-image avatar">
-                        <div className="w-10 rounded-full">
+                        <div className="w-10 rounded-full ring-2 ring-white shadow-lg">
                             <img
                                 alt="User avatar"
-                                src={profilePic}
-                                loading="lazy"
+                                src={fromMe ? authUser?.avatarUrl : selectedConversation?.avatarUrl}
+                                className="w-full h-full object-cover"
                             />
                         </div>
                     </div>
-                    <div className={`chat-bubble ${bubbleBgColor} ${shakeClass} text-black`}>
+                    <div className={`chat-bubble ${bubbleClassName} shadow-md backdrop-blur-sm`}>
                         {message.message}
                     </div>
-                    <div className='chat-footer opacity-50 text-xs flex gap-1 items-center'>{time}</div>
+                    <div className="chat-footer opacity-75 text-xs flex gap-1 items-center">
+                        {time}
+                    </div>
                 </div>
             </ContextMenuTrigger>
 
@@ -98,17 +93,29 @@ const MessageItem = ({ message }) => {
                 />
             )}
 
-            <ContextMenuContent>
-                <ContextMenuItem onClick={handleTranslate} disabled={translateLoading}>
-                    <BsTranslate className="mr-2 text-blue-500" />
+            <ContextMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-100 shadow-xl rounded-xl p-2">
+                <ContextMenuItem
+                    onClick={handleTranslate}
+                    disabled={translateLoading}
+                    className="flex items-center gap-2 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                    <BsTranslate className="text-blue-500 w-4 h-4" />
                     <span>{translateLoading ? "Translating..." : "AI Translate"}</span>
                 </ContextMenuItem>
-                <ContextMenuItem onClick={handleWritingTips} disabled={writingTipsLoading}>
-                    <FaRegLightbulb className="mr-2 text-yellow-500" />
+                <ContextMenuItem
+                    onClick={handleWritingTips}
+                    disabled={writingTipsLoading}
+                    className="flex items-center gap-2 p-2 hover:bg-yellow-50 rounded-lg transition-colors"
+                >
+                    <FaRegLightbulb className="text-yellow-500 w-4 h-4" />
                     <span>{writingTipsLoading ? "Loading..." : "AI Writing Tips"}</span>
                 </ContextMenuItem>
-                <ContextMenuItem onClick={handleGrammarCheck} disabled={checkGrammarLoading}>
-                    <TbTextGrammar className="mr-2 text-green-500" />
+                <ContextMenuItem
+                    onClick={handleGrammarCheck}
+                    disabled={checkGrammarLoading}
+                    className="flex items-center gap-2 p-2 hover:bg-green-50 rounded-lg transition-colors"
+                >
+                    <TbTextGrammar className="text-green-500 w-4 h-4" />
                     <span>{checkGrammarLoading ? "Checking..." : "AI Check Grammar"}</span>
                 </ContextMenuItem>
             </ContextMenuContent>
@@ -116,4 +123,4 @@ const MessageItem = ({ message }) => {
     )
 }
 
-export default React.memo(MessageItem)
+export default MessageItem

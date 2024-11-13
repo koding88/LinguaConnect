@@ -1,4 +1,5 @@
 const userModel = require('../models/user.Model');
+const topicModel = require('../models/topic.Model');
 const logger = require('../utils/loggerUtil')
 const errorHandler = require('../utils/errorUtil');
 const { idValidation, getUserValidation, updateUserValidation, followUserValidation, updateAvatarValidation } = require("../validations/userValidation");
@@ -75,7 +76,7 @@ const updateUser = async (userId, userData) => {
         }
 
         // Destructure userData safely
-        const {full_name, username, gender, birthday, location} = userData;
+        const {full_name, username, gender, birthday, location, favoriteTopics} = userData;
 
         // Validate user data
         const {error: userError} = updateUserValidation({
@@ -84,6 +85,7 @@ const updateUser = async (userId, userData) => {
             gender,
             birthday,
             location,
+            favoriteTopics
         });
         if (userError) {
             logger.error(`Error validating user data: ${userError.message}`);
@@ -91,7 +93,7 @@ const updateUser = async (userId, userData) => {
         }
 
         // Update the user object
-        Object.assign(user, {full_name, username, gender, birthday, location});
+        Object.assign(user, {full_name, username, gender, birthday, location, favoriteTopics});
 
         // Save the updated user
         await user.save();
@@ -216,10 +218,21 @@ const updateAvatar = async (userId, avatar) => {
     }
 }
 
+const getTopics = async () => {
+    try {
+        const topics = await topicModel.find();
+        return topics;
+    } catch (error) {
+        logger.error(`Error getting topics: ${error.message}`);
+        throw error;
+    }
+}
+
 module.exports = {
     followUser,
     getUser,
     updateUser,
     getProfile,
-    updateAvatar
+    updateAvatar,
+    getTopics
 }

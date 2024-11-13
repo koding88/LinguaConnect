@@ -14,25 +14,53 @@ chat_together = LangChain().chat_together
 class TranslateService:
     REQUIRED_FIELDS = ['original_text', 'translated_text', 'explanation', 'context_analysis']
     HTML_TEMPLATE = """
-<div class="translation-result">
-    <div class="section original-text">
-        <div class="heading" style="font-weight: bold; color: #2c3e50; margin-bottom: 10px;">Original Text:</div>
-        <div class="content" style="margin-bottom: 15px; padding: 8px; background: #f8f9fa; border-radius: 4px;">"{original_text}"</div>
+<div class="space-y-4 p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
+    <div class="space-y-2">
+        <div class="flex items-center gap-2 mb-2">
+            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <div class="font-bold text-gray-800">Original Text</div>
+        </div>
+        <div class="p-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg shadow-sm">
+            <p class="text-gray-700 text-justify whitespace-pre-wrap text-sm">{original_text}</p>
+        </div>
     </div>
 
-    <div class="section translated-text">
-        <div class="heading" style="font-weight: bold; color: #2980b9; margin-bottom: 10px;">Translated Text:</div>
-        <div class="content" style="margin-bottom: 15px; padding: 8px; background: #f8f9fa; border-radius: 4px;">"{translated_text}"</div>
+    <div class="space-y-2">
+        <div class="flex items-center gap-2 mb-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+            <div class="font-bold text-blue-600">Translated Text</div>
+        </div>
+        <div class="p-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg shadow-sm">
+            <p class="text-gray-700 text-justify whitespace-pre-wrap text-sm">{translated_text}</p>
+        </div>
     </div>
 
-    <div class="section explanation">
-        <div class="heading" style="font-weight: bold; color: #27ae60; margin-bottom: 10px;">Explanation:</div>
-        <div class="content" style="margin-bottom: 15px; padding: 8px; background: #f8f9fa; border-radius: 4px;">{explanation}</div>
+    <div class="space-y-2">
+        <div class="flex items-center gap-2 mb-2">
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="font-bold text-green-500">Explanation</div>
+        </div>
+        <div class="p-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg shadow-sm">
+            <p class="text-gray-700 text-justify whitespace-pre-wrap text-sm">{explanation}</p>
+        </div>
     </div>
 
-    <div class="section context-analysis">
-        <div class="heading" style="font-weight: bold; color: #8e44ad; margin-bottom: 10px;">Context Analysis:</div>
-        <div class="content" style="margin-bottom: 15px; padding: 8px; background: #f8f9fa; border-radius: 4px;">{context_analysis}</div>
+    <div class="space-y-2">
+        <div class="flex items-center gap-2 mb-2">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <div class="font-bold text-purple-600">Context Analysis</div>
+        </div>
+        <div class="p-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg shadow-sm">
+            <p class="text-gray-700 text-justify whitespace-pre-wrap text-sm">{context_analysis}</p>
+        </div>
     </div>
 </div>"""
 

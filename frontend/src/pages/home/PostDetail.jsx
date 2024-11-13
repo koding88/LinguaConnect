@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '@/context/AuthContext';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import usePostZ from '@/zustand/usePostZ';
 import { toast } from 'react-toastify';
 import PostDialogCustom from '@/components/dialog/PostDialogCustom';
@@ -15,14 +15,13 @@ import ListImage from '@/components/posts/ListImage';
 import CommentList from '@/components/comment/CommentList';
 import { Skeleton } from '@/components/ui/skeleton';
 import DropdownCustom from '@/components/dropdown/dropdownCustom';
-
-import Header from '@/components/header/Header';
+import { IoChevronBackOutline } from "react-icons/io5";
 
 const PostDetail = () => {
     const { authUser } = useContext(AuthContext);
     const { postId } = useParams();
     const navigate = useNavigate();
-    const { getPostById, likePost, likeComment, addComment, deletePost, editPost, editComment, deleteComment } = usePostZ();
+    const { getPostById, likePost, likeComment, addComment, deletePost, editPost, editComment, deleteComment, reportPost } = usePostZ();
     const [currentPost, setCurrentPost] = useState(null);
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -101,82 +100,105 @@ const PostDetail = () => {
         }
     };
 
+    const handleReport = async (postId) => {
+        await reportPost(postId);
+    };
+
     const handleOpenPostDialog = () => setIsPostDialogOpen(true);
     const handleClosePostDialog = () => setIsPostDialogOpen(false);
-    const handleBookmark = () => { };
     const handleOpenCommentDialog = () => setIsCommentDialogOpen(true);
 
     return (
-        <>
-            <Header props={{ path: '/', title: 'Post Detail' }} />
-            <div className='flex-grow flex flex-col'>
-                <div className='bg-white rounded-tl-[28px] rounded-tr-[28px] flex-1 border-[1px] border-[#D5D5D5] flex flex-col'>
-                    {/* Post */}
-                    {!error ? (
-                        <div className="flex-grow overflow-y-auto">
-                            <div className="border-b border-[#D5D5D5] p-4">
-                                {loading ? (
-                                    <div className="flex items-start mb-4">
-                                        <Skeleton className="w-12 h-12 rounded-full mr-4" />
-                                        <div className="flex-grow">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center gap-4">
+                <Link
+                    to="/"
+                    className="p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+                >
+                    <IoChevronBackOutline className="w-6 h-6 text-gray-600" />
+                </Link>
+                <h1 className='text-3xl font-bold animate-fade-in'>
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        Post Detail
+                    </span>
+                </h1>
+            </div>
+
+            {/* Main Content */}
+            <div className='bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden'>
+                {!error ? (
+                    <div className="divide-y divide-gray-100">
+                        {/* Post Section */}
+                        <div className="p-6">
+                            {loading ? (
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <Skeleton className="w-12 h-12 rounded-full" />
+                                        <div className="flex-1">
                                             <Skeleton className="h-4 w-1/4 mb-2" />
-                                            <Skeleton className="h-4 w-full mb-2" />
-                                            <Skeleton className="h-4 w-3/4 mb-4" />
-                                            {currentPost?.images && (
-                                                <Skeleton className="h-80 w-full mb-4" />
-                                            )}
-                                            <Skeleton className="h-8 w-[150px] mb-4" />
-                                            <Skeleton className="h-[48px] w-full" />
+                                            <Skeleton className="h-3 w-1/6" />
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="flex items-start mb-4">
-                                        <div className="relative mr-4">
-                                            <AvatarCustom {...currentPost} />
-                                        </div>
-                                        <div className="flex-grow">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="flex items-center">
-                                                    <Name {...currentPost} />
-                                                </div>
-
-                                                <DropdownCustom
-                                                    owner={currentPost?.user?._id}
-                                                    post={currentPost}
-                                                    canEdit={true}
-                                                    loading={loading}
-                                                    onEdit={handleEditPost}
-                                                    onDelete={handleDeletePost}
-                                                />
+                                    <Skeleton className="h-24 w-full" />
+                                    <Skeleton className="h-64 w-full rounded-xl" />
+                                    <Skeleton className="h-8 w-full" />
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {/* User Info */}
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <Link to={`/profile/${currentPost?.user?._id}`}>
+                                                <AvatarCustom {...currentPost} className="ring-2 ring-purple-100" />
+                                            </Link>
+                                            <div>
+                                                <Name {...currentPost} className="font-medium text-gray-900 hover:text-blue-600 transition-colors" />
                                             </div>
-                                            <p className="text-sm mb-4">{currentPost?.content}</p>
+                                        </div>
+                                        <DropdownCustom
+                                            owner={currentPost?.user?._id}
+                                            post={currentPost}
+                                            canEdit={true}
+                                            loading={loading}
+                                            onEdit={handleEditPost}
+                                            onDelete={handleDeletePost}
+                                            onReport={handleReport}
+                                        />
+                                    </div>
 
-                                            {/* Image */}
+                                    {/* Content */}
+                                    <div className="space-y-4">
+                                        <p className="text-gray-700 leading-relaxed">{currentPost?.content}</p>
+                                        <div className="rounded-xl overflow-hidden">
                                             <ListImage {...currentPost} />
-
-                                            {/* Like, Comment, Bookmark */}
-                                            <Reaction
-                                                post={currentPost}
-                                                isLiked={isLiked}
-                                                isBookmarked={isBookmarked}
-                                                handleLike={handleLike}
-                                                handleBookmark={handleBookmark}
-                                                handleOpenCommentDialog={handleOpenCommentDialog}
-                                            />
-
-                                            {/* Reply interface */}
-                                            <div className="mt-4 relative">
-                                                <Reply handleOpenCommentDialog={handleOpenCommentDialog} />
-                                            </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
 
-                            {/* Comments section */}
-                            <div className="mt-2 p-4">
-                                <h3 className="text-lg font-semibold mb-4">Comments</h3>
-                                <div className="space-y-4 max-h-[600px]">
+                                    {/* Reactions */}
+                                    <div className="border-t border-gray-100 pt-4">
+                                        <Reaction
+                                            post={currentPost}
+                                            isLiked={isLiked}
+                                            isBookmarked={isBookmarked}
+                                            handleLike={handleLike}
+                                            handleOpenCommentDialog={handleOpenCommentDialog}
+                                        />
+                                    </div>
+
+                                    {/* Reply Input */}
+                                    <div className="relative">
+                                        <Reply handleOpenCommentDialog={handleOpenCommentDialog} />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Comments Section */}
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50">
+                            <div className="p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-6">Comments</h3>
+                                <div className="space-y-4">
                                     <CommentList
                                         comments={currentPost?.comments}
                                         authUser={authUser}
@@ -188,16 +210,21 @@ const PostDetail = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : (
-                        <Error content='post' />
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    <Error content='post' />
+                )}
             </div>
 
-            {/* Floating Action Button for Create Post */}
-            <FloatButton onClick={handleOpenPostDialog} />
+            {/* Floating Action Button */}
+            <div className="fixed bottom-6 right-6">
+                <FloatButton
+                    onClick={handleOpenPostDialog}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                />
+            </div>
 
-            {/* Create Post Modal */}
+            {/* Dialogs */}
             <PostDialogCustom
                 isOpen={isPostDialogOpen}
                 onClose={handleClosePostDialog}
@@ -205,13 +232,12 @@ const PostDetail = () => {
                 redirectToHome={true}
             />
 
-            {/* Comment Dialog */}
             <CommentDialog
                 isOpen={isCommentDialogOpen}
                 onOpenChange={setIsCommentDialogOpen}
                 onSubmit={handleReplySubmit}
             />
-        </>
+        </div>
     );
 }
 

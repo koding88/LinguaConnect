@@ -1,14 +1,14 @@
 import React from 'react';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog';
 import TopicsSection from '../TopicsSection';
 import VideoStream from './VideoStream';
 import CallControls from './CallControls';
-import DebugInfo from './DebugInfo';
 
 const VideoCallDialog = ({
     isVideoCall,
     selectedConversation,
     callerInfo,
+    authUser,
     localStream,
     remoteStream,
     isMuted,
@@ -16,48 +16,58 @@ const VideoCallDialog = ({
     toggleMic,
     toggleVideo,
     handleEndVideoCall,
-    markdown
 }) => {
-
     return (
         <AlertDialog open={isVideoCall}>
-            <AlertDialogContent className="flex flex-col items-center p-8 max-w-6xl mx-auto rounded-2xl">
-                <AlertDialogHeader className="text-center w-full mb-6">
-                    <AlertDialogTitle className="text-3xl font-semibold">
-                        Video Call with {selectedConversation?.full_name || selectedConversation?.username}
-                    </AlertDialogTitle>
-                </AlertDialogHeader>
+            <AlertDialogContent className="bg-white/95 backdrop-blur-sm p-6 max-w-6xl mx-auto rounded-2xl border border-gray-100">
+                <div className="space-y-6">
+                    {/* Header */}
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                            Video Call with {selectedConversation?.full_name || selectedConversation?.username}
+                        </h2>
+                    </div>
 
-                <div className="flex gap-4 w-full">
-                    <VideoStream
-                        id="localVideo"
-                        stream={localStream}
-                        isMuted={true}
-                        label="You"
-                    />
-                    <VideoStream
-                        id="remoteVideo"
-                        stream={remoteStream}
-                        isMuted={false}
-                        label={callerInfo?.full_name || callerInfo?.username}
-                    />
-                    <TopicsSection markdown={markdown} />
+                    {/* Main Content */}
+                    <div className="flex flex-col lg:flex-row gap-4 w-full">
+                        <div className="flex flex-col gap-2 w-full lg:w-2/3">
+                            {/* Video streams container */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div className="aspect-video sm:aspect-square md:aspect-video">
+                                    <VideoStream
+                                        id="localVideo"
+                                        stream={localStream}
+                                        isMuted={true}
+                                        label="You"
+                                        avatarUrl={authUser?.avatarUrl}
+
+                                    />
+                                </div>
+                                <div className="aspect-video sm:aspect-square md:aspect-video">
+                                    <VideoStream
+                                        id="remoteVideo"
+                                        stream={remoteStream}
+                                        isMuted={false}
+                                        label={callerInfo?.full_name || callerInfo?.username}
+                                        avatarUrl={callerInfo?.avatarUrl}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <TopicsSection authUser={authUser} />
+                    </div>
+
+                    {/* Controls */}
+                    <div className="border-t border-gray-100">
+                        <CallControls
+                            isMuted={isMuted}
+                            isVideoEnabled={isVideoEnabled}
+                            toggleMic={toggleMic}
+                            toggleVideo={toggleVideo}
+                            handleEndVideoCall={handleEndVideoCall}
+                        />
+                    </div>
                 </div>
-
-                <CallControls
-                    isMuted={isMuted}
-                    isVideoEnabled={isVideoEnabled}
-                    toggleMic={toggleMic}
-                    toggleVideo={toggleVideo}
-                    handleEndVideoCall={handleEndVideoCall}
-                />
-
-                <DebugInfo
-                    localStream={localStream}
-                    remoteStream={remoteStream}
-                    isMuted={isMuted}
-                    isVideoEnabled={isVideoEnabled}
-                />
             </AlertDialogContent>
         </AlertDialog>
     );

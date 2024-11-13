@@ -14,7 +14,11 @@ const Conversations = () => {
             />
         ))}
 
-        {loading ? <span className='loading loading-spinner mx-auto'></span> : null}
+        {loading ? (
+            <div className="flex justify-center p-4">
+                <span className='loading loading-spinner text-blue-600'></span>
+            </div>
+        ) : null}
     </>
 }
 

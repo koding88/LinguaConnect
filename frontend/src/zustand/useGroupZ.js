@@ -27,7 +27,7 @@ const useGroupZ = create((set) => ({
             set({ group: data.data, loading: false })
         } catch (error) {
             set({ loading: false, error: error.message });
-            toast.error(error.response?.data?.message || "Error getting group");
+            // toast.error(error.response?.data?.message || "Error getting group");
         }
     },
 
@@ -157,7 +157,7 @@ const useGroupZ = create((set) => ({
             set({ groupPosts: data.data, loading: false })
         } catch (error) {
             set({ loading: false, error: error.message });
-            toast.error(error.response?.data?.message || "Error getting group posts");
+            // toast.error(error.response?.data?.message || "Error getting group posts");
         }
     },
 

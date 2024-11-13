@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { IoVolumeHighOutline } from 'react-icons/io5'
+import { FiBook } from 'react-icons/fi'
+import { BsTranslate } from 'react-icons/bs'
+import { LuGraduationCap } from 'react-icons/lu'
 
 const DictionaryPopup = ({ word, position, onClose }) => {
     const [definition, setDefinition] = useState(null);
@@ -18,7 +21,7 @@ const DictionaryPopup = ({ word, position, onClose }) => {
                 const data = await response.json();
                 setDefinition(data[0]);
                 setAudio(data[0].phonetics.find(p => p.audio)?.audio || null);
-            } catch (err) {
+            } catch (_error) {
                 setError('No definition found');
             } finally {
                 setLoading(false);
@@ -34,9 +37,7 @@ const DictionaryPopup = ({ word, position, onClose }) => {
         };
 
         document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [word, onClose]);
 
     const playAudio = () => {
@@ -45,71 +46,106 @@ const DictionaryPopup = ({ word, position, onClose }) => {
         }
     };
 
-    const popupStyle = {
-        position: 'absolute',
-        top: position.y,
-        left: position.x,
-        backgroundColor: 'white',
-        border: '1px solid #e0e0e0',
-        borderRadius: '8px',
-        padding: '16px',
-        zIndex: 1000,
-        width: '300px',
-        maxHeight: '400px',
-        overflow: 'auto',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    };
-
-    const closeButtonStyle = {
-        float: 'right',
-        background: 'none',
-        border: 'none',
-        fontSize: '18px',
-        cursor: 'pointer',
-    };
-
-    const audioButtonStyle = {
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-    };
-
     return (
-        <div ref={popupRef} style={popupStyle}>
-            <button onClick={onClose} style={closeButtonStyle}>×</button>
-            {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
-            {definition && (
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                        <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginRight: '8px' }}>{word}</h2>
-                        {audio && (
-                            <button onClick={playAudio} style={audioButtonStyle}>
-                                <IoVolumeHighOutline size={24} />
-                            </button>
-                        )}
+        <div
+            ref={popupRef}
+            style={{
+                top: position.y,
+                left: position.x,
+            }}
+            className="fixed bg-white rounded-xl shadow-xl border border-gray-100 w-[350px] max-h-[500px] overflow-auto z-50"
+        >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 sticky top-0 border-b border-gray-100">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <FiBook className="w-5 h-5 text-blue-600" />
+                        <h2 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                            Dictionary
+                        </h2>
                     </div>
-                    {definition.phonetic && <p style={{ color: '#666', marginBottom: '8px' }}>{definition.phonetic}</p>}
-                    {definition.origin && (
-                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
-                            <strong>Origin:</strong> {definition.origin}
-                        </p>
-                    )}
-                    {definition.meanings && definition.meanings.map((meaning, index) => (
-                        <div key={index} style={{ marginBottom: '16px' }}>
-                            <p style={{ fontWeight: 'bold', color: '#333', marginBottom: '8px' }}>{meaning.partOfSpeech}</p>
-                            <ol style={{ paddingLeft: '20px' }}>
-                                {meaning.definitions.map((def, idx) => (
-                                    <li key={idx} style={{ marginBottom: '8px' }}>
-                                        <p style={{ marginBottom: '4px' }}>{def.definition}</p>
-                                        {def.example && <p style={{ fontStyle: 'italic', color: '#666' }}>&ldquo;{def.example}&rdquo;</p>}
-                                    </li>
-                                ))}
-                            </ol>
-                        </div>
-                    ))}
+                    <button
+                        onClick={onClose}
+                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        ×
+                    </button>
                 </div>
-            )}
+            </div>
+
+            <div className="p-4">
+                {loading && (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-2">
+                        <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        <p className="text-gray-500">Looking up definition...</p>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-2">
+                        <BsTranslate className="w-8 h-8 text-gray-400" />
+                        <p className="text-gray-500">{error}</p>
+                    </div>
+                )}
+
+                {definition && (
+                    <div className="space-y-4">
+                        {/* Word and Pronunciation */}
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-2xl font-bold text-gray-800">{word}</h3>
+                                {definition.phonetic && (
+                                    <p className="text-gray-500">{definition.phonetic}</p>
+                                )}
+                            </div>
+                            {audio && (
+                                <button
+                                    onClick={playAudio}
+                                    className="p-2 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
+                                >
+                                    <IoVolumeHighOutline className="w-6 h-6 text-blue-600" />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Origin */}
+                        {definition.origin && (
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                                <p className="text-sm text-gray-600">
+                                    <span className="font-semibold">Origin: </span>
+                                    {definition.origin}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Meanings */}
+                        <div className="space-y-4">
+                            {definition.meanings?.map((meaning, index) => (
+                                <div key={index} className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <LuGraduationCap className="w-5 h-5 text-purple-600" />
+                                        <h4 className="font-semibold text-purple-600">
+                                            {meaning.partOfSpeech}
+                                        </h4>
+                                    </div>
+                                    <ol className="list-decimal list-inside space-y-2 ml-2">
+                                        {meaning.definitions.map((def, idx) => (
+                                            <li key={idx} className="text-gray-700">
+                                                <span>{def.definition}</span>
+                                                {def.example && (
+                                                    <p className="ml-6 mt-1 text-sm text-gray-500 italic">
+                                                        "{def.example}"
+                                                    </p>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -7,7 +7,9 @@ import {
     Type,
     FileText,
     ArrowLeft,
-    Save
+    Save,
+    BookOpen,
+    PencilLine
 } from "lucide-react"
 import useTopic from '@/zustand/useTopic'
 import { toast } from 'react-toastify'
@@ -83,55 +85,82 @@ const UpdateTopic = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50">
-            <div className="flex flex-col items-center p-6 md:pt-10">
-                <div className="flex items-center gap-2 mb-6">
-                    <MessageSquare className="w-6 h-6" />
-                    <h1 className="text-2xl font-bold">Update Topic</h1>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50/50 to-purple-50/50">
+            <div className="flex flex-col items-center p-4 sm:p-6 md:pt-10 max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="flex flex-col items-center gap-2 mb-8 text-center">
+                    <div className="p-3 bg-green-100 rounded-full">
+                        <PencilLine className="w-8 h-8 text-green-600" />
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        Update Topic
+                    </h1>
+                    <p className="text-gray-500 max-w-md text-sm md:text-base">
+                        Modify and improve your topic content
+                    </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="w-full max-w-3xl p-6 bg-white rounded-lg shadow-sm">
-                    <div className="space-y-6">
+                <form onSubmit={handleSubmit} className="w-full max-w-3xl">
+                    <div className="space-y-6 bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100">
+                        {/* Name Input */}
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <Type className="w-4 h-4 text-gray-500" />
-                                <label className="text-sm font-medium">Name</label>
+                                <Type className="w-5 h-5 text-blue-500" />
+                                <label className="text-sm font-semibold text-gray-700">Topic Name</label>
                             </div>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={handleNameChange}
-                                className="w-full p-2 border rounded-md"
-                                required
-                                maxLength={30}
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={handleNameChange}
+                                    className="w-full p-3 pr-16 border rounded-lg focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    required
+                                    maxLength={30}
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                                    {name.length}/30
+                                </span>
+                            </div>
                         </div>
 
+                        {/* Description Editor */}
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-gray-500" />
-                                <label className="text-sm font-medium">Description</label>
+                                <BookOpen className="w-5 h-5 text-blue-500" />
+                                <label className="text-sm font-semibold text-gray-700">Description</label>
                             </div>
-                            <MDEditor
-                                value={description}
-                                onChange={setDescription}
-                                preview="live"
-                                height={285}
-                            />
+                            <div data-color-mode="light" className="rounded-lg overflow-hidden border">
+                                <MDEditor
+                                    value={description}
+                                    onChange={setDescription}
+                                    preview="live"
+                                    height={285}
+                                    className="w-full"
+                                />
+                            </div>
+                            <p className="text-sm text-gray-500 flex items-center gap-2">
+                                <FileText className="w-4 h-4" />
+                                {description.length}/5000 characters
+                            </p>
                         </div>
 
-                        <div className="flex justify-end gap-4 pt-4">
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={handleCancel}
+                                className="w-full sm:w-auto order-2 sm:order-1"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Cancel
                             </Button>
-                            <Button type="submit" className="bg-black text-white">
+                            <Button 
+                                type="submit" 
+                                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200 order-1 sm:order-2"
+                            >
                                 <Save className="w-4 h-4 mr-2" />
-                                Update
+                                Update Topic
                             </Button>
                         </div>
                     </div>

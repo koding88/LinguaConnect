@@ -6,7 +6,9 @@ import {
     MessageSquare,
     Type,
     FileText,
-    ArrowLeft
+    ArrowLeft,
+    BookOpen,
+    Eye
 } from "lucide-react"
 import useTopic from '@/zustand/useTopic'
 
@@ -30,46 +32,51 @@ const DetailTopic = () => {
     }, [topicId, getTopicByIdManage])
 
     return (
-        <div className="min-h-screen bg-gray-50/50">
-            <div className="flex flex-col items-center p-6 md:pt-10">
-                <div className="flex items-center gap-2 mb-6">
-                    <MessageSquare className="w-6 h-6" />
-                    <h1 className="text-2xl font-bold">Topic Detail</h1>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50/50 to-purple-50/50">
+            <div className="flex flex-col items-center p-4 sm:p-6 md:pt-10 max-w-7xl mx-auto">
+                <div className="flex flex-col items-center gap-2 mb-8 text-center">
+                    <div className="p-3 bg-purple-100 rounded-full">
+                        <Eye className="w-8 h-8 text-purple-600" />
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        Topic Details
+                    </h1>
+                    <p className="text-gray-500 max-w-md text-sm md:text-base">
+                        View detailed information about this topic
+                    </p>
                 </div>
 
-                <div className="w-full max-w-3xl p-6 bg-white rounded-lg shadow-sm">
-                    <div className="space-y-6">
-                        <div className="space-y-2">
+                <div className="w-full max-w-3xl space-y-6">
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100">
+                        <div className="space-y-2 mb-6">
                             <div className="flex items-center gap-2">
-                                <Type className="w-4 h-4 text-gray-500" />
-                                <label className="text-sm font-medium">Name</label>
+                                <Type className="w-5 h-5 text-blue-500" />
+                                <label className="text-sm font-semibold text-gray-700">Topic Name</label>
                             </div>
-                            <input
-                                type="text"
-                                value={topic.name}
-                                className="w-full p-2 border rounded-md bg-gray-50"
-                                disabled
-                            />
+                            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <p className="text-gray-700">{topic.name}</p>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-gray-500" />
-                                <label className="text-sm font-medium">Description</label>
+                                <BookOpen className="w-5 h-5 text-blue-500" />
+                                <label className="text-sm font-semibold text-gray-700">Description</label>
                             </div>
-                            <MDEditor
-                                value={topic.description}
-                                preview="preview"
-                                hideToolbar
-                                height={285}
-                            />
+                            <div data-color-mode="light" className="rounded-lg overflow-hidden border">
+                                <MDEditor
+                                    value={topic.description}
+                                    preview="preview"
+                                    hideToolbar
+                                    className="w-full"
+                                />
+                            </div>
                         </div>
 
-                        <div className="flex justify-end pt-4">
+                        <div className="flex justify-end pt-6">
                             <Button
-                                type="button"
                                 onClick={() => navigate(-1)}
-                                className="bg-black text-white"
+                                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back

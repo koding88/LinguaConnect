@@ -23,30 +23,49 @@ const Home = () => {
     const handlePostCreated = getAllPosts;
 
     return (
-        <>
-            <h1 className='text-center text-black text-lg font-medium font-roboto py-6 flex items-center justify-center'>For you</h1>
-            <div className='flex-grow flex flex-col'>
-                <div className='bg-white rounded-tl-[28px] rounded-tr-[28px] flex-1 border-[1px] border-[#D5D5D5] flex flex-col'>
-                    {/* What's new */}
-                    <WhatNew avatarUrl={`${authUser?.avatarUrl}` || "https://avatar.iran.liara.run/public"} handleOpenDialog={handleOpenPostDialog} />
-                    {/* List posts */}
-                    <div className="flex-grow overflow-y-auto">
-                        {loading && posts.length === 0 ? (
-                            // Display 3 skeleton posts only when loading and no posts are available
-                            <>
-                                <PostSkeleton />
-                                <PostSkeleton />
-                                <PostSkeleton />
-                            </>
-                        ) : (
-                            <ListPost posts={posts} />
-                        )}
-                    </div>
+        <div className="space-y-6">
+            {/* Header */}
+            <h1 className='text-3xl font-bold text-center animate-fade-in'>
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                    Your Feed
+                </span>
+            </h1>
+
+            {/* Main Content */}
+            <div className='bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden'>
+                {/* What's new section */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50">
+                    <WhatNew
+                        avatarUrl={authUser?.avatarUrl}
+                        handleOpenDialog={handleOpenPostDialog}
+                    />
+                </div>
+
+                {/* Posts section */}
+                <div className="divide-y divide-gray-100">
+                    {loading && posts.length === 0 ? (
+                        <div className="space-y-4 p-4">
+                            <PostSkeleton />
+                            <PostSkeleton />
+                            <PostSkeleton />
+                        </div>
+                    ) : (
+                        <div className="p-4 custom-scrollbar">
+                            <div className="space-y-4">
+                                <ListPost posts={posts} />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Floating Action Button for Create Post */}
-            <FloatButton onClick={handleOpenPostDialog} />
+            {/* Floating Action Button */}
+            <div className="fixed bottom-20 md:bottom-6 right-6">
+                <FloatButton
+                    onClick={handleOpenPostDialog}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                />
+            </div>
 
             {/* Create Post Modal */}
             <PostDialogCustom
@@ -55,7 +74,7 @@ const Home = () => {
                 user={authUser}
                 onPostCreated={handlePostCreated}
             />
-        </>
+        </div>
     )
 }
 

@@ -107,7 +107,7 @@ const ManageTopic = () => {
     const renderCustomHeader = () => (
         <Button
             onClick={() => navigate('/admin/manage/topics/create')}
-            className="bg-black text-white ml-2"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white ml-2 hover:shadow-lg transition-all duration-200"
         >
             Create
         </Button>

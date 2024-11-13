@@ -17,7 +17,7 @@ const groupSchema = new mongoose.Schema({
     },
     avatarUrl: {
         type: String,
-        default: "https://res.cloudinary.com/du4g4aoew/image/upload/v1730476669/uploads/yhmnx9gbhzpyxqeoeysu.webp",
+        default: "https://cdn-icons-png.flaticon.com/512/3950/3950923.png",
     },
     members: [
         {

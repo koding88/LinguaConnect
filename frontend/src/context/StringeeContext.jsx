@@ -3,6 +3,7 @@ import { useAuthContext } from '@/context/AuthContext';
 import { StringeeClient, StringeeCall } from 'stringee-chat-js-sdk';
 import axiosClient from '@/api/axiosClient';
 import useConversationZ from '@/zustand/useConversationZ';
+import { toast } from "react-toastify";
 
 const StringeeContext = createContext();
 
@@ -26,7 +27,7 @@ export const StringeeContextProvider = ({ children }) => {
     useEffect(() => {
         const connectStringee = async () => {
             try {
-                const { data } = await axiosClient.get(`stringee/generate-token?userId=${authUser._id}`);
+                const { data } = await axiosClient.get(`stringee/generate-token?userId=${authUser?._id}`);
                 stringeeClient.connect(data.access_token);
             } catch (error) {
                 console.error('Error connecting to Stringee:', error);
@@ -76,7 +77,7 @@ export const StringeeContextProvider = ({ children }) => {
     }
 
     const handleStartCall = (isVideo = true) => {
-        const call = new StringeeCall(stringeeClient, authUser._id, selectedConversation._id, isVideo);
+        const call = new StringeeCall(stringeeClient, authUser?._id, selectedConversation?._id, isVideo);
         [setCurrentCall, setupCallEvents].forEach(fn => fn(call));
         [setCallStatus, setIsCalling].forEach(fn => fn(true));
         call.makeCall(res => console.log('make call callback:', JSON.stringify(res)));
@@ -94,6 +95,7 @@ export const StringeeContextProvider = ({ children }) => {
             console.log('Call rejected:', res);
             [setIsIncomingCall, setCallStatus].forEach(fn => fn(fn === setCallStatus ? 'rejected' : false));
         });
+        toast.error('Call rejected');
     };
 
     const handleEndVideoCall = () => {
@@ -107,6 +109,7 @@ export const StringeeContextProvider = ({ children }) => {
         setIsMuted(false);
         setIsVideoEnabled(true);
         setCurrentCall(null);
+        toast.error('Call ended');
     };
 
     const toggleMic = () => {

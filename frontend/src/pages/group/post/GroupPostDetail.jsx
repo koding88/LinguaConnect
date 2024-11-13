@@ -43,7 +43,7 @@ const GroupPostDetail = () => {
             setLoading(false);
         };
         fetchPost();
-    }, [postId, groupId, getGroupPostById]); 
+    }, [postId, groupId, getGroupPostById]);
 
 
     const handleLike = async () => {
@@ -152,6 +152,7 @@ const GroupPostDetail = () => {
                                             {/* Like, Comment, Bookmark */}
                                             <Reaction
                                                 post={currentPost}
+                                                group={true}
                                                 isLiked={isLiked}
                                                 handleLike={handleLike}
                                                 handleOpenCommentDialog={handleOpenCommentDialog}

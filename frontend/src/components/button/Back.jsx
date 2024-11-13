@@ -6,7 +6,7 @@ const Back = ({ prop }) => {
     const navigate = useNavigate();
     return <>
         <button onClick={() => navigate(prop)}>
-            <IoArrowBackCircleOutline className="h-8 w-8" />
+            <IoArrowBackCircleOutline className="h-10 w-10 text-blue-600 hover:text-purple-600 transition-colors duration-300" />
         </button>
     </>
 }

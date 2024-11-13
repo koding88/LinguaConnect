@@ -15,6 +15,7 @@ const useSignUp = () => {
             const response = await axiosClient.post('/auth/register', userData);
             const data = response.data;
             toast.success(data.message);
+            toast.info("Please check your email for verification");
             navigate('/login');
         } catch (error) {
             toast.error(error.response.data.message);

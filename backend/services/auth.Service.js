@@ -45,8 +45,8 @@ const register = async (userData) => {
         const hashedPassword = await passwordUtil.hashPassword(userData.password);
 
         // Avatar
-        const avatarMale = 'https://res.cloudinary.com/du4g4aoew/image/upload/v1729415013/uploads/vwnrkxbficfmkikltmdw.png'
-        const avatarFemale = 'https://res.cloudinary.com/du4g4aoew/image/upload/v1729415013/uploads/r3vkhk9hehrshpze27g3.png'
+        const avatarMale = 'https://api.dicebear.com/9.x/avataaars/svg?seed=Katherine'
+        const avatarFemale = 'https://api.dicebear.com/9.x/avataaars/svg?seed=Christian'
         if (userData.gender) {
             userData.avatarUrl = avatarMale;
         } else {
@@ -227,7 +227,7 @@ const loginGoogle = async (profile) => {
             email: profileData?.email,
             password: await passwordUtil.generatePassword(),
             gender: true,
-            avatarUrl: 'https://res.cloudinary.com/du4g4aoew/image/upload/v1728963954/uploads/z0e6nozebi9z7ovrcma2.png',
+            avatarUrl: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Katherine',
             birthday: getBirthdayForAge(18),
             location: "gb",
             isVerify: true,

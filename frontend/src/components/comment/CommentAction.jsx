@@ -2,7 +2,6 @@ import React from 'react'
 import { Button } from '../ui/button'
 import { IoMdHeart } from 'react-icons/io'
 import { CiHeart } from 'react-icons/ci'
-import { IoIosMore } from 'react-icons/io'
 import DropdownComment from '../dropdown/DropdownComment'
 
 const CommentActions = ({ comment, authUser, handleLikeComment, onDelete, postId, onEdit }) => {

@@ -403,7 +403,7 @@ const joinGroup = async (groupId, userId) => {
             recipients: [group.owner],
             content: `joined your group "${group.name}"`,
             type: "group_join",
-            url: `/group/${groupId}`,
+            url: `/groups/${groupId}`,
         });
 
         // Add socket emit for real-time notification

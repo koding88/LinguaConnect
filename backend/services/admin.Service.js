@@ -134,13 +134,13 @@ const getGroupById = async (id) => {
         }
 
         const group = await groupModel.findById(id)
-            .populate('owner', 'username full_name')
-            .populate('members', 'username full_name')
+            .populate('owner', 'username full_name avatarUrl')
+            .populate('members', 'username full_name avatarUrl')
             .populate({
                 path: 'posts',
                 populate: {
                     path: 'user',
-                    select: 'username full_name'
+                    select: 'username full_name avatarUrl'
                 }
             })
             .populate({
@@ -150,7 +150,7 @@ const getGroupById = async (id) => {
                     select: 'content user likes',
                     populate: {
                         path: 'user likes',
-                        select: 'username full_name'
+                        select: 'username full_name avatarUrl'
                     }
                 }
             })
@@ -245,9 +245,16 @@ const getPostById = async (id) => {
         }
 
         const post = await postModel.findById(id)
-            .populate('user', 'username full_name')
-            .populate('likes', 'username full_name')
-            .populate('comments', 'content user likes')
+            .populate('user', 'username full_name avatarUrl')
+            .populate('likes', 'username full_name avatarUrl')
+            .populate({
+                path: 'comments',
+                populate: {
+                    path: 'user',
+                    select: 'username full_name avatarUrl'
+                },
+                select: 'content user likes createdAt'
+            })
             .populate('group', 'name')
             .exec();
 
@@ -311,14 +318,14 @@ const unhidePostById = async (id) => {
 }
 
 module.exports = {
-    getAllUsers, 
-    getUserById, 
-    lockUserById, 
-    unlockUserById, 
-    searchAccount, 
-    getAllGroups, 
-    getGroupById, 
-    blockGroupById,     
+    getAllUsers,
+    getUserById,
+    lockUserById,
+    unlockUserById,
+    searchAccount,
+    getAllGroups,
+    getGroupById,
+    blockGroupById,
     unblockGroupById,
     getAllPosts,
     getPostById,

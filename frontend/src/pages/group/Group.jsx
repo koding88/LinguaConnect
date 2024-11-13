@@ -1,52 +1,60 @@
 import React, { useEffect } from 'react'
-import Header from '@/components/header/Header'
 import Search from '@/components/search/Search'
 import { useAuthContext } from '@/context/AuthContext'
-import { toast } from 'react-toastify'
 import CreateGroup from '@/components/group/CreateGroup'
 import useGroupZ from '@/zustand/useGroupZ'
 import ListGroup from '@/components/group/ListGroup'
 
 const Group = () => {
     const { authUser } = useAuthContext()
-
     const { getGroups, createGroup, groups, searchGroup } = useGroupZ()
-    const [groupData, setGroupData] = React.useState([])
 
-    React.useEffect(() => {
+    useEffect(() => {
         getGroups()
     }, [])
 
     const handleSearch = async (search) => {
         await searchGroup(search)
-        setGroupData(groups)
     }
 
     const handleGroupCreated = async (newGroup) => {
-        const searchGroup = await createGroup(newGroup.name, newGroup.description)
-        setGroupData([...groupData, searchGroup])
+        await createGroup(newGroup.name, newGroup.description)
     }
 
     return (
-        <>
-            <Header props={{ path: '/', title: 'Groups' }} />
+        <div className="space-y-6">
+            {/* Header */}
+            <h1 className='text-3xl font-bold text-center animate-fade-in'>
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                    Groups
+                </span>
+            </h1>
 
-            <div className='flex-grow flex flex-col h-screen'>
-                <div className='bg-white rounded-tl-[28px] rounded-tr-[28px] flex-1 border-[1px] border-[#D5D5D5] flex flex-col overflow-hidden'>
-                    <div className="flex-grow overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b border-[#D5D5D5] p-4 w-full z-10">
-                            <div className="flex items-center justify-center">
-                                <Search onSearch={handleSearch} />
-                                {/* Create Group Button */}
-                                <CreateGroup onGroupCreated={handleGroupCreated} />
-                            </div>
+            {/* Main Content */}
+            <div className='bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden'>
+                {/* Search and Create Section */}
+                <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 p-4">
+                    <div className="flex flex-col md:flex-row gap-4 items-center max-w-2xl mx-auto">
+                        <div className="flex-grow w-full">
+                            <Search
+                                onSearch={handleSearch}
+                                placeholder="Search groups..."
+                                buttonText="Search"
+                            />
                         </div>
-
-                        <ListGroup items={groups} currentUser={authUser} />
+                        <CreateGroup
+                            onGroupCreated={handleGroupCreated}
+                            className="w-full md:w-auto whitespace-nowrap bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200"
+                        />
                     </div>
                 </div>
+
+                {/* Groups List */}
+                <div className="divide-y divide-gray-100">
+                    <ListGroup items={groups} currentUser={authUser} />
+                </div>
             </div>
-        </>
+        </div>
     )
 }
 

@@ -61,6 +61,9 @@ const updateUserValidation = (data) => {
             "any.required": "Location is required",
             "string.empty": "Location cannot be empty",
         }),
+        favoriteTopics: Joi.array().items(objectIdValidation()).messages({
+            "array.base": "Favorite topics must be an array",
+        }),
     })
 
     return schema.validate(data);
