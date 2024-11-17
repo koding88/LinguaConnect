@@ -2,8 +2,8 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import {
-    Users, Type, FileText, User, UsersRound, Users2, ArrowLeft,
-    Calendar, Shield, Settings2, Hash, UserCheck, UserPlus
+    Users, FileText, User, ArrowLeft,
+    Calendar, Shield, Settings2, UserCheck, UserPlus
 } from "lucide-react"
 import useGroup from '@/zustand/useGroup'
 import { useParams } from 'react-router-dom'

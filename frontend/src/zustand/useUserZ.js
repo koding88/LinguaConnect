@@ -71,7 +71,7 @@ const useUserZ = create((set) => ({
             return data.data;
         } catch (error) {
             set({ error: error.response?.data?.message || 'Error fetching user', loading: false });
-            toast.error('Not found user');
+            toast.error(error.response?.data?.message || 'Not found user');
             return null;
         } finally {
             set({ loading: false });

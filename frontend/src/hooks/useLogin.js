@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@/context/AuthContext'
 import { jwtDecode } from "jwt-decode";
 import axiosClient from '@/api/axiosClient';
+import { useSocketContext } from '@/context/SocketContext';
 
 const useLogin = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const { setAuthUser } = useAuthContext();
+    const { socket } = useSocketContext();
 
     const login = async (identifier, password, otp = "XXXXXX") => {
         const success = handleInputErrors(identifier, password);
@@ -28,7 +30,12 @@ const useLogin = () => {
             setAuthUser(decodedToken);
 
             toast.success(data.message);
-            navigate('/');
+
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            window.location.href = '/';
         } catch (error) {
             console.log(error);
             if (error.response?.data?.message === "Invalid OTP format") {
@@ -55,7 +62,8 @@ const useLogin = () => {
             setAuthUser(decodedToken);
 
             toast.success("Successfully logged in with Google");
-            navigate('/');
+            
+            window.location.href = '/';
         } else {
             toast.error("Login failed");
             navigate('/login');

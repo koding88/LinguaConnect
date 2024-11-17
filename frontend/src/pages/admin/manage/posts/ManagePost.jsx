@@ -10,7 +10,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Eye, EyeOff } from "lucide-react"
+import { MoreHorizontal, Eye, EyeOff, Image } from "lucide-react"
 import usePostZ from '@/zustand/usePostZ';
 
 const ManagePost = () => {
@@ -55,7 +55,41 @@ const ManagePost = () => {
             label: 'User',
             render: (post) => post.user?.full_name || 'Unknown User'
         },
-        { key: 'content', label: 'Content' },
+        {
+            key: 'content',
+            label: 'Content',
+            render: (post) => {
+                if ((!post.content || post.content.trim() === '') && post.images?.length > 0) {
+                    return (
+                        <div className="flex items-center text-gray-500">
+                            <Image className="h-4 w-4 mr-2" />
+                            <span>Image only post ({post.images.length})</span>
+                        </div>
+                    );
+                }
+                
+                if (post.content) {
+                    const maxLength = 100;
+                    const displayContent = post.content.length > maxLength 
+                        ? post.content.substring(0, maxLength) + '...'
+                        : post.content;
+                    
+                    return (
+                        <div className="flex items-center gap-2">
+                            <span>{displayContent}</span>
+                            {post.images?.length > 0 && (
+                                <div className="flex items-center text-gray-500">
+                                    <Image className="h-4 w-4" />
+                                    <span className="text-sm">({post.images.length})</span>
+                                </div>
+                            )}
+                        </div>
+                    );
+                }
+                
+                return 'No content';
+            }
+        },
         {
             key: 'likes',
             label: 'Likes',

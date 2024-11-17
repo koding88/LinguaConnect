@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { Bell, BellRing, Trash2, Calendar, Clock, BellOff } from "lucide-react"
+import { useState, useEffect } from 'react'
+import { BellRing, Trash2, Calendar, Clock, BellOff } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import useNotification from '@/zustand/useNotification'
@@ -14,7 +14,7 @@ import {
 import useListenAdminNotification from '@/hooks/useListenAdminNotification';
 
 const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-12 px-4">
+    <div className="flex flex-col items-center justify-center py-12 px-4 h-[calc(100vh-300px)]">
         <div className="p-4 bg-gray-100/80 rounded-full mb-4">
             <BellOff className="w-8 h-8 text-gray-400" />
         </div>

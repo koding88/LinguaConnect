@@ -14,7 +14,7 @@ const useTranslateMessage = () => {
         setAIMessages({ text: `Translate: "${text}"`, isAI: false });
 
         try {
-            const response = await fetch('http://localhost:5555/api/v1/translate', {
+            const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/translate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

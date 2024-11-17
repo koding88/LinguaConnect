@@ -5,8 +5,8 @@ const { objectIdValidation, createFieldMessages } = require("../utils/validation
 const postValidation = (data) => {
     const schema = Joi.object({
         id: objectIdValidation(),
-        content: Joi.string().max(63206).required().messages({
-            ...createFieldMessages('content', 63206),
+        content: Joi.string().max(1600).messages({
+            ...createFieldMessages('content', 1600),
         })
     });
 
@@ -32,8 +32,8 @@ const postIdValidation = (data) => {
 
 const updatePostValidation = (data) => {
     const schema = Joi.object({
-        content: Joi.string().max(63206).allow('').messages({
-            ...createFieldMessages('content', 63206),
+        content: Joi.string().max(1600).allow('').messages({
+            ...createFieldMessages('content', 1600),
         }),
         urls: Joi.array().items(Joi.string().uri().messages({
             'string.uri': `"urls" contains invalid URL`,

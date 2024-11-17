@@ -248,8 +248,70 @@ const deleteTopicByIdController = async (req, res, next) => {
     }
 }
 
+const getDashboardController = async (req, res, next) => {
+    try {
+        const dashboard = await adminService.getDashboard();
+        res.status(200).json({
+            status: 'success',
+            message: 'Dashboard retrieved successfully',
+            data: dashboard,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
+const getMonthlyUserRegistrationTrendController = async (req, res, next) => {
+    try {
+        const monthlyUserRegistrationTrend = await adminService.getMonthlyUserRegistrationTrend();
+        res.status(200).json({
+            status: 'success',
+            message: 'Monthly user registration trend retrieved successfully',
+            data: monthlyUserRegistrationTrend,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
+const getContentTypeMetricsController = async (req, res, next) => {
+    try {
+        const contentTypeMetrics = await adminService.getContentTypeMetrics();
+        res.status(200).json({
+            status: 'success',
+            message: 'Content type metrics retrieved successfully',
+            data: contentTypeMetrics,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getTop3GroupsMostMembersController = async (req, res, next) => {
+    try {
+        const top3GroupsMostMembers = await adminService.getTop3GroupsMostMembers();
+        res.status(200).json({
+            status: 'success',
+            message: 'Top 3 groups most members retrieved successfully',
+            data: top3GroupsMostMembers,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getTop5TrendingPostsController = async (req, res, next) => {
+    try {
+        const top5TrendingPosts = await adminService.getTop5TrendingPosts();
+        res.status(200).json({
+            status: 'success',
+            message: 'Top 5 trending posts retrieved successfully',
+            data: top5TrendingPosts,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
 module.exports = {
     getAllUsersController,
@@ -269,5 +331,10 @@ module.exports = {
     getTopicByIdController,
     createTopicController,
     updateTopicByIdController,
-    deleteTopicByIdController
+    deleteTopicByIdController,
+    getDashboardController,
+    getMonthlyUserRegistrationTrendController,
+    getContentTypeMetricsController,
+    getTop3GroupsMostMembersController,
+    getTop5TrendingPostsController
 }

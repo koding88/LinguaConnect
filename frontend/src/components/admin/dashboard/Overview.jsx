@@ -1,16 +1,15 @@
-import React from 'react'
 import StatsCard from '../stats/StatsCard'
 import BarChart from '../charts/BarChart'
 import {
     UserRound, UsersRound, Newspaper,
-    TrendingUp, Activity, Target,
-    Users,
+    TrendingUp, Target,
     UserPlus, BarChart2,
-    ThumbsUp, MessageCircle, Share2,
-    Video, FileText, Camera,
-    Users2, MessagesSquare, Flame
+    ThumbsUp, MessageCircle,
+    FileText,
+    Flame
 } from 'lucide-react'
-
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Import Chart.js registers
 import {
@@ -25,6 +24,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
+import useDashboard from '@/zustand/useDashboard';
 
 // Register Chart.js components
 ChartJS.register(
@@ -39,44 +39,89 @@ ChartJS.register(
     Filler
 );
 
-const Overview = ({ chartOptions, accountsData, postsData, groupData }) => {
+const Overview = () => {
+    const navigate = useNavigate();
+    const {
+        getTotalSystems,
+        dashboardData,
+        getMonthlyUserRegistrationTrend,
+        monthlyUserRegistrationTrend,
+        getContentTypeMetrics,
+        contentTypeMetrics,
+        getTop3GroupsMostMembers,
+        top3GroupsMostMembers,
+        getTop5TrendingPosts,
+        top5TrendingPosts
+    } = useDashboard();
+    const { users, groups, posts } = dashboardData || {};
+
+    useEffect(() => {
+        getTotalSystems();
+        getMonthlyUserRegistrationTrend();
+        getContentTypeMetrics();
+        getTop3GroupsMostMembers();
+        getTop5TrendingPosts();
+    }, [
+        getTotalSystems,
+        getMonthlyUserRegistrationTrend,
+        getContentTypeMetrics,
+        getTop3GroupsMostMembers,
+        getTop5TrendingPosts
+    ]);
+
+    // Helper function to get month name
+    const getMonthName = (monthNumber) => {
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        return months[monthNumber - 1];
+    };
+
+    // Helper function to format content type labels
+    const formatContentType = (type) => {
+        const labels = {
+            'images_only': 'Images Only',
+            'text_only': 'Text Only',
+            'text_and_images': 'Text & Images'
+        };
+        return labels[type] || type;
+    };
+
     const statsData = [
         {
             title: "Total Users",
-            value: "500",
+            value: users,
             icon: UserRound,
-            change: "+1%",
-            description: "Active users this month",
+            description: "Active users",
             color: "blue"
         },
         {
             title: "Total Groups",
-            value: "30",
+            value: groups,
             icon: UsersRound,
-            change: "+1.2%",
-            description: "Active groups this month",
+            description: "Active groups",
             color: "purple"
         },
         {
             title: "Total Posts",
-            value: "1,990",
+            value: posts,
             icon: Newspaper,
-            change: "+1.84%",
-            description: "Posts created this month",
+            description: "Total posts",
             color: "pink"
         }
     ]
 
     const enhancedAccountsData = {
-        labels: ['January', 'February', 'March', 'April', 'May'],
+        labels: monthlyUserRegistrationTrend?.map(item => getMonthName(item._id.month)) || [],
         datasets: [{
             label: 'New Users',
-            data: [100, 150, 200, 300, 250],
-            type: 'line', // Line chart for trend visualization
+            data: monthlyUserRegistrationTrend?.map(item => item.count) || [],
+            type: 'line',
             borderColor: 'rgba(37, 99, 235, 1)',
             backgroundColor: 'rgba(37, 99, 235, 0.1)',
             fill: true,
-            tension: 0.4, // Smooth curve
+            tension: 0.4,
             icon: UserPlus,
             pointBackgroundColor: 'rgba(37, 99, 235, 1)',
             pointRadius: 4,
@@ -84,92 +129,150 @@ const Overview = ({ chartOptions, accountsData, postsData, groupData }) => {
         }]
     }
 
+    const contentEngagementColors = {
+        posts: {
+            background: 'rgba(147, 51, 234, 0.9)',  // Purple
+            border: 'rgba(147, 51, 234, 1)', 
+            hover: 'rgba(147, 51, 234, 0.7)',
+            text: '#9333EA'  // Solid color for text/icon
+        },
+        likes: {
+            background: 'rgba(236, 72, 153, 0.9)', // Pink
+            border: 'rgba(236, 72, 153, 1)',
+            hover: 'rgba(236, 72, 153, 0.7)', 
+            text: '#EC4899'  // Solid color for text/icon
+        },
+        comments: {
+            background: 'rgba(59, 130, 246, 0.9)',  // Blue
+            border: 'rgba(59, 130, 246, 1)',
+            hover: 'rgba(59, 130, 246, 0.7)',
+            text: '#3B82F6'  // Solid color for text/icon
+        }
+    };
+
     const enhancedPostsData = {
-        labels: [
-            { text: 'Images', icon: Camera },
-            { text: 'Videos', icon: Video },
-            { text: 'Text Posts', icon: FileText }
-        ],
+        labels: contentTypeMetrics?.map(item => formatContentType(item.contentType)) || [],
         datasets: [
             {
+                type: 'bar',
+                label: 'Posts',
+                data: contentTypeMetrics?.map(item => item.count) || [],
+                icon: FileText,
+                backgroundColor: contentEngagementColors.posts.background,
+                borderColor: contentEngagementColors.posts.border,
+                hoverBackgroundColor: contentEngagementColors.posts.hover,
+                borderWidth: 1,
+                borderRadius: 0,
+                barThickness: 25,
+                labelColor: contentEngagementColors.posts.text,
+                iconColor: contentEngagementColors.posts.text
+            },
+            {
+                type: 'bar',
                 label: 'Likes',
-                data: [300, 500, 200],
+                data: contentTypeMetrics?.map(item => item.likes) || [],
                 icon: ThumbsUp,
-                stack: 'stack1',
+                backgroundColor: contentEngagementColors.likes.background,
+                borderColor: contentEngagementColors.likes.border,
+                hoverBackgroundColor: contentEngagementColors.likes.hover,
+                borderWidth: 1,
+                borderRadius: 0,
+                barThickness: 25,
+                labelColor: contentEngagementColors.likes.text,
+                iconColor: contentEngagementColors.likes.text
             },
             {
+                type: 'bar',
                 label: 'Comments',
-                data: [70, 150, 50],
+                data: contentTypeMetrics?.map(item => item.comments) || [],
                 icon: MessageCircle,
-                stack: 'stack1',
-            },
-            {
-                label: 'Shares',
-                data: [50, 80, 30],
-                icon: Share2,
-                stack: 'stack1',
+                backgroundColor: contentEngagementColors.comments.background,
+                borderColor: contentEngagementColors.comments.border,
+                hoverBackgroundColor: contentEngagementColors.comments.hover,
+                borderWidth: 1,
+                borderRadius: 0,
+                barThickness: 25,
+                labelColor: contentEngagementColors.comments.text,
+                iconColor: contentEngagementColors.comments.text
             }
         ]
     }
 
+    const groupColors = {
+        bar1: {
+            background: 'rgba(34, 197, 94, 0.9)', // Green
+            border: 'rgba(34, 197, 94, 1)',
+            hover: 'rgba(34, 197, 94, 0.7)', 
+            text: '#22C55E'
+        },
+        bar2: {
+            background: 'rgba(236, 72, 153, 0.9)', // Pink
+            border: 'rgba(236, 72, 153, 1)',
+            hover: 'rgba(236, 72, 153, 0.7)',
+            text: '#EC4899'
+        },
+        bar3: {
+            background: 'rgba(59, 130, 246, 0.9)', // Blue
+            border: 'rgba(59, 130, 246, 1)',
+            hover: 'rgba(59, 130, 246, 0.7)',
+            text: '#3B82F6'
+        },
+    };
+
     const enhancedGroupData = {
-        labels: [
-            { text: 'Language Exchange', icon: MessagesSquare },
-            { text: 'Study Groups', icon: Users2 },
-            { text: 'Cultural Exchange', icon: Users },
-            { text: 'Practice Partners', icon: Users2 }
-        ],
+        labels: top3GroupsMostMembers?.map(group => group.name) || [],
         datasets: [
             {
                 type: 'bar',
                 label: 'Members',
-                data: [200, 150, 300, 100],
-                icon: Users,
-                yAxisID: 'y',
-            },
-            {
-                type: 'line',
-                label: 'Activity Score',
-                data: [85, 65, 90, 45],
-                borderColor: 'rgba(236, 72, 153, 1)',
-                backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                yAxisID: 'y1',
-                tension: 0.4,
-                icon: Activity,
+                data: top3GroupsMostMembers?.map(group => group.members) || [],
+                backgroundColor: [
+                    groupColors.bar1.background,
+                    groupColors.bar2.background,
+                    groupColors.bar3.background
+                ],
+                borderColor: [
+                    groupColors.bar1.border,
+                    groupColors.bar2.border,
+                    groupColors.bar3.border
+                ],
+                hoverBackgroundColor: [
+                    groupColors.bar1.hover,
+                    groupColors.bar2.hover,
+                    groupColors.bar3.hover
+                ],
+                borderWidth: 1,
+                borderRadius: 0,
+                barThickness: 40,
+                labelColor: '#9333EA',
             }
         ]
-    }
+    };
 
     const trendingPostsData = {
-        labels: [
-            "Learning English Grammar Tips",
-            "Cultural Exchange Stories",
-            "Speaking Practice Guide",
-            "Vocabulary Building Hacks",
-            "Pronunciation Tips"
-        ],
+        labels: top5TrendingPosts?.map(post => post.title) || [],
         datasets: [
             {
                 type: 'bar',
                 label: 'Likes',
-                data: [245, 190, 160, 140, 120],
+                data: top5TrendingPosts?.map(post => post.likes) || [],
                 icon: ThumbsUp,
-                backgroundColor: 'rgba(37, 99, 235, 0.8)',
-                borderColor: 'rgba(37, 99, 235, 1)',
-                borderWidth: 2,
-                borderRadius: 8,
-                barThickness: 12,
+                backgroundColor: 'rgba(59, 130, 246, 0.9)', // Blue
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1,
+                borderRadius: 0,
+                barThickness: 20,
             },
             {
                 type: 'bar',
                 label: 'Comments',
-                data: [180, 150, 130, 100, 80],
+                data: top5TrendingPosts?.map(post => post.comments) || [],
                 icon: MessageCircle,
-                backgroundColor: 'rgba(147, 51, 234, 0.8)',
+                backgroundColor: 'rgba(147, 51, 234, 0.9)', // Purple
                 borderColor: 'rgba(147, 51, 234, 1)',
-                borderWidth: 2,
-                borderRadius: 8,
-                barThickness: 12,
+                borderWidth: 1,
+                borderRadius: 0,
+                barThickness: 20,
             }
         ]
     }
@@ -182,13 +285,29 @@ const Overview = ({ chartOptions, accountsData, postsData, groupData }) => {
             icon: TrendingUp,
             color: "blue",
             options: {
-                ...chartOptions,
+                responsive: true,
                 scales: {
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
                             text: 'Number of New Users'
+                        },
+                        ticks: {
+                            stepSize: 1, // Since we're counting users, use whole numbers
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `New Users: ${context.parsed.y}`
                         }
                     }
                 }
@@ -201,52 +320,158 @@ const Overview = ({ chartOptions, accountsData, postsData, groupData }) => {
             icon: BarChart2,
             color: "purple",
             options: {
-                ...chartOptions,
+                responsive: true,
                 scales: {
                     y: {
-                        stacked: true,
+                        beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Number of Interactions'
+                            text: 'Number of Interactions',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            precision: 0
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)',
+                            drawBorder: false
                         }
                     },
                     x: {
-                        stacked: true
+                        grid: {
+                            display: false
+                        }
                     }
-                }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const label = context.dataset.label;
+                                const value = context.parsed.y;
+                                return `${label}: ${value.toLocaleString()}`;
+                            }
+                        },
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleColor: '#1f2937',
+                        bodyColor: '#4b5563',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        usePointStyle: false
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: false,
+                            padding: 20,
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            font: {
+                                size: 12
+                            },
+                            color: (context) => context.dataset.labelColor || '#4B5563',
+                            generateLabels: (chart) => {
+                                const datasets = chart.data.datasets;
+                                return datasets.map((dataset, i) => ({
+                                    text: dataset.label,
+                                    fillStyle: dataset.backgroundColor,
+                                    strokeStyle: dataset.borderColor,
+                                    lineWidth: dataset.borderWidth,
+                                    hidden: !chart.isDatasetVisible(i),
+                                    index: i,
+                                    fontColor: dataset.labelColor,
+                                    datasetIndex: i
+                                }));
+                            }
+                        }
+                    }
+                },
+                barPercentage: 0.9,
+                categoryPercentage: 0.8,
+                maintainAspectRatio: false
             }
         },
         groupActivity: {
-            title: "Group Performance",
-            subtitle: "Member count and activity metrics",
-            description: "Monitor group growth and engagement levels",
+            title: "Top Groups by Members",
+            subtitle: "Groups with most members",
+            description: "Top 3 groups with highest member count",
             icon: Target,
-            color: "pink",
+            color: "text-purple-600",
             options: {
-                ...chartOptions,
+                responsive: true,
                 scales: {
                     y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
+                        beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Number of Members'
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Activity Score'
+                            text: 'Number of Members',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            precision: 0
                         },
                         grid: {
-                            drawOnChartArea: false
+                            color: 'rgba(0, 0, 0, 0.1)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                const label = this.getLabelForValue(value);
+                                return label.length > 20 ? label.substr(0, 20) + '...' : label;
+                            }
                         }
                     }
-                }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: (context) => {
+                                // Show full group name in tooltip
+                                return top3GroupsMostMembers[context[0].dataIndex].name;
+                            },
+                            label: (context) => {
+                                return `Members: ${context.parsed.y}`;
+                            }
+                        },
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleColor: '#1f2937',
+                        bodyColor: '#4b5563',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        padding: 12
+                    },
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#9333EA',
+                            usePointStyle: false,
+                            padding: 20,
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                barPercentage: 0.8,
+                categoryPercentage: 0.9,
+                maintainAspectRatio: false
             }
         },
         trendingPosts: {
@@ -254,24 +479,33 @@ const Overview = ({ chartOptions, accountsData, postsData, groupData }) => {
             subtitle: "Top 5 most engaging posts",
             description: "Posts with highest engagement in the last 7 days",
             icon: Flame,
-            color: "purple",
+            color: "text-purple-600",
             options: {
-                ...chartOptions,
-                indexAxis: 'y', // Horizontal bar chart
+                indexAxis: 'y',
+                responsive: true,
                 scales: {
                     x: {
                         stacked: true,
                         title: {
                             display: true,
-                            text: 'Number of Interactions'
+                            text: 'Number of Interactions',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)',
+                            drawBorder: false
                         }
                     },
                     y: {
                         stacked: true,
+                        grid: {
+                            display: false
+                        },
                         ticks: {
                             callback: function(value) {
                                 const label = this.getLabelForValue(value);
-                                // Truncate long labels
                                 return label.length > 25 ? label.substr(0, 25) + '...' : label;
                             }
                         }
@@ -281,45 +515,84 @@ const Overview = ({ chartOptions, accountsData, postsData, groupData }) => {
                     tooltip: {
                         callbacks: {
                             title: (context) => {
-                                // Show full title in tooltip
-                                return trendingPostsData.labels[context[0].dataIndex];
+                                return top5TrendingPosts[context[0].dataIndex].title;
+                            },
+                            label: (context) => {
+                                const label = context.dataset.label;
+                                const value = context.parsed.x;
+                                return `${label}: ${value}`;
+                            }
+                        },
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleColor: '#1f2937',
+                        bodyColor: '#4b5563',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        padding: 12
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: false,
+                            padding: 20,
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            font: {
+                                size: 12,
+                                weight: 'bold'
                             }
                         }
                     }
-                }
+                },
+                onClick: (event, elements) => {
+                    if (elements && elements.length > 0) {
+                        const index = elements[0].index;
+                        const postId = top5TrendingPosts[index]._id;
+                        navigate(`/admin/manage/posts/${postId}`);
+                    }
+                },
+                onHover: (event, elements) => {
+                    event.native.target.style.cursor = elements?.length > 0 ? 'pointer' : 'default';
+                },
+                maintainAspectRatio: false
             }
         }
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Header */}
             <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">Dashboard Overview</h1>
 
             {/* Stats Grid */}
-            <div className="grid gap-6 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1">
+            <div className="grid gap-8 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1">
                 {statsData.map((stat, index) => (
                     <StatsCard key={index} {...stat} delay={index * 0.1} />
                 ))}
             </div>
 
             {/* Charts Grid */}
-            <div className="grid gap-6 lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-1">
+            <div className="grid gap-8 lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-1">
                 <BarChart
                     {...chartConfigs.accountGrowth}
                     data={enhancedAccountsData}
+                    color='text-blue-600'
                 />
                 <BarChart
                     {...chartConfigs.postEngagement}
                     data={enhancedPostsData}
+                    chartColors={contentEngagementColors}
+                    color='text-purple-600'
                 />
                 <BarChart
                     {...chartConfigs.groupActivity}
                     data={enhancedGroupData}
+                    color='text-purple-600'
                 />
                 <BarChart
                     {...chartConfigs.trendingPosts}
                     data={trendingPostsData}
+                    color='text-purple-600'
                 />
             </div>
         </div>

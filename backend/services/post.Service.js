@@ -104,13 +104,20 @@ const getOnePost = async (postId) => {
 
 const createPost = async (userId, postData) => {
     try {
-        // Destructure content from postData
+        // Destructure content and images from postData
         const { content, images } = postData;
 
-        // Validate the post data
-        const { error } = postValidation({ id: userId, content });
-        if (error) {
-            throw errorHandler(400, `Validation error: ${error.message}`);
+        // Check if post has either content or images
+        if (!content && (!images || images.length === 0)) {
+            throw errorHandler(400, 'Post must have either content or at least one image');
+        }
+
+        // Validate the post data if content exists
+        if (content) {
+            const { error } = postValidation({ id: userId, content });
+            if (error) {
+                throw errorHandler(400, `Validation error: ${error.message}`);
+            }
         }
 
         // Create a new post instance
@@ -187,10 +194,13 @@ const updatePost = async (postId, userId, updateData) => {
             currentImages = [...currentImages, ...images];
         }
 
-        // Update content if provided
-        if (content !== undefined) {
-            existingPost.content = content;
+        // Check if post has either content or images after updates
+        if (!content && currentImages.length === 0) {
+            throw errorHandler(400, 'Post must have either content or at least one image');
         }
+
+        // Update content
+        existingPost.content = content || '';
 
         // Update images
         existingPost.images = currentImages;
@@ -359,5 +369,114 @@ const reportPost = async (postId, userId) => {
     }
 }
 
+const filterPostByFollowing = async (userId) => {
+    try {
+        // Get user's following list
+        const user = await userModel.findById(userId).select('following');
+        if (!user) {
+            throw errorHandler(404, 'User not found');
+        }
 
-module.exports = { getAllPosts, getOnePost, createPost, updatePost, deletePost, likePost, reportPost }
+        // Find posts from users that the current user follows
+        const posts = await postModel.find({
+            user: { $in: user.following },
+            status: 'public',
+            group: null
+        }, projection)
+        .sort({ createdAt: -1 })
+        .populate('user', 'username full_name avatarUrl location')
+        .populate({
+            path: 'comments',
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        });
+
+        return posts;
+
+    } catch (error) {
+        logger.error(`Error filtering posts: ${error.message}`);
+        throw error;
+    }
+}
+
+const filterPostByLikes = async (userId) => {
+    try {
+        // Get user
+        const user = await userModel.findById(userId);
+        if (!user) {
+            throw errorHandler(404, 'User not found');
+        }
+
+        // Find posts that have this user's ID in their likes array
+        const posts = await postModel.find({
+            likes: userId,
+            status: 'public',
+            group: null
+        }, projection)
+        .sort({ createdAt: -1 })
+        .populate('user', 'username full_name avatarUrl location')
+        .populate({
+            path: 'comments',
+            populate: {
+                path: 'user',
+                select: 'username full_name avatarUrl location'
+            }
+        });
+
+        return posts;
+
+    } catch (error) {
+        logger.error(`Error filtering posts: ${error.message}`);
+        throw error;
+    }
+}
+
+const filterPostByComments = async (userId) => {
+    try {
+        // Get user
+        const user = await userModel.findById(userId);
+        if (!user) {
+            throw errorHandler(404, 'User not found');
+        }
+
+        // Find all comments by this user
+        const userComments = await commentModel.find({ user: userId });
+        
+        // Get unique post IDs from the comments
+        const postIds = [...new Set(userComments.map(comment => comment.post))];
+
+        // Find those posts
+        const posts = await postModel.find({
+            _id: { $in: postIds },
+            status: 'public',
+            group: null
+        })
+        .sort({ createdAt: -1 })
+        .populate('user', 'username avatarUrl')
+        .populate('likes', 'username avatarUrl location')
+        .populate('comments.user', 'username avatarUrl location');
+
+        return posts;
+
+    } catch (error) {
+        logger.error(`Error filtering posts by comments: ${error.message}`);
+        throw error;
+    }
+}
+
+
+
+module.exports = { 
+    getAllPosts, 
+    getOnePost, 
+    createPost, 
+    updatePost, 
+    deletePost, 
+    likePost, 
+    reportPost, 
+    filterPostByFollowing,
+    filterPostByLikes,
+    filterPostByComments
+}

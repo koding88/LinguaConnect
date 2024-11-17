@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import usePostZ from '@/zustand/usePostZ';
 import { toast } from 'react-toastify';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { IoImageOutline } from "react-icons/io5";
@@ -56,6 +55,13 @@ const EditPostLogCustom = ({ ...props }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Check if post has either content or images
+        if (!content.trim() && existingImages.length === 0 && newImages.length === 0) {
+            toast.error('Post must have either content or at least one image');
+            return;
+        }
+
         try {
             setIsUpdating(true);
             await props?.onEdit(props?.post?._id, content, newImages, existingImages, originalImages);
@@ -110,11 +116,10 @@ const EditPostLogCustom = ({ ...props }) => {
                                 <button
                                     type="button"
                                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                    className={`p-2 rounded-lg transition-all duration-200 ${
-                                        showEmojiPicker
+                                    className={`p-2 rounded-lg transition-all duration-200 ${showEmojiPicker
                                             ? 'text-blue-600 bg-blue-50'
                                             : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
-                                    }`}
+                                        }`}
                                 >
                                     <RiEmotionHappyLine className="w-6 h-6" />
                                 </button>
@@ -209,15 +214,13 @@ const EditPostLogCustom = ({ ...props }) => {
                         <div className="flex items-center gap-2">
                             <Label
                                 htmlFor="picture"
-                                className={`p-2 rounded-lg transition-colors duration-200 ${
-                                    totalImages >= MAX_IMAGES || isUpdating
+                                className={`p-2 rounded-lg transition-colors duration-200 ${totalImages >= MAX_IMAGES || isUpdating
                                         ? 'bg-gray-100 cursor-not-allowed'
                                         : 'hover:bg-gray-100 cursor-pointer'
-                                }`}
+                                    }`}
                             >
-                                <IoImageOutline className={`w-6 h-6 ${
-                                    totalImages >= MAX_IMAGES || isUpdating ? 'text-gray-400' : 'text-blue-600'
-                                }`} />
+                                <IoImageOutline className={`w-6 h-6 ${totalImages >= MAX_IMAGES || isUpdating ? 'text-gray-400' : 'text-blue-600'
+                                    }`} />
                             </Label>
                             <Input
                                 id="picture"
@@ -228,15 +231,14 @@ const EditPostLogCustom = ({ ...props }) => {
                                 className="hidden"
                                 disabled={totalImages >= MAX_IMAGES || isUpdating}
                             />
-                            <span className={`text-sm ${
-                                totalImages >= MAX_IMAGES ? 'text-red-500' : 'text-gray-500'
-                            }`}>
+                            <span className={`text-sm ${totalImages >= MAX_IMAGES ? 'text-red-500' : 'text-gray-500'
+                                }`}>
                                 {totalImages}/{MAX_IMAGES} images
                             </span>
                         </div>
                         <Button
                             type="submit"
-                            disabled={isUpdating || (!content.trim() && existingImages.length === 0 && newImages.length === 0)}
+                            disabled={isUpdating}
                             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200 min-w-[120px]"
                         >
                             {isUpdating ? (

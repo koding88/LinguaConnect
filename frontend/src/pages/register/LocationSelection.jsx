@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import countries from '@/utils/countries';
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, MapPin } from "lucide-react";
 import {
     Command,
     CommandEmpty,
@@ -25,7 +25,7 @@ export const LocationSelection = ({ value, onChange, error, state }) => {
     const selectedCountry = countries.find((country) => country.code === value);
 
     const getButtonClassName = () => {
-        const baseClass = "w-full justify-between transition-all duration-200";
+        const baseClass = "w-full justify-between transition-all duration-200 border-2";
         if (state === 'error') {
             return `${baseClass} border-red-500 focus:border-red-500 focus:ring-red-500`;
         }
@@ -37,7 +37,10 @@ export const LocationSelection = ({ value, onChange, error, state }) => {
 
     return (
         <div className="space-y-1.5">
-            <Label className="text-sm font-medium">Location</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-600" />
+                Location
+            </Label>
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <Button

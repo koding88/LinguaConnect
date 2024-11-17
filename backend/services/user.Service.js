@@ -17,7 +17,10 @@ const getProfile = async (userId) => {
             throw errorHandler(400, error.message);
         }
 
-        const profile = await userModel.findById(userId, projection)
+        const profile = await userModel.findOne({
+            _id: userId,
+            role: { $ne: 'admin' }
+        }, projection)
             .populate('followers', 'username full_name avatarUrl')
             .populate('following', 'username full_name avatarUrl')
             .exec();
@@ -44,14 +47,21 @@ const getUser = async (userInfo, userId) => {
             throw errorHandler(400, error.message);
         }
 
-        const users = await userModel.find({username: { $regex: userInfo, $options: 'i' }, _id: { $ne: userId }}, projection)
+        const users = await userModel.find({
+            $or: [
+                { username: { $regex: userInfo, $options: 'i' } },
+                { full_name: { $regex: userInfo, $options: 'i' } }
+            ],
+            _id: { $ne: userId },
+            role: { $ne: 'admin' }
+        }, projection)
             .populate('followers', 'username full_name avatarUrl')
             .populate('following', 'username full_name avatarUrl')
             .exec();
+
         if (users.length === 0) {
             throw errorHandler(404, 'No users found');
         }
-
         return users;
 
     } catch (error) {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Video, Phone, VideoOff, Mic, MicOff } from 'lucide-react';
 
 const CallControls = ({ isMuted, isVideoEnabled, toggleMic, toggleVideo, handleEndVideoCall }) => {

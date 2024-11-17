@@ -1,5 +1,3 @@
-import React from 'react'
-
 const ListImage = ({ ...props }) => {
     if (!props?.images?.length) return null;
 
@@ -20,6 +18,7 @@ const ListImage = ({ ...props }) => {
                         }`}
                     >
                         <img
+                            loading="lazy"
                             src={image}
                             alt={`Post image ${index + 1}`}
                             className={`

@@ -6,8 +6,8 @@ const createCommentValidation = (data) => {
     const schema = Joi.object({
         userId: objectIdValidation(),
         postId: objectIdValidation(),
-        content: Joi.string().min(1).max(8000).required().messages({
-            ...createFieldMessages('content', 8000),
+        content: Joi.string().min(1).max(800).required().messages({
+            ...createFieldMessages('content', 800),
         }),
     });
 
@@ -19,8 +19,8 @@ const updateCommentValidation = (data) => {
         userId: objectIdValidation(),
         postId: objectIdValidation(),
         commentId: objectIdValidation(),
-        content: Joi.string().min(1).max(8000).required().messages({
-            ...createFieldMessages('content', 8000),
+        content: Joi.string().min(1).max(800).required().messages({
+            ...createFieldMessages('content', 800),
         })
     });
 

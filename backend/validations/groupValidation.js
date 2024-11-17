@@ -118,8 +118,8 @@ const createPostInGroupValidation = (data) => {
     const schema = Joi.object({
         userId: objectIdValidation(),
         groupId: objectIdValidation(),
-        content: Joi.string().min(1).max(63206).required().messages({
-            ...createFieldMessages('content', 63206),
+        content: Joi.string().max(1600).allow('').messages({
+            ...createFieldMessages('content', 1600),
         }),
     });
 
@@ -140,8 +140,8 @@ const postInGroupValidation = (data) => {
 // Update Post In Group Validation
 const updatePostInGroupValidation = (data) => {
     const schema = Joi.object({
-        content: Joi.string().min(1).max(63206).required().messages({
-            ...createFieldMessages('content', 63206),
+        content: Joi.string().max(1600).allow('').messages({
+            ...createFieldMessages('content', 1600),
         }),
         urls: Joi.array().items(Joi.string().uri().messages({
             'string.uri': `"urls" contains invalid URL`,
@@ -162,8 +162,8 @@ const commentInGroupValidation = (data) => {
         userId: objectIdValidation(),
         groupId: objectIdValidation(),
         postId: objectIdValidation(),
-        content: Joi.string().min(1).max(8000).required().messages({
-            ...createFieldMessages('content', 8000),
+        content: Joi.string().max(800).allow('').messages({
+            ...createFieldMessages('content', 800),
         }),
     });
 
@@ -176,8 +176,8 @@ const updateCommentInGroupValidation = (data) => {
         groupId: objectIdValidation(),
         postId: objectIdValidation(),
         commentId: objectIdValidation(),
-        content: Joi.string().min(1).max(8000).required().messages({
-            ...createFieldMessages('content', 8000),
+        content: Joi.string().max(800).allow('').messages({
+            ...createFieldMessages('content', 800),
         }),
     });
 

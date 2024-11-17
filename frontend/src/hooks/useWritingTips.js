@@ -13,7 +13,7 @@ const useWritingTips = () => {
         setAIMessages({ text: `Get writing tips: "${text}"`, isAI: false });
 
         try {
-            const response = await fetch('http://localhost:5555/api/v1/writing_tips', {
+            const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/writing_tips`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

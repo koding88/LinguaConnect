@@ -246,13 +246,19 @@ const getPostById = async (id) => {
 
         const post = await postModel.findById(id)
             .populate('user', 'username full_name avatarUrl')
-            .populate('likes', 'username full_name avatarUrl')
+            .populate({
+                path: 'likes',
+                select: 'username full_name avatarUrl location'
+            })
             .populate({
                 path: 'comments',
-                populate: {
+                populate: [{
                     path: 'user',
                     select: 'username full_name avatarUrl'
-                },
+                }, {
+                    path: 'likes',
+                    select: 'username full_name avatarUrl'
+                }],
                 select: 'content user likes createdAt'
             })
             .populate('group', 'name')
@@ -317,6 +323,194 @@ const unhidePostById = async (id) => {
     }
 }
 
+const getDashboard = async () => {
+    try {
+        const users = await userModel.countDocuments({ role: 'user' }).exec();
+        const groups = await groupModel.countDocuments({}).exec();
+        const posts = await postModel.countDocuments({}).exec();
+        return { users, groups, posts };
+    } catch (error) {
+        logger.error(`Error fetching dashboard:`, error);
+        throw error;
+    }
+}
+
+const getMonthlyUserRegistrationTrend = async () => {
+    try {
+        const currentDate = new Date();
+        const lastYear = new Date(currentDate.setFullYear(currentDate.getFullYear() - 1));
+        
+        const users = await userModel.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: lastYear }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" }
+                    },
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: {
+                    "_id.year": 1,
+                    "_id.month": 1
+                }
+            }
+        ]).exec();
+
+        return users;
+    } catch (error) {
+        logger.error('Error getting monthly user registration trend:', error);
+        throw error;
+    }
+}
+
+const getContentTypeMetrics = async () => {
+    try {
+        const contentTypeMetrics = await postModel.aggregate([
+            {
+                $project: {
+                    contentType: {
+                        $switch: {
+                            branches: [
+                                {
+                                    // Only text (has content but no images)
+                                    case: {
+                                        $and: [
+                                            { $eq: [{ $size: "$images" }, 0] },
+                                            { $ne: ["$content", ""] },
+                                            { $ne: ["$content", null] }
+                                        ]
+                                    },
+                                    then: "text_only"
+                                },
+                                {
+                                    // Text + images
+                                    case: {
+                                        $and: [
+                                            { $gt: [{ $size: "$images" }, 0] },
+                                            { $ne: ["$content", ""] },
+                                            { $ne: ["$content", null] }
+                                        ]
+                                    },
+                                    then: "text_and_images"
+                                }
+                            ],
+                            // No content (only images or empty)
+                            default: "images_only"
+                        }
+                    },
+                    likes: { $size: "$likes" },
+                    comments: { $size: "$comments" }
+                }
+            },
+            {
+                $group: {
+                    _id: "$contentType",
+                    count: { $sum: 1 },
+                    totalLikes: { $sum: "$likes" },
+                    totalComments: { $sum: "$comments" }
+                }
+            },
+            {
+                $project: {
+                    contentType: "$_id",
+                    count: 1,
+                    likes: "$totalLikes",
+                    comments: "$totalComments",
+                    _id: 0
+                }
+            }
+        ]).exec();
+
+        return contentTypeMetrics;
+    } catch (error) {
+        logger.error('Error getting content type distribution:', error);
+        throw error;
+    }
+}
+
+// top 3 groups have most members
+const getTop3GroupsMostMembers = async () => {
+    try {
+        const groups = await groupModel.aggregate([
+            {
+                $project: {
+                    name: 1,
+                    memberCount: { $size: "$members" }
+                }
+            },
+            {
+                $sort: { memberCount: -1 }
+            },
+            {
+                $limit: 3
+            }
+        ]).exec();
+
+        return groups.map(group => ({
+            name: group.name,
+            members: group.memberCount
+        }));
+    } catch (error) {
+        logger.error('Error getting top 3 groups with most members:', error);
+        throw error;
+    }
+}
+
+// top 5 trending posts
+const getTop5TrendingPosts = async () => {
+    try {
+        const trendingPosts = await postModel.aggregate([
+            {
+                $match: {
+                    status: "public", // Only include public posts
+                    content: { $exists: true, $ne: "" } // Only include posts with content
+                }
+            },
+            {
+                $project: {
+                    title: "$content",
+                    likesCount: { $size: "$likes" },
+                    commentsCount: { $size: "$comments" },
+                    totalInteractions: {
+                        $add: [
+                            { $size: "$likes" },
+                            { $size: "$comments" }
+                        ]
+                    }
+                }
+            },
+            {
+                $sort: {
+                    totalInteractions: -1
+                }
+            },
+            {
+                $limit: 5
+            },
+            {
+                $project: {
+                    title: 1,
+                    likes: "$likesCount", 
+                    comments: "$commentsCount",
+                    _id: 1
+                }
+            }
+        ]).exec();
+
+        return trendingPosts;
+    } catch (error) {
+        logger.error('Error getting top 5 trending posts:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     getAllUsers,
     getUserById,
@@ -330,5 +524,10 @@ module.exports = {
     getAllPosts,
     getPostById,
     hidePostById,
-    unhidePostById
+    unhidePostById,
+    getDashboard,
+    getMonthlyUserRegistrationTrend,
+    getContentTypeMetrics,
+    getTop3GroupsMostMembers,
+    getTop5TrendingPosts
 }

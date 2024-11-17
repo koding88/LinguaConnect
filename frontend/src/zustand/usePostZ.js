@@ -255,19 +255,59 @@ const usePostZ = create((set, get) => ({
             toast.error(error.response?.data?.message || "Error refreshing posts");
         }
     },
+
+    filterPostByFollowing: async () => {
+        set({ loading: true });
+        try {
+            const { data } = await axiosClient.get(`/posts/following`);
+            set({ posts: data.data, loading: false });
+        } catch (error) {
+            set({ loading: false });
+            toast.error(error.response?.data?.message || "Error filtering posts by following");
+        }
+    },
+
+    filterPostByLikes: async () => {
+        set({ loading: true });
+        try {
+            const { data } = await axiosClient.get(`/posts/likes`);
+            set({ posts: data.data, loading: false });
+        } catch (error) {
+            set({ loading: false });
+            toast.error(error.response?.data?.message || "Error filtering posts by likes");
+        }
+    },
+
+    filterPostByComments: async () => {
+        try {
+            const { data } = await axiosClient.get(`/posts/comments`);
+            set({ posts: data.data, loading: false });
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Error filtering posts by comments");
+        }
+    }
+
 }));
 
 const handleInputErrors = (content, images) => {
-    if (!content.trim() || images.length > 5) {
-        toast.error(!content.trim() ? 'Content required' : 'Maximum 5 images allowed');
+    if (!content.trim() && images.length === 0) {
+        toast.error('Content or images required');
+        return false;
+    }
+    if (images.length > 5) {
+        toast.error('Maximum 5 images allowed');
         return false;
     }
     return true;
 };
 
 const handleEditPostErrors = (content, newImages, existingImages) => {
-    if (!content.trim() || newImages.length + existingImages.length > 5) {
-        toast.error(!content.trim() ? 'Content required' : 'Maximum 5 images allowed');
+    if (!content.trim() && (newImages.length + existingImages.length) === 0) {
+        toast.error('Content or images required');
+        return false;
+    }
+    if (newImages.length + existingImages.length > 5) {
+        toast.error('Maximum 5 images allowed');
         return false;
     }
     return true;

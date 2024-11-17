@@ -1,4 +1,3 @@
-import React from 'react'
 import Search from '@/components/search/Search'
 import Conversations from './Conversations'
 import useConversationZ from '@/zustand/useConversationZ'

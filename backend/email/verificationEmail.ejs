@@ -6,120 +6,134 @@
         <title>Account Verification</title>
         <style>
             body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background-color: #f8fafc;
                 color: #333;
                 margin: 0;
                 padding: 0;
             }
             .container {
                 width: 90%;
-                max-width: 500px;
+                max-width: 600px;
                 margin: 40px auto;
                 background: #fff;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-                border: 1px solid #e1e1e1;
+                padding: 40px;
+                border-radius: 16px;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                border: 1px solid #e2e8f0;
             }
             h1 {
-                font-size: 18px;
-                color: #333;
+                font-size: 24px;
+                color: #1e40af;
                 margin-bottom: 20px;
+                font-weight: 700;
             }
             p {
-                font-size: 14px;
-                line-height: 1.6;
-                margin-bottom: 20px;
-                color: #555;
+                font-size: 16px;
+                line-height: 1.7;
+                margin-bottom: 24px;
+                color: #475569;
             }
-            .code-box {
-                font-size: 20px;
-                font-weight: bold;
-                background-color: #000;
-                padding: 16px 200px;
-                border-radius: 8px;
-                color: #fff;
+            .button-container {
                 text-align: center;
-                display: inline-block;
-                border: 1px solid #ddd;
+                margin: 32px 0;
             }
-            a {
-                color: #1877f2;
+            .verify-button {
+                background: linear-gradient(to right, #2563eb, #7c3aed);
+                color: white;
+                padding: 16px 32px;
+                border-radius: 12px;
                 text-decoration: none;
-                font-weight: bold;
+                font-weight: 600;
+                font-size: 16px;
+                display: inline-block;
+                transition: all 0.2s;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
-            a:hover {
-                text-decoration: underline;
-                opacity: 0.8;
+            .verify-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 32px;
+            }
+            .logo-container {
+                background: linear-gradient(to right, #2563eb20, #7c3aed20);
+                padding: 20px;
+                border-radius: 12px;
+                margin-bottom: 24px;
             }
             .footer {
-                font-size: 12px;
-                color: #777;
-                margin-top: 30px;
-                text-align: center;
-            }
-            .meta-logo {
-                font-size: 12px;
-                color: #777;
-                margin-top: 20px;
-                text-align: center;
-                font-weight: bold;
-            }
-            .logo-section {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .header img,
-            .logo-section img {
-                margin-right: 10px;
-            }
-            .logo-section strong {
                 font-size: 14px;
-                color: #333;
+                color: #64748b;
+                margin-top: 40px;
+                text-align: center;
+                padding-top: 20px;
+                border-top: 1px solid #e2e8f0;
+            }
+            .footer a {
+                color: #2563eb;
+                text-decoration: none;
+                font-weight: 600;
+            }
+            .footer a:hover {
+                text-decoration: underline;
+            }
+            .brand-name {
+                background: linear-gradient(to right, #2563eb, #7c3aed);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                font-size: 24px;
+                font-weight: 700;
+                margin-top: 16px;
             }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <img
-                    src="https://res.cloudinary.com/du4g4aoew/image/upload/v1725378419/images/udthiuhmy3xpb7nyxkkc.png"
-                    width="30"
-                    height="30"
-                    alt="Lingua Connect Logo"
-                />
-                <hr />
-                <h1>Hi <%= full_name %></h1>
+                <div class="logo-container">
+                    <img
+                        src="https://res.cloudinary.com/du4g4aoew/image/upload/v1725378419/images/udthiuhmy3xpb7nyxkkc.png"
+                        width="60"
+                        height="60"
+                        alt="Lingua Connect Logo"
+                    />
+                </div>
+                <div class="brand-name">Lingua Connect</div>
             </div>
+
+            <h1>Welcome, <%= full_name %>! 👋</h1>
+            
             <p>
-                We received a request to verify your account. Use the following
-                verification link:
+                Thank you for joining Lingua Connect! We're excited to have you as part of our community. 
+                To get started, please verify your email address by clicking the button below:
             </p>
-            <a
-                class="code-box"
-                href="<%= BASE_URL %>/api/v1/auth/confirm?token=<%= token %>"
-            >
-                Click here
-            </a>
+
+            <div class="button-container">
+                <a class="verify-button" href="<%= BASE_URL %>/api/v1/auth/confirm?token=<%= token %>">
+                    Verify Email Address ✨
+                </a>
+            </div>
+
+            <p style="font-size: 14px; color: #64748b;">
+                If the button doesn't work, you can copy and paste this link into your browser:
+                <br>
+                <a href="<%= BASE_URL %>/api/v1/auth/confirm?token=<%= token %>" style="color: #2563eb;">
+                    <%= BASE_URL %>/api/v1/auth/confirm?token=<%= token %>
+                </a>
+            </p>
 
             <div class="footer">
                 <p>
-                    Didn't request this verification?
-                    <a href="<%= BASE_URL %>/support">Let us know</a>.
+                    Didn't request this verification? 
+                    <a href="<%= BASE_URL %>/support">Contact Support</a>
                 </p>
-            </div>
-            <div class="meta-logo">from</div>
-
-            <div class="logo-section">
-                <img
-                    src="https://res.cloudinary.com/du4g4aoew/image/upload/v1725378419/images/udthiuhmy3xpb7nyxkkc.png"
-                    width="30"
-                    height="30"
-                    alt="Lingua Connect Logo"
-                />
-                <strong>Lingua Connect</strong>
+                <p style="margin-top: 16px;">
+                    © 2024 Lingua Connect. All rights reserved.
+                </p>
             </div>
         </div>
     </body>

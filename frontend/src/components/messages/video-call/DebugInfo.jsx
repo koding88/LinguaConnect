@@ -1,5 +1,3 @@
-import React from 'react';
-
 const DebugInfo = ({ localStream, remoteStream, isMuted, isVideoEnabled }) => {
     return (
         <div className="mt-4 p-4 bg-gray-100 rounded text-sm">

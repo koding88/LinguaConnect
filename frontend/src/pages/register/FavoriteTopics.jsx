@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import React from "react"
 import axiosClient from "@/api/axiosClient"
 
-export const FavoriteTopics = ({ selectedTopics = [], toggleTopic, className = "h-[170px] sm:h-[200px]" }) => {
+export const FavoriteTopics = ({ selectedTopics = [], toggleTopic, className = "h-[180px] sm:h-[200px]", otherClassName = "" }) => {
     const [topicsList, setTopicsList] = React.useState([]);
     const [error, setError] = React.useState('');
     const [loading, setLoading] = React.useState(false);
@@ -46,7 +46,7 @@ export const FavoriteTopics = ({ selectedTopics = [], toggleTopic, className = "
     return (
         <div className="grid gap-1.5">
             <Label className="text-xs sm:text-sm font-medium text-gray-700">Favorite Topics</Label>
-            <Card className="border rounded-md h-[400px] sm:h-[400px]">
+            <Card className={`border rounded-md h-[400px] sm:h-[400px] ${otherClassName}`}>
                 <ScrollArea className={`w-full rounded-md h-full ${className}`}>
                     <div className="p-3">
                         {loading && (

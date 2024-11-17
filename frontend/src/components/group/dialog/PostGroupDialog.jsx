@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { useState, useEffect } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -53,14 +53,16 @@ const PostGroupDialog = ({ isOpen, onClose, user, groupId, onPostCreated }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (content.trim() || images.length > 0) {
-            await createGroupPost(groupId, content, images);
-            setContent('');
-            setImages([]);
-            setPreviewUrls([]);
-            onPostCreated();
-            onClose();
+        if (!content.trim() && images.length === 0) {
+            toast.error('Post must have either content or at least one image');
+            return;
         }
+        await createGroupPost(groupId, content, images);
+        setContent('');
+        setImages([]);
+        setPreviewUrls([]);
+        onPostCreated();
+        onClose();
     };
 
     const handleEmojiSelect = (emoji) => {

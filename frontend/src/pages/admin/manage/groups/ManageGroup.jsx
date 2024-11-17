@@ -54,19 +54,19 @@ const ManageGroup = () => {
         {
             key: 'owner',
             label: 'Owner',
-            render: (group) => group.owner.username
+            render: (group) => group.owner?.username
         },
         {
             key: 'members',
             label: 'Members',
             render: (group) => (
-                <div className="ml-6">{group.members.length}</div>
+                <div className="ml-6">{group.members?.length}</div>
             )
         },
         {
             key: 'status',
             label: 'Status',
-            render: (group) => <StatusBadge status={group.status} />
+            render: (group) => <StatusBadge status={group?.status} />
         }
     ]
 

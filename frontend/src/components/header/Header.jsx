@@ -1,4 +1,3 @@
-import React from 'react'
 import Back from '@/components/button/Back';
 
 const Header = ({ props }) => {

@@ -1,11 +1,11 @@
 import { Label } from "@/components/ui/label";
-import React from "react";
+import { Cake } from "lucide-react";
 
 export const BirthdayField = ({ day, month, year, onChange, error, state }) => {
     const currentYear = new Date().getFullYear();
 
     const getSelectClassName = () => {
-        const baseClass = "w-full h-[42px] px-2.5 py-1.5 bg-white border rounded-lg text-xs sm:text-sm transition-all duration-200";
+        const baseClass = "w-full h-[42px] px-2.5 py-1.5 bg-white border-2 rounded-lg text-xs sm:text-sm transition-all duration-200";
         if (state === 'error') {
             return `${baseClass} border-red-500 focus:border-red-500 focus:ring-red-500`;
         }
@@ -17,7 +17,10 @@ export const BirthdayField = ({ day, month, year, onChange, error, state }) => {
 
     return (
         <div className="space-y-1.5">
-            <Label className="text-sm font-medium">Birthday</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+                <Cake className="w-4 h-4 text-blue-600" />
+                Birthday
+            </Label>
             <div className="grid grid-cols-3 gap-2">
                 {['day', 'month', 'year'].map((field) => (
                     <select

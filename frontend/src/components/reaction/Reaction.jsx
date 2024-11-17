@@ -2,7 +2,7 @@ import { IoMdHeart } from 'react-icons/io';
 import { CiHeart } from 'react-icons/ci';
 import { LuMessageCircle } from 'react-icons/lu';
 import { getFlagImage } from '@/utils/flag';
-import React, { useState } from 'react'
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const Reaction = ({ post, isLiked, handleLike, handleOpenCommentDialog, group }) => {

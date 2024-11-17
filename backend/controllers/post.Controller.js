@@ -125,6 +125,51 @@ const reportPostController = async (req, res, next) => {
     }
 }
 
+const filterPostByFollowingController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const posts = await postService.filterPostByFollowing(userId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Posts filtered by following fetched successfully',
+            data: posts,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const filterPostByLikesController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const posts = await postService.filterPostByLikes(userId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Posts filtered by likes fetched successfully',
+            data: posts,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const filterPostByCommentsController = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const posts = await postService.filterPostByComments(userId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Posts filtered by comments fetched successfully',
+            data: posts,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     getAllPostsController,
     getPostByIdController,
@@ -132,5 +177,8 @@ module.exports = {
     updatePostController,
     deletePostController,
     likePostController,
-    reportPostController
+    reportPostController,
+    filterPostByFollowingController,
+    filterPostByLikesController,
+    filterPostByCommentsController,
 }

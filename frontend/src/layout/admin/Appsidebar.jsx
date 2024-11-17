@@ -11,11 +11,15 @@ import { BsPostcard } from "react-icons/bs";
 import { GiConversation } from "react-icons/gi";
 import { FaRegHeart } from "react-icons/fa";
 import { FaGraduationCap, FaLanguage, FaRobot } from "react-icons/fa";
+import useNotification from '@/zustand/useNotification';
+import useListenAdminNotification from '@/hooks/useListenAdminNotification';
 
 const AppSidebar = () => {
     const [showMenu, setShowMenu] = useState(false);
     const menuTimeoutRef = useRef(null);
     const location = useLocation();
+    const { unreadCount } = useNotification();
+    useListenAdminNotification();
 
     const navItems = [
         { icon: <RxDashboard className="w-6 h-6" />, path: '/admin/dashboard', label: 'Dashboard' },
@@ -23,7 +27,20 @@ const AppSidebar = () => {
         { icon: <FaUsers className="w-6 h-6" />, path: '/admin/manage/groups', label: 'Groups' },
         { icon: <BsPostcard className="w-6 h-6" />, path: '/admin/manage/posts', label: 'Posts' },
         { icon: <GiConversation className="w-6 h-6" />, path: '/admin/manage/topics', label: 'Topics' },
-        { icon: <FaRegHeart className="w-6 h-6" />, path: '/admin/manage/notifications', label: 'Notifications' },
+        { 
+            icon: (
+                <div className="relative">
+                    <FaRegHeart className="w-6 h-6" />
+                    {unreadCount > 0 && (
+                        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-bounce">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                        </div>
+                    )}
+                </div>
+            ), 
+            path: '/admin/manage/notifications',
+            label: 'Notifications'
+        },
     ];
 
     const logout = () => {

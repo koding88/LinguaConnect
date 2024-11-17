@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -55,14 +55,16 @@ const PostDialogCustom = ({ isOpen, onClose, user, onPostCreated, redirectToHome
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (content.trim() || images.length > 0) {
-            await createPost(content, images);
-            setContent('');
-            setImages([]);
-            setPreviewUrls([]);
-            redirectToHome ? navigate('/') : onPostCreated();
-            onClose();
+        if (!content.trim() && images.length === 0) {
+            toast.error('Please add either content or at least one image');
+            return;
         }
+        await createPost(content, images);
+        setContent('');
+        setImages([]);
+        setPreviewUrls([]);
+        redirectToHome ? navigate('/') : onPostCreated();
+        onClose();
     };
 
     const handleEmojiSelect = (emoji) => {
@@ -211,7 +213,7 @@ const PostDialogCustom = ({ isOpen, onClose, user, onPostCreated, redirectToHome
                             </div>
                             <Button
                                 type="submit"
-                                disabled={loading || (!content.trim() && images.length === 0)}
+                                disabled={loading}
                                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200 min-w-[120px]"
                             >
                                 {loading ? (

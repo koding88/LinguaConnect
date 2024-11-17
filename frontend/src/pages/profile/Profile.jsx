@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import Header from '@/components/header/Header'
 import ListPost from '@/components/posts/ListPost'
 import usePostZ from '@/zustand/usePostZ'
 import useUserZ from '@/zustand/useUserZ'
 import { useAuthContext } from '@/context/AuthContext'
-import Follower from '@/components/follower/Follower'
 import { toast } from 'react-toastify'
 import UProfileDialog from '@/components/dialog/UProfileDiaglog'
 import { getFlagImage } from '@/utils/flag'
@@ -58,10 +57,7 @@ const Profile = () => {
                 favoriteTopics: Array.isArray(data.favoriteTopics) ? data.favoriteTopics : []
             };
 
-            console.log('Sending update data:', formattedData);
             const updatedUser = await updateProfile(formattedData);
-
-            console.log('Updated user:', updatedUser);
 
             if (updatedUser) {
                 const newUserData = {
@@ -384,7 +380,19 @@ const Profile = () => {
                                     </h3>
                                 </div>
                                 <div className="p-8">
-                                    <ListPost posts={userPosts} />
+                                    {userPosts.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+                                            <div className="w-24 h-24 mb-4 text-gray-300">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                                </svg>
+                                            </div>
+                                            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Posts Yet</h3>
+                                            <p className="text-gray-500">This user hasn&apos;t shared any posts yet.</p>
+                                        </div>
+                                    ) : (
+                                        <ListPost posts={userPosts} />
+                                    )}
                                 </div>
                             </div>
                         </>

@@ -8,13 +8,13 @@ import AvatarCustom from '@/components/avatar/AvatarCustom';
 import CommentDialog from '@/components/dialog/CommentDialog';
 import Error from '@/components/Error';
 import FloatButton from '@/components/button/FloatButton';
-import Reaction from '@/components/reaction/reaction';
+import Reaction from '@/components/reaction/Reaction';
 import Reply from '@/components/comment/Reply';
 import Name from '@/components/avatar/Name';
 import ListImage from '@/components/posts/ListImage';
 import CommentList from '@/components/comment/CommentList';
 import { Skeleton } from '@/components/ui/skeleton';
-import DropdownCustom from '@/components/dropdown/dropdownCustom';
+import DropdownCustom from '@/components/dropdown/DropdownCustom';
 
 import Header from '@/components/header/Header';
 

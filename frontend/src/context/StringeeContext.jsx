@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { useAuthContext } from '@/context/AuthContext';
 import { StringeeClient, StringeeCall } from 'stringee-chat-js-sdk';
 import axiosClient from '@/api/axiosClient';

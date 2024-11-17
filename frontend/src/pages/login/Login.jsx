@@ -25,7 +25,7 @@ import {
 const Login = () => {
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
-    const googleUrl = 'http://localhost:3000/api/v1/auth/google'
+    const googleUrl = `${import.meta.env.VITE_API_BACKEND_URL}/api/v1/auth/google`
     const { login, loading } = useLogin();
 
     const handleSubmit = async (e) => {

@@ -6,11 +6,11 @@ import WhatNew from '@/components/WhatNew'
 import { CiCamera } from "react-icons/ci"
 import { FiUsers, FiInfo } from "react-icons/fi"
 import { TfiCrown } from "react-icons/tfi";
-import PostGroupDialog from '@/components/group/dialog/PostGroupDiaglog'
 import ListPost from '@/components/group/post/ListPost'
 import Header from '@/components/group/header/Header'
 import { toast } from 'react-toastify'
 import { Skeleton } from '@/components/ui/skeleton'
+import PostGroupDialog from '@/components/group/dialog/PostGroupDialog';
 
 const GroupDetail = () => {
     const { groupId } = useParams()
@@ -34,7 +34,7 @@ const GroupDetail = () => {
         updateAvatarGroup
     } = useGroupZ()
 
-    const isOwner = group?.owner._id === authUser?._id
+    const isOwner = group?.owner?._id === authUser?._id
 
     React.useEffect(() => {
         const fetchGroupData = async () => {

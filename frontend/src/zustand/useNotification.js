@@ -3,12 +3,15 @@ import axiosClient from '@/api/axiosClient';
 
 const useNotification = create((set, get) => ({
     notifications: [],
+    unreadCount: 0,
 
     // Fetch notifications
     fetchNotifications: async () => {
         try {
             const response = await axiosClient.get('/notifications');
-            set({ notifications: response.data.data });
+            const notifications = response.data.data;
+            const unreadCount = notifications.filter(n => !n.isRead).length;
+            set({ notifications, unreadCount });
         } catch (error) {
             console.error('Error fetching notifications:', error);
         }

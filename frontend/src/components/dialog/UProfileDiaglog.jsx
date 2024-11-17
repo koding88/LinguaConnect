@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,13 +13,9 @@ import {
     PenSquare,
     User,
     AtSign,
-    MapPin,
-    Calendar,
     Heart,
     Save,
     X,
-    Camera,
-    Sparkles
 } from 'lucide-react';
 
 const UProfileDialog = ({ props, onSubmit, trigger }) => {
@@ -31,8 +27,6 @@ const UProfileDialog = ({ props, onSubmit, trigger }) => {
         location: props?.location || "",
         favoriteTopics: props?.favoriteTopics || [],
     });
-
-    console.log(props?.favoriteTopics)
 
     const [formErrors, setFormErrors] = useState({});
     const [open, setOpen] = useState(false);
@@ -69,8 +63,6 @@ const UProfileDialog = ({ props, onSubmit, trigger }) => {
             const newTopics = prev.favoriteTopics.includes(topicId)
                 ? prev.favoriteTopics.filter(id => id !== topicId)
                 : [...prev.favoriteTopics, topicId];
-
-            console.log('Updated topics:', newTopics);
             return {
                 ...prev,
                 favoriteTopics: newTopics
@@ -202,6 +194,7 @@ const UProfileDialog = ({ props, onSubmit, trigger }) => {
                                     selectedTopics={inputs.favoriteTopics}
                                     toggleTopic={toggleTopic}
                                     className="h-[400px] sm:h-[400px]"
+                                    otherClassName="h-[390px] sm:h-[390px]"
                                 />
                             </div>
                         </div>

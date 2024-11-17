@@ -630,6 +630,11 @@ const createPostInGroup = async (groupId, userId, postData) => {
         // Destructure the post data
         const { content, images } = postData;
 
+        // Check if post has either content or images
+        if (!content && (!images || images.length === 0)) {
+            throw errorHandler(400, 'Post must have either content or at least one image');
+        }
+
         // Validate the group ID and user ID
         const { error } = createPostInGroupValidation({ userId, groupId, content });
         if (error) {
@@ -749,6 +754,11 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
         // Handle adding new images only if images is provided
         if (images && Array.isArray(images) && images.length > 0) {
             currentImages = [...currentImages, ...images];
+        }
+
+        // Check if post will have either content or images after update
+        if (!content && currentImages.length === 0) {
+            throw errorHandler(400, 'Post must have either content or at least one image');
         }
 
         // Update content if provided

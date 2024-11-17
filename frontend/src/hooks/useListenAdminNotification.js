@@ -7,8 +7,10 @@ const useListenAdminNotification = () => {
     const { fetchNotifications } = useNotification()
 
     useEffect(() => {
-        // Fetch notifications when component mounts
-        fetchNotifications();
+        // Initial fetch when component mounts
+        if (socket) {
+            fetchNotifications();
+        }
 
         socket?.on("admin-notification", () => {
             fetchNotifications();

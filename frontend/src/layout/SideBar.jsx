@@ -9,19 +9,35 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { IoIosLogOut } from "react-icons/io";
 import { useAuthContext } from '@/context/AuthContext'
 import { FaGraduationCap, FaLanguage, FaRobot, FaUsers } from "react-icons/fa";
+import useNotification from '@/zustand/useNotification';
+import useListenNotification from '@/hooks/useListenNotification';
 
 const SideBar = () => {
     const { authUser } = useAuthContext()
     const [showMenu, setShowMenu] = useState(false);
     const menuTimeoutRef = useRef(null);
     const location = useLocation();
+    const { unreadCount } = useNotification();
+    useListenNotification();
 
     const navItems = [
         { icon: <FaHome className="w-6 h-6" />, path: '/' },
         { icon: <CiSearch className="w-6 h-6" />, path: '/search' },
         { icon: <MdGroups2 className="w-6 h-6" />, path: '/groups' },
         { icon: <RiMessengerLine className="w-6 h-6" />, path: '/messages' },
-        { icon: <FaRegHeart className="w-6 h-6" />, path: '/notifications' },
+        { 
+            icon: (
+                <div className="relative">
+                    <FaRegHeart className="w-6 h-6" />
+                    {unreadCount > 0 && (
+                        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-bounce">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                        </div>
+                    )}
+                </div>
+            ), 
+            path: '/notifications' 
+        },
     ];
 
     const logout = () => {

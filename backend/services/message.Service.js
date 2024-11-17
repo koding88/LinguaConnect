@@ -8,6 +8,17 @@ const { getReceiverSocketId, io } = require("../sockets/sockets");
 
 const getAllMessages = async (userId, userToChatId) => {
     try {
+        // Validate that neither user is an admin
+        const users = await userModel.find({
+            _id: { $in: [userId, userToChatId] },
+            role: 'admin'
+        });
+
+        if (users.length > 0) {
+            logger.warn(`Cannot fetch messages - one or more users is an admin`);
+            throw errorHandler(403, 'Cannot chat with admin users');
+        }
+
         logger.info(`Fetching messages for conversation between users ${userId} and ${userToChatId}`);
         const conversation = await conversationModel.findOne({
             participants: { $all: [userId, userToChatId] }
@@ -28,6 +39,17 @@ const getAllMessages = async (userId, userToChatId) => {
 
 const getAllMessagesToAI = async (userId, userToChatId) => {
     try {
+        // Validate that neither user is an admin
+        const users = await userModel.find({
+            _id: { $in: [userId, userToChatId] },
+            role: 'admin'
+        });
+
+        if (users.length > 0) {
+            logger.warn(`Cannot fetch messages - one or more users is an admin`);
+            throw errorHandler(403, 'Cannot chat with admin users');
+        }
+
         logger.info(`Fetching messages for conversation between users ${userId} and ${userToChatId}`);
         const conversation = await conversationModel.findOne({
             participants: { $all: [userId, userToChatId] }
@@ -35,13 +57,13 @@ const getAllMessagesToAI = async (userId, userToChatId) => {
             path: "messages",
             populate: [
                 {
-                    path: "senderId",
+                    path: "senderId", 
                     model: "User",
                     select: "full_name"
                 },
                 {
                     path: "receiverId",
-                    model: "User",
+                    model: "User", 
                     select: "full_name"
                 }
             ]
@@ -65,6 +87,17 @@ const sendMessage = async (senderId, receiverId, message) => {
         if (senderId === receiverId) {
             logger.warn(`User ${senderId} attempted to send a message to themselves`);
             throw new Error("You cannot send a message to yourself");
+        }
+
+        // Check if either user is admin
+        const users = await userModel.find({
+            _id: { $in: [senderId, receiverId] },
+            role: 'admin'
+        });
+
+        if (users.length > 0) {
+            logger.warn(`Cannot send message - one or more users is an admin`);
+            throw errorHandler(403, 'Cannot chat with admin users');
         }
 
         logger.info(`Attempting to send message from user ${senderId} to user ${receiverId}`);
@@ -111,8 +144,11 @@ const getConversations = async (userId) => {
             throw errorHandler(400, error.message);
         }
 
-        // Find conversations, excluding the current user
-        const conversations = await userModel.find({ _id: { $ne: userId } })
+        // Find conversations, excluding admins and current user
+        const conversations = await userModel.find({ 
+            _id: { $ne: userId },
+            role: { $ne: 'admin' }
+        })
             .select("_id username full_name avatarUrl")
             .lean();
 

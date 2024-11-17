@@ -17,7 +17,7 @@ import useListenNotification from '@/hooks/useListenNotification';
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-12 px-4">
+    <div className="flex flex-col items-center justify-center py-12 px-4 h-[calc(100vh-120px)]">
         <div className="p-4 bg-gray-100/80 rounded-full mb-4">
             <BellOff className="w-8 h-8 text-gray-400" />
         </div>
@@ -71,7 +71,7 @@ const Notification = () => {
     return (
         <>
             <Header props={{ path: -1, title: 'Notifications' }} />
-            <div className='flex-grow flex flex-col h-screen'>
+            <div className='flex-grow flex flex-col'>
                 <div className='space-y-4'>
                     <div className='bg-white rounded-2xl shadow-xl border border-gray-100'>
                         <ScrollArea className="h-full">
@@ -96,31 +96,36 @@ const Notification = () => {
                                                     </>
                                                 )}
                                             </h3>
-                                            {notifications.map((notification) => (
+                                            {notifications?.map((notification) => (
                                                 <div
                                                     key={notification._id}
-                                                    className={`flex items-start px-6 py-4 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 cursor-pointer transition-all duration-200 ${
-                                                        !notification.read ? 'bg-blue-50/30' : ''
-                                                    }`}
+                                                    className={`flex items-start px-6 py-4 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 cursor-pointer transition-all duration-200 relative
+                                                        ${!notification.isRead ? 'bg-gradient-to-r from-blue-50 to-purple-50' : ''}`}
                                                     onClick={() => handleNotificationClick(notification)}
                                                 >
-                                                    <Avatar className="h-12 w-12 mr-4 ring-2 ring-offset-2 ring-blue-100">
+                                                    {!notification.isRead && (
+                                                        <div className="absolute left-2 top-1/2 -translate-y-1/2">
+                                                            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
+                                                        </div>
+                                                    )}
+                                                    <Avatar className={`h-12 w-12 mr-4 ring-2 ring-offset-2 ${!notification.isRead ? 'ring-blue-400' : 'ring-gray-100'}`}>
                                                         <AvatarImage
                                                             src={notification.user.avatarUrl}
                                                             alt={notification.user.username}
                                                         />
-                                                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                                                        <AvatarFallback className={`${!notification.isRead ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-200'} text-white`}>
                                                             {notification.user.username[0].toUpperCase()}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm text-gray-900">
+                                                        <p className={`text-sm ${!notification.isRead ? 'text-blue-900 font-medium' : 'text-gray-900'}`}>
                                                             <span className="font-semibold">
                                                                 {notification.user.username}
                                                             </span>{' '}
                                                             {notification.content}
                                                         </p>
-                                                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                                        <p className={`text-xs mt-1 flex items-center gap-1 
+                                                            ${!notification.isRead ? 'text-blue-500' : 'text-gray-500'}`}>
                                                             <Clock className="w-3 h-3"/>
                                                             {extractTime(notification.createdAt)}
                                                         </p>
@@ -129,7 +134,8 @@ const Notification = () => {
                                                         <DropdownMenuTrigger asChild>
                                                             <Button
                                                                 variant="ghost"
-                                                                className="h-8 w-8 p-0 ml-2 hover:bg-red-50 hover:text-red-500 transition-colors"
+                                                                className={`h-8 w-8 p-0 ml-2 hover:bg-red-50 hover:text-red-500 transition-colors
+                                                                    ${!notification.isRead ? 'text-blue-500' : 'text-gray-400'}`}
                                                             >
                                                                 <MoreVertical className="h-4 w-4" />
                                                             </Button>
