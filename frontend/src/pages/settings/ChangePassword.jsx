@@ -1,7 +1,7 @@
 import React from 'react';
-import { Button } from '@/components/ui/Button';
-import { Label } from '@/components/ui/Label';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 const ChangePassword = ({ onSubmit }) => {

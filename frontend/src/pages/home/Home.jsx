@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import WhatNew from '@/components/whatnew';
+import WhatNew from '@/components/WhatNew';
 import ListPost from '@/components/posts/ListPost';
 import PostDialogCustom from '@/components/dialog/PostDialogCustom';
 import PostSkeleton from '@/components/skeleton/PostSkeleton';

@@ -59,7 +59,7 @@ const loginGoogleRedirectController = (req, res, next) => {
         const {accessToken, refreshToken} = token;
 
         res.redirect(
-            `http://localhost:5173/login/oauth?access_token=${accessToken}&refresh_token=${refreshToken}`
+            `${process.env.CLIENT_URL}/login/oauth?access_token=${accessToken}&refresh_token=${refreshToken}`
         )
     })(req, res, next);
 };

@@ -14,7 +14,7 @@ import { MoreHorizontal, Eye, EyeOff, Image } from "lucide-react"
 import usePostZ from '@/zustand/usePostZ';
 
 const ManagePost = () => {
-    const { posts, getPosts, hidePost, unhidePost } = usePostZ();
+    const { posts, loading, getPosts, hidePost, unhidePost } = usePostZ();
     const navigate = useNavigate()
     const [filterContent, setFilterContent] = useState("")
     const [currentPage, setCurrentPage] = useState(0)
@@ -164,6 +164,7 @@ const ManagePost = () => {
                 onPageChange={setCurrentPage}
                 onRowClick={(id) => navigate(`/admin/manage/posts/${id}`)}
                 renderRowActions={renderRowActions}
+                loading={loading}
             />
         </AdminPageLayout>
     )

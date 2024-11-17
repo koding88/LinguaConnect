@@ -24,6 +24,7 @@ const usePostZ = create((set, get) => ({
 
     getPosts: async () => {
         try {
+            set({ loading: true });
             const { data } = await axiosClient.get(`/admin/posts`);
             set({ posts: data.data, loading: false });
         } catch (error) {

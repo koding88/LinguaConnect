@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { FaSearch, FaUsers } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import useGroupZ from '@/zustand/useGroupZ';

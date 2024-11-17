@@ -115,6 +115,7 @@ const adminRoutes = {
         { path: "manage/topics/:topicId", element: <Suspense fallback={<SpinnerTop />}><DetailTopic /></Suspense> },
         { path: "manage/notifications", element: <Suspense fallback={<SpinnerTop />}><ManageNotification /></Suspense> },
         { path: "settings", element: <Suspense fallback={<SpinnerTop />}><AdminSettings /></Suspense> },
+        { path: "*", element: <Suspense fallback={<Spinner />}><NotFound /></Suspense> }
     ]
 }
 

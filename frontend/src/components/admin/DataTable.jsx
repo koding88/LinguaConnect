@@ -30,7 +30,8 @@ const DataTable = ({
     onPageChange,
     onRowClick,
     renderRowActions,
-    renderCustomHeader
+    renderCustomHeader,
+    loading
 }) => {
     const [isLoading, setIsLoading] = React.useState(true)
 
@@ -39,7 +40,7 @@ const DataTable = ({
             if (data !== undefined) {
                 setIsLoading(false)
             }
-        }, 500)
+        }, 1500)
 
         return () => clearTimeout(timer)
     }, [data])
@@ -90,7 +91,7 @@ const DataTable = ({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {isLoading ? (
+                        {loading || isLoading ? (
                             <TableRow>
                                 <TableCell colSpan={columns.length + 1} className="h-[250px]">
                                     <div className="flex justify-center items-center">

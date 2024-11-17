@@ -84,7 +84,7 @@ const register = async (userData) => {
             recipients: admins.map(admin => admin._id),
             content: `(${newUser.email}) registered a new account`,
             type: "admin_user_registered",
-            url: `/admin/manage/users`,
+            url: `admin/manage/accounts/${newUser._id}`,
         });
 
         // Emit socket event to all admins

@@ -1,13 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react'
 import AvatarCustom from '@/components/avatar/AvatarCustom'
-import Reaction from '../reaction/reaction'
+import Reaction from '../reaction/Reaction'
 import usePostZ from '@/zustand/usePostZ'
 import { AuthContext } from '@/context/AuthContext'
 import { toast } from 'react-toastify'
 import { Link } from 'react-router-dom';
 import ListImage from './ListImage'
 import Name from '../avatar/Name'
-import DropdownCustom from '../dropdown/dropdownCustom'
+import DropdownCustom from '../dropdown/DropdownCustom'
 
 const Post = ({ post }) => {
     const { likePost, editPost, deletePost, reportPost } = usePostZ();

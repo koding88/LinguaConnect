@@ -1,7 +1,7 @@
 import React from 'react';
 import AvatarCustom from '@/components/avatar/AvatarCustom';
 import Name from '@/components/avatar/Name';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { FaSearch } from 'react-icons/fa';
 import useUserZ from '@/zustand/useUserZ';
 import { Link } from 'react-router-dom';

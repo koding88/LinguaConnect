@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Label } from '@/components/ui/Label'
+import { Label } from '@/components/ui/label'
 import { Switch } from "@/components/ui/switch"
 import useUserZ from '@/zustand/useUserZ'
 import { QRCodeSVG } from 'qrcode.react';
