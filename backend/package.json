@@ -4,7 +4,11 @@
     "main": "server.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "node --watch server"
+        "start": "node --watch server",
+        "build": "webpack",
+        "prod": "node dist/final.js",
+        "eslint": "eslint ./",
+        "eslint-fix": "eslint ./ --fix"
     },
     "author": "Dương Ngọc Anh",
     "license": "MIT",
@@ -34,5 +38,12 @@
     },
     "bundleDependencies": [
         "winston"
-    ]
+    ],
+    "devDependencies": {
+        "@eslint/js": "^9.15.0",
+        "eslint": "^9.15.0",
+        "globals": "^15.12.0",
+        "webpack": "^5.96.1",
+        "webpack-cli": "^5.1.4"
+    }
 }
