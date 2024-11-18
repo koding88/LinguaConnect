@@ -2,6 +2,7 @@ import requests
 import json
 import logging
 from typing import List, Optional
+from app.config.settings import Config
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ class ConversationService:
         try:
             logger.info(f"Fetching conversation between sender {sender_id} and recipient {recipient_id}")
 
-            url = f"http://localhost:3000/api/v1/messages/ai/{recipient_id}"
+            url = f"{Config.BACKEND_URL}/api/v1/messages/ai/{recipient_id}"
             payload = {
                 "userId": sender_id
             }

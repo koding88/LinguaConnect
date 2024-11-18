@@ -13,4 +13,5 @@ class Config:
     TOGETHER_MODEL = os.getenv("TOGETHER_MODEL")
     FLASK_APP = os.environ.get('FLASK_APP')
     FLASK_ENV = os.environ.get('FLASK_ENV')
+    BACKEND_URL = os.getenv("BACKEND_URL")
     SQLITE_CACHE_PATH = os.getenv("SQLITE_CACHE_PATH")
