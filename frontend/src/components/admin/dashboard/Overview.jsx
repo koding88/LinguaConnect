@@ -12,32 +12,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Import Chart.js registers
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler
-} from 'chart.js';
+import Chart from 'chart.js/auto';
 import useDashboard from '@/zustand/useDashboard';
 
 // Register Chart.js components
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler
-);
 
 const Overview = () => {
     const navigate = useNavigate();
