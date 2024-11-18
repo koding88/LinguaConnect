@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import AvatarCustom from '@/components/avatar/AvatarCustom'
 import Reaction from '../reaction/Reaction'
 import usePostZ from '@/zustand/usePostZ'

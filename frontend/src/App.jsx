@@ -10,7 +10,7 @@ function App() {
         <>
             <Router />
             <CallContainer />
-            <ToastContainer />
+            <ToastContainer limit={3} />
         </>
     )
 }

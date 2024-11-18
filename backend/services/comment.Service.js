@@ -53,13 +53,16 @@ const createComment = async (userId, postId, commentData) => {
         post.comments.push(newComment._id);
 
         // Create notification
-        await notificationModel.create({
-            user: userId,
-            recipients: [post.user],
-            content: `commented on your post "${post.content}"`,
-            type: "post_comment",
-            url: `/post/${postId}`,
-        });
+        // Only create notification if commenter is not the post owner
+        if (userId !== post.user._id.toString()) {
+            await notificationModel.create({
+                user: userId,
+                recipients: [post.user],
+                content: `commented on your post "${post.content}"`,
+                type: "post_comment", 
+                url: `/post/${postId}`,
+            });
+        }
 
         // Add this socket emit
         const receiverSocketId = getReceiverSocketId(post.user._id.toString())

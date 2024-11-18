@@ -29,12 +29,11 @@ const ChangePassword = ({ onSubmit }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const oldPasswordError = validatePassword(oldPassword, "Old");
         const newPasswordError = validatePassword(newPassword, "New");
         const confirmPasswordError = validateConfirmPassword(confirmPassword);
 
-        if (oldPasswordError || newPasswordError || confirmPasswordError) {
-            setError(oldPasswordError || newPasswordError || confirmPasswordError);
+        if (newPasswordError || confirmPasswordError) {
+            setError(newPasswordError || confirmPasswordError);
             return;
         }
 

@@ -213,7 +213,7 @@ const PostDialogCustom = ({ isOpen, onClose, user, onPostCreated, redirectToHome
                             </div>
                             <Button
                                 type="submit"
-                                disabled={loading}
+                                disabled={loading || (!content.trim() && images.length === 0)}
                                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200 min-w-[120px]"
                             >
                                 {loading ? (
