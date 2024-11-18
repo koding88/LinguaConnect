@@ -8,6 +8,7 @@ const ChatHeader = ({ selectedConversation, isOnline, onStartCall }) => {
                 {/* User Info */}
                 <div className="flex items-center gap-3">
                     <div className="relative">
+                        <input type="hidden" name="conversationId" value={selectedConversation.userId} />
                         <img
                             src={selectedConversation.avatarUrl}
                             alt="User avatar"
