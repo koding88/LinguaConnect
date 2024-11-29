@@ -1,16 +1,30 @@
-import path from 'path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-// https://vitejs.dev/config/
+import path from 'path'
+
 export default defineConfig({
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "./src"),
-        },
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
-    plugins: [
-        react({
-            jsxRuntime: 'automatic'
-        })
-    ],
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'esbuild',
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@radix-ui/react-icons', '@radix-ui/react-alert-dialog'],
+        },
+      },
+    },
+  },
+  server: {
+    port: 5173,
+    host: true,
+  },
 })

@@ -48,4 +48,4 @@ const useGroup = create((set) => ({
 
 }))
 
-export default useGroup
+export default useGroup;

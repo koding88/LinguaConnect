@@ -34,9 +34,11 @@ const CommentDialog = ({ isOpen, onOpenChange, onClose, onSubmit, initialContent
             } else {
                 await onSubmit(replyContent);
                 setReplyContent('');
+                onClose();
             }
         } finally {
             setIsSubmitting(false);
+            onClose();
         }
     };
 

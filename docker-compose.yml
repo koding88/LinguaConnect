@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173" 
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./uploads:/usr/src/app/uploads
+    networks:
+      - app-network
+      - default
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    depends_on:
+      - flask_app
+
+  flask_app:
+    build: ./flask_app
+    container_name: flask_app
+    ports:
+      - "5555:5555" 
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge 

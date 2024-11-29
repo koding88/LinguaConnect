@@ -31,13 +31,13 @@ const ChatHeader = ({ selectedConversation, isOnline, onStartCall }) => {
                 {/* Call Actions */}
                 <div className="flex items-center gap-2">
                     {/* Voice Call Button */}
-                    <button
+                    {/* <button
                         onClick={() => onStartCall(false)}
                         className="p-2.5 rounded-full bg-white/80 hover:bg-white border border-gray-200 shadow-sm
                                  transition-all duration-200 hover:scale-105 hover:shadow-md group"
                     >
                         <Phone className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                    </button>
+                    </button> */}
 
                     {/* Video Call Button */}
                     <button

@@ -175,16 +175,19 @@ const usePostZ = create((set, get) => ({
             toast.error('Comment content required');
             return null;
         }
+        set({ loading: true });
         try {
             const { data } = await axiosClient.post(`/comments/${postId}`, { content });
             set(state => ({
                 posts: state.posts.map(post =>
                     post._id === postId ? { ...post, comments: data.data.comments } : post
                 ),
+                loading: false
             }));
             toast.success("Comment added successfully");
             return data.data.comments;
         } catch (error) {
+            set({ loading: false });
             toast.error(error.response?.data?.message || "Error adding comment");
             return null;
         }
@@ -195,16 +198,19 @@ const usePostZ = create((set, get) => ({
             toast.error('Comment content required');
             return null;
         }
+        set({ loading: true });
         try {
             const { data } = await axiosClient.patch(`/comments/${commentId}`, { content, postId });
             set(state => ({
                 posts: state.posts.map(post =>
                     post._id === postId ? { ...post, comments: data.data.comments } : post
                 ),
+                loading: false
             }));
             toast.success("Comment updated successfully");
             return data.data.comments;
         } catch (error) {
+            set({ loading: false });
             toast.error(error.response?.data?.message || "Error editing comment");
             return null;
         }

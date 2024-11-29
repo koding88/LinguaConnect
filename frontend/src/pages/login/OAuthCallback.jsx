@@ -6,7 +6,7 @@ const OAuthCallback = () => {
 
     React.useEffect(() => {
         handleGoogleRedirect();
-    }, [handleGoogleRedirect]);
+    }, []);
 
     return (
         <div className="flex items-center justify-center min-h-screen">

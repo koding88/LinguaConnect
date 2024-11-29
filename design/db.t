@@ -3,33 +3,36 @@
 
 Posts[icon: book, color: blue]{
   id string (pk)
-  content string
+  content string (default: '')
   images [array]
   likes [array of User IDs]
   comments [array of Comment IDs]
   user User ID (ref)
   status string (enum: public, hidden)
+  report [array of User IDs]
   group Group ID (ref, default: null)
-  createdAt: date
+  createdAt date
 }
 
 Users [icon: user, color: green] {
   id string (pk)
   full_name string
   username string (unique)
-  avatarUrl string 
+  avatarUrl string (default: '')
   email string (unique)
   password string
   role string (enum: user, admin)
   gender boolean
   birthday date
-  location string
+  favoriteTopics [array of Topic IDs]
+  location string (default: '')
   followers [array of User IDs]
   following [array of User IDs]
   status string (enum: block, unblock)
   isVerify boolean (default: false)
   isEnable2FA boolean (default: false)
-  saved_posts [array of Post IDs]
+  createdAt date
+  updatedAt date
 }
 
 Comments[icon: comment, color: orange]{
@@ -47,7 +50,7 @@ Group[icon: users, color: red]{
   name string (unique)
   description string
   owner User ID (ref)
-  avatarUrl string 
+  avatarUrl string (default: "https://cdn-icons-png.flaticon.com/512/3950/3950923.png")
   members [array of User IDs]
   maxMembers number (default: 100)
   posts [array of Post IDs]
@@ -67,30 +70,28 @@ Notifications[icon: bell, color: black]{
   user User ID (ref)
   recipients [array of User IDs]
   url string
-  text string
   content string
-  image string
-  isRead boolean
+  type string (enum: post_like, post_comment, comment_like, group_post_like, group_post_comment, group_comment_like, follow, group_join, admin_post_report, admin_group_post_report, admin_group_created, admin_user_registered)
+  isRead boolean (default: false)
+  createdAt date
 }
 
 Messages [icon: messenger, color: purple]{
   id string (pk)
-  conversation Conversation ID (ref)
-  sender User ID (ref)
-  recipient User ID (ref)
-  text string
-  media [array of URLs]
-  call object
+  senderId User ID (ref)
+  receiverId User ID (ref)
+  message string
+  isRead boolean (default: false)
+  createdAt date
+  updatedAt date
 }
 
 Conversations [icon: phone-call, color: blue]{
   id string (pk)
-  conversation Conversation ID (ref)
-  sender User ID (ref)
-  recipient User ID (ref)
-  text string
-  media [array of URLs]
-  call object
+  participants [array of User IDs]
+  messages [array of Message IDs]
+  createdAt date
+  updatedAt date
 }
 
 // Relationship

@@ -1,6 +1,4 @@
-const http = require("http");
 const express = require("express");
-const { ExpressPeerServer } = require("peer");
 const bodyParser = require("body-parser");
 const path = require("path");
 const mongoDB = require("./config/db");
@@ -42,11 +40,6 @@ app.use("/api/v1/groups", groupRoute);
 app.use("/api/v1/messages", messageRoute);
 app.use("/api/v1/notifications", notificationRoute);
 app.use("/api/v1/stringee", stringeeRoute);
-
-// Route test login google
-app.get("/", (req, res) => {
-    res.send('<a href="/api/v1/auth/google">Authenticate with google</a>');
-});
 
 // Error handler
 app.use(errorMiddleware);

@@ -1,13 +1,17 @@
 from langchain_core.prompts import ChatPromptTemplate
 
+
 class PromptTemplateService:
     @staticmethod
     def create_translation_prompt(context, sentence, language):
         """
         Create a translation prompt using LangChain.
         """
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """
             You are a context-aware translation assistant. You will be given a conversation context and a specific sentence to translate into {language}. Your task is to:
             1. Carefully analyze the provided context to understand the situation and any potential ambiguities.
             2. Translate the given sentence into {language}, taking into account the context to resolve any ambiguities or idiomatic expressions.
@@ -23,9 +27,11 @@ class PromptTemplateService:
                 <explanation></explanation>
                 <contextAnalysis></contextAnalysis>
             </translation>
-            """),
-            ("user", "Context: {context}\n\nSentence to translate: {sentence}")
-        ])
+            """,
+                ),
+                ("user", "Context: {context}\n\nSentence to translate: {sentence}"),
+            ]
+        )
         return prompt
 
     @staticmethod
@@ -33,8 +39,11 @@ class PromptTemplateService:
         """
         Create a grammar check prompt using LangChain.
         """
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """
             You are a grammar checker. You will be given a text to analyze for various types of mistakes, including spelling, grammar, and semantic errors. Your task is to:
 
             1. Carefully examine the text for any mistakes.
@@ -44,9 +53,11 @@ class PromptTemplateService:
                 c. Provide a suggested correction for each mistake.
             3. If no mistakes are found, state that the text is correct.
             4. Finally, regardless of whether mistakes were found or not, provide a revised version of the entire text that addresses all identified issues.
-            """),
-            ("user", "{text}")
-        ])
+            """,
+                ),
+                ("user", "{text}"),
+            ]
+        )
         return prompt
 
     @staticmethod
@@ -54,8 +65,11 @@ class PromptTemplateService:
         """
         Create a writing tips prompt using LangChain.
         """
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """
             You are a writing tips assistant. I will provide a conversation context and a text for you to analyze. Your task is to:
 
             1. Reflect on the provided context to grasp the situation and any potential ambiguities.
@@ -71,7 +85,43 @@ class PromptTemplateService:
                 <professionalVersion></professionalVersion>
                 <explanation></explanation>
             </writingTips>
-            """),
-            ("user", "Context: {context}\n\nContent to writing tips: {text}")
-        ])
+            """,
+                ),
+                ("user", "Context: {context}\n\nContent to writing tips: {text}"),
+            ]
+        )
+        return prompt
+
+    @staticmethod
+    def create_content_safety_prompt(content):
+        """
+        Create a content safety prompt using LangChain.
+        """
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "user",
+                    """Task: Check if there is unsafe content in the following message according to these categories:
+    S1: Violent Crimes
+    S2: Non-Violent Crimes  
+    S3: Sex-Related Crimes
+    S4: Child Sexual Exploitation
+    S5: Defamation
+    S6: Specialized Advice
+    S7: Privacy
+    S8: Intellectual Property
+    S9: Indiscriminate Weapons
+    S10: Hate
+    S11: Suicide & Self-Harm
+    S12: Sexual Content
+    S13: Elections
+
+    Message: {content}
+
+    Provide your safety assessment in this exact format:
+    Line 1: Write only 'safe' or 'unsafe'
+    Line 2: If unsafe, write violated category codes (e.g. S1,S10) or leave empty if safe""",
+                )
+            ]
+        )
         return prompt

@@ -107,6 +107,7 @@ const PostDetail = () => {
     const handleOpenPostDialog = () => setIsPostDialogOpen(true);
     const handleClosePostDialog = () => setIsPostDialogOpen(false);
     const handleOpenCommentDialog = () => setIsCommentDialogOpen(true);
+    const handleCloseCommentDialog = () => setIsCommentDialogOpen(false);
 
     return (
         <div className="space-y-6">
@@ -234,6 +235,7 @@ const PostDetail = () => {
 
             <CommentDialog
                 isOpen={isCommentDialogOpen}
+                onClose={handleCloseCommentDialog}
                 onOpenChange={setIsCommentDialogOpen}
                 onSubmit={handleReplySubmit}
             />

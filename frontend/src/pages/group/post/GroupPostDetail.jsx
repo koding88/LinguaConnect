@@ -100,6 +100,7 @@ const GroupPostDetail = () => {
     const handleOpenPostDialog = () => setIsPostDialogOpen(true);
     const handleClosePostDialog = () => setIsPostDialogOpen(false);
     const handleOpenCommentDialog = () => setIsCommentDialogOpen(true);
+    const handleCloseCommentDialog = () => setIsCommentDialogOpen(false);
 
     return (
         <>
@@ -204,6 +205,7 @@ const GroupPostDetail = () => {
             <CommentDialog
                 isOpen={isCommentDialogOpen}
                 onOpenChange={setIsCommentDialogOpen}
+                onClose={handleCloseCommentDialog}
                 onSubmit={handleReplySubmit}
             />
         </>

@@ -7,6 +7,7 @@ const { postValidation, updatePostValidation, postIdValidation, getPostValidatio
 const { deleteImages } = require("../utils/cloudinaryUtil");
 const notificationModel = require('../models/notification.Model');
 const { getReceiverSocketId, io } = require("../sockets/sockets");
+const { checkContent } = require('./checkcontent.Service');
 
 let projection = { group: 0 }
 
@@ -120,6 +121,12 @@ const createPost = async (userId, postData) => {
             }
         }
 
+        // Check content safety
+        const contentSafety = await checkContent(content);
+        if (!contentSafety.isSafe) {
+            throw errorHandler(400, `You violated the following categories: ${contentSafety.violatedCategories.join(', ')}`);
+        }
+
         // Create a new post instance
         const newPost = new postModel({
             content,
@@ -167,6 +174,12 @@ const updatePost = async (postId, userId, updateData) => {
         const { error: validationError } = updatePostValidation({ content: content, urls: urls, images: images });
         if (validationError) {
             throw errorHandler(400, `Validation error: ${validationError.message}`);
+        }
+
+        // Check content safety
+        const contentSafety = await checkContent(content);
+        if (!contentSafety.isSafe) {
+            throw errorHandler(400, `You violated the following categories: ${contentSafety.violatedCategories.join(', ')}`);
         }
 
         // Use existing images from the post
@@ -269,7 +282,7 @@ const likePost = async (postId, userId) => {
     try {
         const post = await postModel.findById(postId);
         if (!post) {
-            throw new Error("Post not found");
+            throw errorHandler(404, 'Post not found');
         }
 
         // Check if user already liked the post

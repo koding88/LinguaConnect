@@ -82,8 +82,6 @@ class TranslateService:
             context = "\n".join(conversation) if conversation else ""
             prompt = PromptTemplateService.create_translation_prompt(context, content, language)
 
-            print("Prompt content: ", content)
-
             translate_chain = prompt | chat_together
 
             response = translate_chain.invoke({

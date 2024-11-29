@@ -23,6 +23,7 @@ const {
     updateCommentInGroupValidation,
     likeAndDeleteCommentInGroupValidation
 } = require("../validations/groupValidation");
+const { checkContent } = require('./checkcontent.Service');
 
 const getAllGroups = async () => {
     try {
@@ -657,6 +658,12 @@ const createPostInGroup = async (groupId, userId, postData) => {
             throw errorHandler(409, 'User is neither the owner nor a member of the group');
         }
 
+        // Check content safety
+        const contentSafety = await checkContent(content);
+        if (!contentSafety.isSafe) {
+            throw errorHandler(400, `You violated the following categories: ${contentSafety.violatedCategories.join(', ')}`);
+        }
+
         // Create a new post
         const newPost = new postModel({
             content,
@@ -726,6 +733,12 @@ const updatePostInGroup = async (groupId, userId, postId, postData) => {
         const { error: validationError } = updatePostInGroupValidation({ content: content, urls: urls, images: images });
         if (validationError) {
             throw errorHandler(400, `Validation error: ${validationError.message}`);
+        }
+
+        // Check content safety
+        const contentSafety = await checkContent(content);
+        if (!contentSafety.isSafe) {
+            throw errorHandler(400, `You violated the following categories: ${contentSafety.violatedCategories.join(', ')}`);
         }
 
         // Use existing images from the post
@@ -995,6 +1008,12 @@ const createCommentInGroup = async (groupId, userId, postId, commentData) => {
             throw errorHandler(409, 'Post does not belong to the specified group');
         }
 
+        // Check content safety
+        const contentSafety = await checkContent(commentData.content);
+        if (!contentSafety.isSafe) {
+            throw errorHandler(400, `You violated the following categories: ${contentSafety.violatedCategories.join(', ')}`);
+        }
+
         // Create a new comment
         const newComment = new commentModel({
             content: commentData.content,
@@ -1098,6 +1117,12 @@ const updateCommentInGroup = async (groupId, userId, postId, commentId, commentD
         // Check if the user is the owner of the comment
         if (existingComment.user.toString() !== userId) {
             throw errorHandler(403, 'User is not the owner of the comment');
+        }
+
+        // Check content safety
+        const contentSafety = await checkContent(commentData.content);
+        if (!contentSafety.isSafe) {
+            throw errorHandler(400, `You violated the following categories: ${contentSafety.violatedCategories.join(', ')}`);
         }
 
         // Update the comment content

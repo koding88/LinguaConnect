@@ -3,10 +3,13 @@
     "version": "1.0.0",
     "main": "server.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "node --watch server",
+        "test": "echo \"Error: no test specified\" && exit 1", 
+        "start": "node dist/index.js",
+        "build": "webpack",
+        "prod": "node dist/final.js",
         "eslint": "eslint ./",
-        "eslint-fix": "eslint ./ --fix"
+        "eslint-fix": "eslint ./ --fix",
+        "dev": "webpack serve --mode development"
     },
     "author": "Dương Ngọc Anh",
     "license": "MIT",

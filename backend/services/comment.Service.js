@@ -9,6 +9,7 @@ const {
 } = require("../validations/commentValidation");
 const { getReceiverSocketId, io } = require('../sockets/sockets');
 const notificationModel = require('../models/notification.Model');
+const { checkContent } = require('./checkcontent.Service');
 
 const createComment = async (userId, postId, commentData) => {
     try {
@@ -36,6 +37,12 @@ const createComment = async (userId, postId, commentData) => {
 
         if (!post) {
             throw errorHandler(404, 'Post not found');
+        }
+
+        // Check content safety
+        const contentSafety = await checkContent(commentData.content);
+        if (!contentSafety.isSafe) {
+            throw errorHandler(400, `You violated the following categories: ${contentSafety.violatedCategories.join(', ')}`);
         }
 
         // Create the new comment
@@ -121,6 +128,12 @@ const updateComment = async (userId, postId, commentId, commentData) => {
 
         if (!post) {
             throw errorHandler(404, 'Post not found');
+        }
+
+        // Check content safety
+        const contentSafety = await checkContent(commentData.content);
+        if (!contentSafety.isSafe) {
+            throw errorHandler(400, `You violated the following categories: ${contentSafety.violatedCategories.join(', ')}`);
         }
 
         // Find the comment

@@ -1,9 +1,31 @@
 FROM node:20-alpine
 
-RUN mkdir -p /usr/src/app
+# Create app directory
 WORKDIR /usr/src/app
 
-COPY dist/final.js .
+# Copy package files
+COPY package*.json ./
 
+# Install dependencies including devDependencies for build
+RUN npm ci --legacy-peer-deps
+
+# Copy source code
+COPY . .
+
+# Build the app
+RUN npm run build
+
+# Clean up devDependencies
+RUN npm ci --only=production --legacy-peer-deps
+
+# Create uploads and logs directories with proper permissions
+RUN mkdir -p uploads logs && chown -R node:node uploads logs
+
+# Add non-root user
+USER node
+
+# Expose port
 EXPOSE 3000
-CMD ["node", "final.js"]
+
+# Run app
+CMD ["npm", "run", "prod"]
