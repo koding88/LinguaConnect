@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 
 const usePostZ = create((set, get) => ({
     posts: [],
+    userPosts: [],
     loading: false,
     error: null,
     lastFetchTime: null,
@@ -19,6 +20,23 @@ const usePostZ = create((set, get) => ({
                 set({ loading: false });
                 // toast.error(error.response?.data?.message || "Error fetching posts");
             }
+        }
+    },
+
+    getPostByUserId: async (userId) => {
+        try {
+            const { data } = await axiosClient.get(`/posts/user/${userId}`);
+            if (Array.isArray(data.data)) {
+                set({ userPosts: data.data });
+                return data.data;
+            } else {
+                console.error('Unexpected response format:', data);
+                return [];
+            }
+        } catch (error) {
+            console.error('Error fetching user posts:', error);
+            toast.error(error.response?.data?.message || "Error fetching posts");
+            return [];
         }
     },
 
@@ -90,7 +108,11 @@ const usePostZ = create((set, get) => ({
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             const newPost = (await axiosClient.get(`/posts/${data.data._id}`)).data.data;
-            set(state => ({ posts: [newPost, ...state.posts], loading: false }));
+            set(state => ({ 
+                posts: [newPost, ...state.posts],
+                userPosts: [newPost, ...state.userPosts],
+                loading: false 
+            }));
             toast.success(data.message);
         } catch (error) {
             set({ loading: false });
@@ -110,10 +132,13 @@ const usePostZ = create((set, get) => ({
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             const updatedPost = (await axiosClient.get(`/posts/${postId}`)).data.data;
+            
             set(state => ({
                 posts: state.posts.map(post => post._id === postId ? updatedPost : post),
+                userPosts: state.userPosts.map(post => post._id === postId ? updatedPost : post),
                 loading: false
             }));
+            
             toast.success("Post updated successfully");
             return updatedPost;
         } catch (error) {
@@ -128,6 +153,7 @@ const usePostZ = create((set, get) => ({
             await axiosClient.delete(`/posts/${postId}`);
             set(state => ({
                 posts: state.posts.filter(post => post._id !== postId),
+                userPosts: state.userPosts.filter(post => post._id !== postId),
                 loading: false
             }));
             toast.success("Post deleted successfully");
@@ -148,6 +174,9 @@ const usePostZ = create((set, get) => ({
                 posts: state.posts.map(post =>
                     post._id === postId ? { ...post, likes: data.data.likes } : post
                 ),
+                userPosts: state.userPosts.map(post =>
+                    post._id === postId ? { ...post, likes: data.data.likes } : post
+                ),
             }));
             return data.data.likes;
         } catch (error) {
@@ -161,6 +190,9 @@ const usePostZ = create((set, get) => ({
             const { data } = await axiosClient.patch(`/posts/${postId}/report`);
             set(state => ({
                 posts: state.posts.map(post =>
+                    post._id === postId ? { ...post, report: data.data.report } : post
+                ),
+                userPosts: state.userPosts.map(post =>
                     post._id === postId ? { ...post, report: data.data.report } : post
                 ),
             }));
@@ -180,6 +212,9 @@ const usePostZ = create((set, get) => ({
             const { data } = await axiosClient.post(`/comments/${postId}`, { content });
             set(state => ({
                 posts: state.posts.map(post =>
+                    post._id === postId ? { ...post, comments: data.data.comments } : post
+                ),
+                userPosts: state.userPosts.map(post =>
                     post._id === postId ? { ...post, comments: data.data.comments } : post
                 ),
                 loading: false
@@ -205,6 +240,9 @@ const usePostZ = create((set, get) => ({
                 posts: state.posts.map(post =>
                     post._id === postId ? { ...post, comments: data.data.comments } : post
                 ),
+                userPosts: state.userPosts.map(post =>
+                    post._id === postId ? { ...post, comments: data.data.comments } : post
+                ),
                 loading: false
             }));
             toast.success("Comment updated successfully");
@@ -217,11 +255,13 @@ const usePostZ = create((set, get) => ({
     },
 
     deleteComment: async (postId, commentId) => {
-        console.log('Deleting comment:', { postId, commentId });
         try {
             const { data } = await axiosClient.delete(`/comments/${commentId}`, { data: { postId } });
             set(state => ({
                 posts: state.posts.map(post =>
+                    post._id === postId ? { ...post, comments: data?.data?.comments } : post
+                ),
+                userPosts: state.userPosts.map(post =>
                     post._id === postId ? { ...post, comments: data?.data?.comments } : post
                 ),
             }));
@@ -242,6 +282,9 @@ const usePostZ = create((set, get) => ({
             const { data } = await axiosClient.patch(`/comments/${commentId}/like`, { postId });
             set(state => ({
                 posts: state.posts.map(post =>
+                    post._id === postId ? { ...post, comments: data.data.comments } : post
+                ),
+                userPosts: state.userPosts.map(post =>
                     post._id === postId ? { ...post, comments: data.data.comments } : post
                 ),
             }));

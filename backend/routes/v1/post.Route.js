@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const postController = require('../../controllers/post.Controller');
-const {verifyToken, isAdmin} = require("../../middlewares/auth.Middleware");
+const {verifyToken} = require("../../middlewares/auth.Middleware");
 const {uploadImagesToCloudinary} = require("../../middlewares/upload.Middleware");
 
 router.get("/following", verifyToken, postController.filterPostByFollowingController);
@@ -15,5 +15,6 @@ router.patch("/:id", verifyToken, uploadImagesToCloudinary, postController.updat
 router.delete("/:id", verifyToken, postController.deletePostController);
 router.patch("/:id/like", verifyToken, postController.likePostController);
 router.patch("/:id/report", verifyToken, postController.reportPostController);
+router.get("/user/:userId", verifyToken, postController.getPostByUserIdController);
 
 module.exports = router;

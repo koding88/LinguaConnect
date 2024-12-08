@@ -52,6 +52,7 @@ redis.connectRedisDB();
 
 // Start server
 const PORT = process.env.PORT || 5001;
-server.listen(PORT, () => {
-    logger.info(`Server running on port ${PORT}`);
+const HOST = "0.0.0.0";
+server.listen(PORT, HOST, () => {
+    logger.info(`Server running on port ${PORT}, host ${HOST}`);
 });

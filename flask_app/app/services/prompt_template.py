@@ -102,25 +102,25 @@ class PromptTemplateService:
                 (
                     "user",
                     """Task: Check if there is unsafe content in the following message according to these categories:
-    S1: Violent Crimes
-    S2: Non-Violent Crimes  
-    S3: Sex-Related Crimes
-    S4: Child Sexual Exploitation
-    S5: Defamation
-    S6: Specialized Advice
-    S7: Privacy
-    S8: Intellectual Property
-    S9: Indiscriminate Weapons
-    S10: Hate
-    S11: Suicide & Self-Harm
-    S12: Sexual Content
-    S13: Elections
+                    S1: Violent Crimes
+                    S2: Non-Violent Crimes  
+                    S3: Sex-Related Crimes
+                    S4: Child Sexual Exploitation
+                    S5: Defamation
+                    S6: Specialized Advice
+                    S7: Privacy
+                    S8: Intellectual Property
+                    S9: Indiscriminate Weapons
+                    S10: Hate
+                    S11: Suicide & Self-Harm
+                    S12: Sexual Content
+                    S13: Elections
 
-    Message: {content}
+                    Message: {content}
 
-    Provide your safety assessment in this exact format:
-    Line 1: Write only 'safe' or 'unsafe'
-    Line 2: If unsafe, write violated category codes (e.g. S1,S10) or leave empty if safe""",
+                    Provide your safety assessment in this exact format:
+                    Line 1: Write only 'safe' or 'unsafe'
+                    Line 2: If unsafe, write violated category codes (e.g. S1,S10) or leave empty if safe""",
                 )
             ]
         )

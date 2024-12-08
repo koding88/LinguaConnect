@@ -83,6 +83,7 @@ const refreshTokenController = async (req, res, next) => {
 
 const confirmEmailController = async (req, res, next) => {
     try {
+        console.log("confirmEmailController");
         const {token} = req.query;
         const full_name = await authService.confirmEmail(token);
         const loginUrl = `${process.env.CLIENT_URL}/login`;

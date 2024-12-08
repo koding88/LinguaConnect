@@ -36,8 +36,6 @@ const PostDetailManage = () => {
             })
     }, [postId, getPostByIdManage])
 
-    console.log(post)
-
     const getInitials = (name) => {
         return name
             ?.split(' ')
@@ -67,7 +65,7 @@ const PostDetailManage = () => {
                                 </div>
                                 <input
                                     type="text"
-                                    value={post.user?.username || ''}
+                                    value={post?.user?.username || ''}
                                     className="w-full p-3 border rounded-lg bg-gray-50/50 focus:ring-2 focus:ring-blue-500/20"
                                     disabled
                                 />
@@ -80,7 +78,7 @@ const PostDetailManage = () => {
                                     <label className="text-sm font-semibold text-gray-700">Content</label>
                                 </div>
                                 <textarea
-                                    value={post.content || ''}
+                                    value={post?.content || ''}
                                     className="w-full p-3 border rounded-lg bg-gray-50/50 min-h-[150px] resize-none focus:ring-2 focus:ring-blue-500/20"
                                     disabled
                                 />
@@ -92,12 +90,12 @@ const PostDetailManage = () => {
                                     <Images className="w-5 h-5 text-blue-500" />
                                     <label className="text-sm font-semibold text-gray-700">Images</label>
                                 </div>
-                                {post.images?.length > 0 && (
+                                {post?.images?.length > 0 && (
                                     <div className="relative rounded-xl overflow-hidden border border-gray-100">
                                         <ScrollArea className="w-full whitespace-nowrap">
                                             <div className="flex w-full gap-4 p-2">
                                                 <ListImage
-                                                    images={post.images}
+                                                    images={post?.images}
                                                 />
                                             </div>
                                             {post.images.length > 2 && <ScrollBar orientation="horizontal" />}
@@ -115,30 +113,30 @@ const PostDetailManage = () => {
                                     <div className="flex items-center gap-2">
                                         <Heart className="w-5 h-5 text-rose-500" />
                                         <span className="font-semibold">
-                                            Likes ({post.likes?.length || 0})
+                                            Likes ({post?.likes?.length || 0})
                                         </span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <ScrollArea className="h-[300px] px-8 py-4">
                                         <div className="space-y-4">
-                                            {post.likes?.map((like, index) => (
+                                            {post?.likes?.map((like, index) => (
                                                 <div
                                                     key={index}
                                                     className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                                                 >
                                                     <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={like.avatarUrl} />
+                                                        <AvatarImage src={like?.avatarUrl} />
                                                         <AvatarFallback>
-                                                            {getInitials(like.username)}
+                                                            {getInitials(like?.username)}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div className="flex-1">
                                                         <p className="font-medium text-gray-900">
-                                                            {like.username}
+                                                            {like?.username}
                                                         </p>
                                                         <p className="text-sm text-gray-500">
-                                                            {like.full_name}
+                                                            {like?.full_name}
                                                         </p>
                                                     </div>
                                                     <ThumbsUp className="w-4 h-4 text-blue-500" />
@@ -154,14 +152,14 @@ const PostDetailManage = () => {
                                     <div className="flex items-center gap-2">
                                         <MessageSquare className="w-5 h-5 text-blue-500" />
                                         <span className="font-semibold">
-                                            Comments ({post.comments?.length || 0})
+                                            Comments ({post?.comments?.length || 0})
                                         </span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <ScrollArea className="h-[400px] px-8 py-4">
                                         <div className="space-y-6">
-                                            {post.comments?.map((comment, index) => (
+                                            {post?.comments?.map((comment, index) => (
                                                 <div
                                                     key={index}
                                                     className="space-y-4"
@@ -170,20 +168,20 @@ const PostDetailManage = () => {
                                                         <Avatar className="h-10 w-10">
                                                             <AvatarImage src={comment.user?.avatarUrl} />
                                                             <AvatarFallback>
-                                                                {getInitials(comment.user?.username)}
+                                                                {getInitials(comment?.user?.username)}
                                                             </AvatarFallback>
                                                         </Avatar>
                                                         <div className="flex-1 space-y-2">
                                                             <div className="bg-gray-50 rounded-2xl p-4">
                                                                 <p className="font-medium text-gray-900">
-                                                                    {comment.user?.username}
+                                                                    {comment?.user?.username}
                                                                 </p>
                                                                 <p className="text-gray-700 mt-1">
-                                                                    {comment.content}
+                                                                    {comment?.content}
                                                                 </p>
                                                             </div>
                                                             <div className="flex items-center gap-4 text-sm text-gray-500">
-                                                                <span>{extractTime(comment.createdAt)}</span>
+                                                                <span>{extractTime(comment?.createdAt)}</span>
                                                                 <div className="flex items-center gap-1">
                                                                     <Heart className="w-4 h-4 text-rose-500" />
                                                                     <span>{comment.likes?.length || 0} likes</span>

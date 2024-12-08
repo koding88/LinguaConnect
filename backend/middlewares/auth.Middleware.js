@@ -1,4 +1,5 @@
 const { accessTokenVerify } = require("../utils/tokenUtil");
+const userModel = require("../models/user.Model");
 const logger = require("../utils/loggerUtil");
 
 const verifyToken = async (req, res, next) => {
@@ -8,6 +9,10 @@ const verifyToken = async (req, res, next) => {
             return res.status(403).json({ message: "No token provided" });
         }
         const decoded = accessTokenVerify(token);
+        const user = await userModel.findById(decoded.userId);
+        if (!user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
         req.userId = decoded.userId;
         req.role = decoded.role;
         next();

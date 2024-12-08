@@ -29,6 +29,21 @@ const getPostByIdController = async (req, res, next) => {
     }
 }
 
+const getPostByUserIdController = async (req, res, next) => {
+    try {
+        const userId = req.params.userId;
+        const posts = await postService.getPostByUserId(userId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Posts fetched successfully',
+            data: posts,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 const createPostController = async (req, res, next) => {
     try {
         const userId = req.userId;
@@ -173,6 +188,7 @@ const filterPostByCommentsController = async (req, res, next) => {
 module.exports = {
     getAllPostsController,
     getPostByIdController,
+    getPostByUserIdController,
     createPostController,
     updatePostController,
     deletePostController,

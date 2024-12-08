@@ -37,9 +37,8 @@ const Profile = () => {
     const { userId } = useParams()
     const { authUser, setAuthUser } = useAuthContext()
     const [user, setUser] = useState(null)
-    const { posts, getAllPosts } = usePostZ()
+    const { userPosts, getPostByUserId } = usePostZ()
     const { getProfile, followUser, updateAvatar, updateProfile } = useUserZ()
-    const [userPosts, setUserPosts] = useState([])
     const [isFollowing, setIsFollowing] = useState(false)
     const [followersCount, setFollowersCount] = useState(0)
     const [lastFollowTime, setLastFollowTime] = useState(0)
@@ -71,7 +70,7 @@ const Profile = () => {
                     ...newUserData,
                 }));
 
-                await getAllPosts(true);
+                await getPostByUserId(userId);
             }
         } catch (error) {
             console.error('Update error:', error);
@@ -91,7 +90,7 @@ const Profile = () => {
                         setIsFollowing(profile.followers.some(f => f._id === authUser?._id))
                         setFollowersCount(profile.followers.length)
                     }
-                    await getAllPosts(true)
+                    await getPostByUserId(userId)
                 }
             } catch (err) {
                 setError("Failed to load profile")
@@ -101,13 +100,10 @@ const Profile = () => {
             }
         }
         fetchData()
-    }, [userId, getProfile, getAllPosts, authUser?._id])
+    }, [userId, getProfile, getPostByUserId, authUser?._id])
 
-    useEffect(() => {
-        if (user && posts.length) {
-            setUserPosts(posts.filter(p => p?.user?._id === user?._id))
-        }
-    }, [user, posts])
+    // Sort posts by date
+    const sortedUserPosts = [...userPosts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
     const handleFollowToggle = useCallback(async () => {
         if (Date.now() - lastFollowTime < 5000) {
@@ -182,8 +178,8 @@ const Profile = () => {
                             <div className='bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden'>
                                 {/* Cover Image */}
                                 <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500">
-                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"/>
-                                    <div className="absolute inset-0 bg-[url('/patterns/pattern-1.svg')] opacity-30"/>
+                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+                                    <div className="absolute inset-0 bg-[url('/patterns/pattern-1.svg')] opacity-30" />
                                 </div>
 
                                 <div className="px-8 pb-8">
@@ -236,11 +232,10 @@ const Profile = () => {
                                                 <>
                                                     <button
                                                         onClick={handleFollowToggle}
-                                                        className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl transition-all w-full sm:w-auto ${
-                                                            isFollowing
+                                                        className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl transition-all w-full sm:w-auto ${isFollowing
                                                                 ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                                 : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg hover:translate-y-[-1px] active:translate-y-0'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {isFollowing ? (
                                                             <><UserMinus className="w-4 h-4" /> Unfollow</>
@@ -344,8 +339,8 @@ const Profile = () => {
                                                     <>
                                                         <img
                                                             src={getFlagImage(user.location)}
-                                                        width="24"
-                                                        alt={user.location}
+                                                            width="24"
+                                                            alt={user.location}
                                                         />
                                                     </>
                                                 ) : (
@@ -380,7 +375,7 @@ const Profile = () => {
                                     </h3>
                                 </div>
                                 <div className="p-8">
-                                    {userPosts.length === 0 ? (
+                                    {sortedUserPosts.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in">
                                             <div className="w-24 h-24 mb-4 text-gray-300">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -391,7 +386,7 @@ const Profile = () => {
                                             <p className="text-gray-500">This user hasn&apos;t shared any posts yet.</p>
                                         </div>
                                     ) : (
-                                        <ListPost posts={userPosts} />
+                                        <ListPost posts={sortedUserPosts} />
                                     )}
                                 </div>
                             </div>
