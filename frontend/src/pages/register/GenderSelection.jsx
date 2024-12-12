@@ -1,7 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { UserCircle2 } from "lucide-react";
-import React from "react";
 
 export const GenderSelection = ({ gender, onChange }) => (
     <div className="space-y-1.5">

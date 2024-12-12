@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Switch } from "@/components/ui/switch"
 import useUserZ from '@/zustand/useUserZ'
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'react-toastify'
+import { useAuthContext } from '@/context/AuthContext'
 
 const TwoFactor2FA = () => {
-    const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+    const { authUser } = useAuthContext();
+    const [is2FAEnabled, setIs2FAEnabled] = useState(authUser?.isEnable2FA);
     const [otpUrl, setOtpUrl] = useState('');
     const { enable2FA, disable2FA } = useUserZ();
 

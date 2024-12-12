@@ -93,6 +93,7 @@ class TranslateService:
             # Handle AIMessage response type
             if isinstance(response, AIMessage):
                 response = response.content
+                print(response)
 
             logger.info("Translation completed successfully")
 

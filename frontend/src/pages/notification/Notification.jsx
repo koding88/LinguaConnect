@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { extractTime } from '@/utils/extractTime';
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Trash2, Clock, CircleDot, Bell, BellOff } from "lucide-react";
+import { MoreVertical, Trash2, Clock, CircleDot, BellOff } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -75,7 +75,7 @@ const Notification = () => {
                 <div className='space-y-4'>
                     <div className='bg-white rounded-2xl shadow-xl border border-gray-100'>
                         <ScrollArea className="h-full">
-                            {Object.entries(groupNotifications()).every(([_, notifications]) => notifications.length === 0) ? (
+                            {Object.entries(groupNotifications()).every(([_, notifications]) => notifications.length === 0) ? (         
                                 <EmptyState />
                             ) : (
                                 Object.entries(groupNotifications()).map(([group, notifications]) => (

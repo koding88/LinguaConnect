@@ -4,13 +4,21 @@ import { toast } from 'react-toastify';
 
 const useTopic = create((set) => ({
     topics: [],
+    pagination: null,
+    loading: false,
     setTopics: (topics) => set({ topics }),
 
-    getTopics: async () => {
+    getTopics: async (page = 1, limit = 10) => {
         try {
-            const { data } = await axiosClient.get('/admin/topics');
-            set({ topics: data.data });
+            set({ loading: true });
+            const { data } = await axiosClient.get('/admin/topics', { params: { page, limit } });
+            set({ 
+                topics: data.data.topics, 
+                pagination: data.data.pagination,
+                loading: false 
+            });
         } catch (error) {
+            set({ loading: false });
             toast.error(error.response?.data?.message || 'Error fetching topics');
         }
     },

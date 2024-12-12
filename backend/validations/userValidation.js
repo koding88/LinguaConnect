@@ -61,7 +61,14 @@ const updateUserValidation = (data) => {
             "any.required": "Location is required",
             "string.empty": "Location cannot be empty",
         }),
-        favoriteTopics: Joi.array().items(objectIdValidation()).messages({
+        favoriteTopics: Joi.array().items(
+            Joi.string()
+                .pattern(new RegExp("^[0-9a-fA-F]{24}$"))
+                .messages({
+                    "string.base": "Topic ID must be a string",
+                    "string.pattern.base": "Topic ID must be a valid MongoDB ObjectId"
+                })
+        ).optional().messages({
             "array.base": "Favorite topics must be an array",
         }),
     })

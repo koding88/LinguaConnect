@@ -9,6 +9,10 @@ const useGroupZ = create((set) => ({
     loading: false,
     error: null,
 
+    resetGroupPosts: () => {
+        set({ groupPosts: [] });
+    },
+
     getGroups: async () => {
         set({ loading: true });
         try {
@@ -21,7 +25,7 @@ const useGroupZ = create((set) => ({
     },
 
     getGroup: async (groupId) => {
-        set({ loading: true });
+        set({ loading: true, groupPosts: [], group: null });
         try {
             const { data } = await axiosClient.get(`/groups/${groupId}`);
             set({ group: data.data, loading: false })

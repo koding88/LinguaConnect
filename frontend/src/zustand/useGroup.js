@@ -4,13 +4,23 @@ import { toast } from 'react-toastify';
 
 const useGroup = create((set) => ({
     groups: [],
+    pagination: null,
+    loading: false,
     setGroups: (groups) => set({ groups }),
 
-    getGroups: async () => {
+    getGroups: async (page = 1, limit = 10) => {
         try {
-            const { data } = await axiosClient.get('admin/groups');
-            set({ groups: data.data });
+            set({ loading: true });
+            const { data } = await axiosClient.get('admin/groups', {
+                params: { page, limit }
+            });
+            set({ 
+                groups: data.data.groups, 
+                pagination: data.data.pagination,
+                loading: false 
+            });
         } catch (error) {
+            set({ loading: false });
             toast.error(error.response?.data?.message || 'Failed to fetch groups');
         }
     },
@@ -45,7 +55,6 @@ const useGroup = create((set) => ({
             toast.error(error.response?.data?.message || 'Failed to unblock group');
         }
     }
-
 }))
 
 export default useGroup;

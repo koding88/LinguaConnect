@@ -16,10 +16,11 @@ import countries from '@/utils/countries'
 import useAccount from '@/zustand/useAccount'
 
 const ManageAccount = () => {
-    const { accounts, getAccounts, lockAccount, unlockAccount } = useAccount()
+    const { accounts, loading, getAccounts, lockAccount, unlockAccount } = useAccount()
     const navigate = useNavigate()
     const [filterEmail, setFilterEmail] = useState("")
-    const [currentPage, setCurrentPage] = useState(0)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage] = useState(10)
     const [columnVisibility, setColumnVisibility] = useState({
         full_name: true,
         username: true,
@@ -30,18 +31,16 @@ const ManageAccount = () => {
     })
 
     React.useEffect(() => {
-        getAccounts()
-    }, [getAccounts])
+        getAccounts(currentPage, itemsPerPage)
+    }, [getAccounts, currentPage, itemsPerPage])
 
-    const ITEMS_PER_PAGE = 5;
-    const filteredAccounts = accounts.filter(account =>
+    const filteredAccounts = accounts?.filter(account =>
         account.email.toLowerCase().includes(filterEmail.toLowerCase())
     )
-    const pageCount = Math.ceil(filteredAccounts.length / ITEMS_PER_PAGE)
-    const displayedAccounts = filteredAccounts.slice(
-        currentPage * ITEMS_PER_PAGE,
-        (currentPage + 1) * ITEMS_PER_PAGE
-    )
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    }
 
     const handleLockAccount = (id) => {
         lockAccount(id)
@@ -120,17 +119,18 @@ const ManageAccount = () => {
         <AdminPageLayout title="Manage Account">
             <DataTable
                 columns={columns}
-                data={displayedAccounts}
+                data={filteredAccounts}
                 filterPlaceholder="Filter emails..."
                 filterValue={filterEmail}
                 onFilterChange={setFilterEmail}
                 columnVisibility={columnVisibility}
                 setColumnVisibility={setColumnVisibility}
                 currentPage={currentPage}
-                pageCount={pageCount}
-                onPageChange={setCurrentPage}
+                pageCount={useAccount.getState().pagination?.totalPages || 1}
+                onPageChange={handlePageChange}
                 onRowClick={(id) => navigate(`/admin/manage/accounts/${id}`)}
                 renderRowActions={renderRowActions}
+                loading={loading}
             />
         </AdminPageLayout>
     )

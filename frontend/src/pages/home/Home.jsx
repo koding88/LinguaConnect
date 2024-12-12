@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import WhatNew from '@/components/WhatNew';
 import ListPost from '@/components/posts/ListPost';
 import PostDialogCustom from '@/components/dialog/PostDialogCustom';
@@ -39,27 +39,32 @@ const Home = () => {
         filterPostByLikes,
         filterPostByComments,
         loading, 
-        posts 
+        posts,
+        pagination 
     } = usePostZ();
     const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
     const [currentFilter, setCurrentFilter] = useState('for-you');
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        getAllPosts(true);
+        getAllPosts(1, 10, false);
     }, [getAllPosts]);
 
     const handleOpenPostDialog = () => setIsPostDialogOpen(true);
     const handleClosePostDialog = () => setIsPostDialogOpen(false);
-    const handlePostCreated = getAllPosts;
+    const handlePostCreated = () => {
+        setCurrentPage(1);
+        getAllPosts(1, 10, false);
+    };
 
     const handleFilterChange = (filterId) => {
         setCurrentFilter(filterId);
+        setCurrentPage(1);
         const filterAction = filterOptions[filterId].action;
         
-        // Call the corresponding filter function
         switch (filterAction) {
             case 'getAllPosts':
-                getAllPosts(true);
+                getAllPosts(1, 10, false);
                 break;
             case 'filterPostByFollowing':
                 filterPostByFollowing();
@@ -71,13 +76,47 @@ const Home = () => {
                 filterPostByComments();
                 break;
             default:
-                getAllPosts(true);
+                getAllPosts(1, 10, false);
         }
     };
 
+    const handleScroll = useCallback(() => {
+        if (loading || !pagination?.hasMore) return;
+
+        const scrollPosition = window.innerHeight + window.pageYOffset;
+        const scrollThreshold = document.documentElement.scrollHeight - 100;
+        
+        if (scrollPosition >= scrollThreshold) {
+            const nextPage = currentPage + 1;
+            setCurrentPage(nextPage);
+            getAllPosts(nextPage, 10, true);
+        }
+    }, [loading, pagination?.hasMore, currentPage, getAllPosts]);
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [handleScroll]);
+
     return (
-        <div className="space-y-6">
-            {/* Header */}
+        <div className="container max-w-5xl mx-auto px-4 py-8">
+            {/* Filter Dialog */}
+            <DialogFilter
+                isOpen={isFilterDialogOpen}
+                onClose={() => setIsFilterDialogOpen(false)}
+                currentFilter={currentFilter}
+                onFilterChange={handleFilterChange}
+            />
+
+            {/* Create Post Dialog */}
+            <PostDialogCustom
+                isOpen={isPostDialogOpen}
+                onClose={handleClosePostDialog}
+                user={authUser}
+                onPostCreated={handlePostCreated}
+            />
+
+            {/* Filter Bar */}
             <div className='flex items-center justify-center gap-2'>
                 <h1 className='text-3xl font-bold text-center animate-fade-in flex items-center gap-2'>
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
@@ -125,9 +164,15 @@ const Home = () => {
                             <p className="text-gray-500 mb-4">There are no posts to display at the moment.</p>
                         </div>
                     ) : (
-                        <div className="p-4 custom-scrollbar">
+                        <div className="p-4">
                             <div className="space-y-4">
                                 <ListPost posts={posts} />
+                                {loading && (
+                                    <div className="space-y-4">
+                                        <PostSkeleton />
+                                        <PostSkeleton />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -141,22 +186,6 @@ const Home = () => {
                     className="bg-gradient-to-r from-blue-600 to-purple-600 text-white transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
                 />
             </div>
-
-            {/* Create Post Modal */}
-            <PostDialogCustom
-                isOpen={isPostDialogOpen}
-                onClose={handleClosePostDialog}
-                user={authUser}
-                onPostCreated={handlePostCreated}
-            />
-
-            {/* Dialog Filter */}
-            <DialogFilter
-                isOpen={isFilterDialogOpen}
-                onClose={() => setIsFilterDialogOpen(false)}
-                onFilterChange={handleFilterChange}
-                currentFilter={currentFilter}
-            />
         </div>
     )
 }

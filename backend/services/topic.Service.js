@@ -3,13 +3,20 @@ const logger = require('../utils/loggerUtil');
 const errorHandler = require('../utils/errorUtil');
 const { topicIdValidation, topicValidation } = require('../validations/topicValidation');
 
-const getAllTopics = async () => {
+const getAllTopics = async (page = 1, limit = 10) => {
     try {
-        const topics = await topicModel.find({});
+        const skip = (page - 1) * limit;
+        const [topics, total] = await Promise.all([
+            topicModel.find({})
+                .skip(skip)
+                .limit(limit)
+                .exec(),
+            topicModel.countDocuments({})
+        ]);
 
         logger.info(`Topics retrieved successfully`);
 
-        return topics;
+        return { topics, pagination: { total, page, totalPages: Math.ceil(total / limit) } };
     } catch (error) {
         logger.error(`Error fetching all topics: ${error}`);
         throw error;

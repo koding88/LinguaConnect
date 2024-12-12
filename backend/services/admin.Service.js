@@ -7,9 +7,14 @@ const { IdValidation, searchAccountValidation } = require("../validations/adminV
 
 const projection = { password: 0 };
 
-const getAllUsers = async () => {
+const getAllUsers = async (page = 1, limit = 10) => {
     try {
-        return await userModel.find({ role: 'user' }, projection).exec();
+        const skip = (page - 1) * limit;
+        const [users, total] = await Promise.all([
+            userModel.find({ role: 'user' }, projection).skip(skip).limit(limit).exec(),
+            userModel.countDocuments({ role: 'user' }).exec()
+        ]);
+        return { users, pagination: { total, page, totalPages: Math.ceil(total / limit) } };
     } catch (error) {
         logger.error(`Error in getAllUsers: ${error}`);
         throw error;
@@ -112,13 +117,19 @@ const searchAccount = async (key) => {
     }
 };
 
-const getAllGroups = async () => {
+const getAllGroups = async (page = 1, limit = 10) => {
     try {
-        const groups = await groupModel.find({})
-            .populate('owner', 'username full_name')
-            .populate('members', 'username full_name')
-            .exec();
-        return groups;
+        const skip = (page - 1) * limit;
+        const [groups, total] = await Promise.all([
+            groupModel.find({})
+                .populate('owner', 'username full_name')
+                .populate('members', 'username full_name')
+                .skip(skip)
+                .limit(limit)
+                .exec(),
+            groupModel.countDocuments({})
+        ]);
+        return { groups, pagination: { total, page, totalPages: Math.ceil(total / limit) } };
     } catch (error) {
         logger.error(`Error fetching all groups: ${error}`);
         throw error;
@@ -221,15 +232,31 @@ const unblockGroupById = async (id) => {
     }
 }
 
-const getAllPosts = async () => {
+const getAllPosts = async (page = 1, limit = 10) => {
     try {
-        const posts = await postModel.find({})
-            .populate('user', 'username full_name')
-            .populate('likes', 'username full_name')
-            .populate('comments', 'content user likes')
-            .populate('group', 'name')
-            .exec();
-        return posts;
+        const skip = (page - 1) * limit;
+        
+        const [posts, total] = await Promise.all([
+            postModel.find({})
+                .populate('user', 'username full_name')
+                .populate('likes', 'username full_name')
+                .populate('comments', 'content user likes')
+                .populate('group', 'name')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .exec(),
+            postModel.countDocuments({})
+        ]);
+
+        return {
+            posts,
+            pagination: {
+                total,
+                page: parseInt(page),
+                totalPages: Math.ceil(total / limit)
+            }
+        };
     } catch (error) {
         logger.error(`Error fetching all posts: ${error}`);
         throw error;

@@ -57,9 +57,9 @@ const AccountDetail = () => {
                                 <div className="w-48 h-48 rounded-full overflow-hidden
                                     ring-4 ring-gradient-to-r from-blue-200 to-purple-200
                                     transition-transform hover:scale-105">
-                                    {account.avatarUrl ? (
+                                    {account?.avatarUrl ? (
                                         <img
-                                            src={account.avatarUrl}
+                                            src={account?.avatarUrl}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
                                         />
@@ -73,9 +73,9 @@ const AccountDetail = () => {
                             </div>
                             <h2 className="mt-4 text-xl font-semibold bg-clip-text text-transparent
                                 bg-gradient-to-r from-blue-600 to-purple-600">
-                                {account.full_name}
+                                {account?.full_name}
                             </h2>
-                            <p className="text-gray-500">{account.email}</p>
+                            <p className="text-gray-500">{account?.email}</p>
                         </div>
 
                         <div className="lg:col-span-2 space-y-6">
@@ -87,7 +87,7 @@ const AccountDetail = () => {
                                     </div>
                                     <input
                                         type="text"
-                                        value={account.full_name}
+                                        value={account?.full_name}
                                         disabled
                                         className="w-full p-3 border rounded-lg bg-gradient-to-r from-blue-50/30 to-purple-50/30
                                             focus:ring-2 focus:ring-blue-200 transition-all"
@@ -101,7 +101,7 @@ const AccountDetail = () => {
                                     </div>
                                     <input
                                         type="email"
-                                        value={account.email}
+                                        value={account?.email}
                                         disabled
                                         className="w-full p-3 border rounded-lg bg-gradient-to-r from-blue-50/30 to-purple-50/30
                                             focus:ring-2 focus:ring-blue-200 transition-all"
@@ -115,7 +115,7 @@ const AccountDetail = () => {
                                     </div>
                                     <input
                                         type="text"
-                                        value={account.gender ? 'Male' : 'Female'}
+                                        value={account?.gender ? 'Male' : 'Female'}
                                         disabled
                                         className="w-full p-3 border rounded-lg bg-gradient-to-r from-blue-50/30 to-purple-50/30
                                             focus:ring-2 focus:ring-blue-200 transition-all"
@@ -129,7 +129,7 @@ const AccountDetail = () => {
                                     </div>
                                     <input
                                         type="text"
-                                        value={new Date(account.birthday).toLocaleDateString('en-GB')}
+                                        value={account?.birthday ? new Date(account?.birthday).toLocaleDateString('en-GB') : ''}
                                         disabled
                                         className="w-full p-3 border rounded-lg bg-gradient-to-r from-blue-50/30 to-purple-50/30
                                             focus:ring-2 focus:ring-blue-200 transition-all"
@@ -142,11 +142,11 @@ const AccountDetail = () => {
                                         <label className="font-medium">Location</label>
                                     </div>
                                     <div className="flex items-center gap-2 p-3 border rounded-lg bg-gradient-to-r from-blue-50/30 to-purple-50/30">
-                                        {account.location ? (
+                                        {account?.location ? (
                                             <>
                                                 <img
-                                                    src={getFlagImage(account.location)}
-                                                    alt={account.location}
+                                                    src={getFlagImage(account?.location)}
+                                                    alt={account?.location}
                                                     className="w-6 h-6 rounded object-cover"
                                                 />
                                             </>

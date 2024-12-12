@@ -562,6 +562,7 @@ const getAllPostsInGroup = async (groupId, userId) => {
                     select: 'username full_name avatarUrl location'
                 }
             })
+            .sort({ createdAt: -1 })
 
         if (posts.length === 0) {
             return { posts: [] };

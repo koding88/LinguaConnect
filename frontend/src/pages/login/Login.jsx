@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import logo from '@/assets/logo.png';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaRegUserCircle } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 import useLogin from '@/hooks/useLogin';
-import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import {
     PiBookOpenTextLight,
     PiTranslateLight,
@@ -25,6 +25,7 @@ import {
 const Login = () => {
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const googleUrl = `${import.meta.env.VITE_API_BACKEND_URL}/api/v1/auth/google`
     const { login, loading } = useLogin();
 
@@ -115,12 +116,23 @@ const Login = () => {
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                                     <Input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         placeholder="Password"
-                                        className="pl-10 h-10 border-gray-200 focus:border-purple-400 focus:ring-purple-300"
+                                        className="pl-10 pr-10 h-10 border-gray-200 focus:border-purple-400 focus:ring-purple-300"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showPassword ? (
+                                            <Eye className="h-4 w-4" />
+                                        ) : (
+                                            <EyeOff className="h-4 w-4" />
+                                        )}
+                                    </button>
                                 </div>
                             </div>
 

@@ -19,7 +19,6 @@ const GroupDetail = () => {
     const fileInputRef = React.useRef(null)
     const [isPostGroupDialogOpen, setIsPostGroupDialogOpen] = React.useState(false)
     const [isLoading, setIsLoading] = React.useState(true)
-    const [error, setError] = React.useState(false)
 
     const {
         getGroup,
@@ -31,7 +30,8 @@ const GroupDetail = () => {
         removeMember,
         updateMaxMembers,
         deleteGroup,
-        updateAvatarGroup
+        updateAvatarGroup,
+        resetGroupPosts
     } = useGroupZ()
 
     const isOwner = group?.owner?._id === authUser?._id
@@ -40,23 +40,19 @@ const GroupDetail = () => {
         const fetchGroupData = async () => {
             setIsLoading(true)
             try {
-                const [groupResponse, postsResponse] = await Promise.all([
-                    getGroup(groupId),
-                    getGroupPosts(groupId)
-                ])
-                if (groupResponse && postsResponse) {
-                    setError(false)
-                } else {
-                    setError(true)
-                }
-            } catch {
-                setError(true)
+                await getGroup(groupId)
+                await getGroupPosts(groupId)
             } finally {
                 setIsLoading(false)
             }
         }
+        
         fetchGroupData()
-    }, [getGroup, getGroupPosts, groupId])
+
+        return () => {
+            resetGroupPosts()
+        }
+    }, [getGroup, getGroupPosts, groupId, resetGroupPosts])
 
     const handleAvatarUpload = async (file) => {
         try {
@@ -183,8 +179,6 @@ const GroupDetail = () => {
             </div>
         )
     }
-
-    console.log(`error: ${error}`)
 
     return (
         <>

@@ -2,12 +2,15 @@ const postService = require('../services/post.Service');
 
 const getAllPostsController = async (req, res, next) => {
     try {
-        const posts = await postService.getAllPosts();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const result = await postService.getAllPosts(page, limit);
 
         res.status(200).json({
             status: 'success',
             message: 'Posts fetched successfully',
-            data: posts,
+            data: result.posts,
+            pagination: result.pagination
         });
     } catch (error) {
         next(error);

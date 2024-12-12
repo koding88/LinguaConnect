@@ -16,12 +16,15 @@ const { checkContent } = require("./checkcontent.Service");
 
 let projection = { group: 0 };
 
-const getAllPosts = async () => {
+const getAllPosts = async (page = 1, limit = 10) => {
     try {
         const currentTime = new Date();
         const thirtyMinutesAgo = new Date(
             currentTime.getTime() - 30 * 60 * 1000
         );
+
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
 
         // Retrieve recent posts within the last 30 minutes
         const recentPosts = await postModel
@@ -43,39 +46,60 @@ const getAllPosts = async () => {
             })
             .sort({ createdAt: -1 });
 
-        // Retrieve all other posts randomly
-        const otherPosts = await postModel.aggregate([
-            {
-                $match: {
+        // Retrieve older posts with pagination
+        const olderPosts = await postModel
+            .find(
+                {
                     status: "public",
                     group: null,
                     createdAt: { $lt: thirtyMinutesAgo },
                 },
-            },
-            { $sample: { size: 50 } }, // Adjust the size as needed
-        ]);
+                projection
+            )
+            .populate("user", "username full_name avatarUrl location")
+            .populate({
+                path: "comments",
+                populate: {
+                    path: "user",
+                    select: "username full_name avatarUrl location",
+                },
+            })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
-        // Populate user and comments for other posts
-        await postModel.populate(otherPosts, {
-            path: "user",
-            select: "username full_name avatarUrl location",
+        // Combine recent and older posts
+        const posts = [...recentPosts, ...olderPosts];
+
+        // Get total count for pagination
+        const total = await postModel.countDocuments({
+            status: "public",
+            group: null,
+            createdAt: { $lt: thirtyMinutesAgo },
         });
-        await postModel.populate(otherPosts, {
-            path: "comments",
-            populate: {
-                path: "user",
-                select: "username full_name avatarUrl location",
-            },
-        });
 
-        const allPosts = [...recentPosts, ...otherPosts];
-
-        if (allPosts.length === 0) {
-            return [];
+        if (posts.length === 0) {
+            return {
+                posts: [],
+                pagination: {
+                    total,
+                    page: parseInt(page),
+                    totalPages: Math.ceil(total / limit),
+                    hasMore: skip + limit < total
+                }
+            };
         }
 
-        logger.info(`Successfully retrieved ${allPosts.length} public posts`);
-        return allPosts;
+        logger.info(`Successfully retrieved ${posts.length} public posts`);
+        return {
+            posts,
+            pagination: {
+                total,
+                page: parseInt(page),
+                totalPages: Math.ceil(total / limit),
+                hasMore: skip + limit < total
+            }
+        };
     } catch (error) {
         logger.error(`Error getting public posts: ${error.message}`);
         throw error;
@@ -133,7 +157,7 @@ const getPostByUserId = async (userId) => {
 
         // Find posts by user ID and populate user information
         const posts = await postModel
-            .find({ user: userId, status: "public" }, projection)
+            .find({ user: userId, status: "public", group: null }, projection)
             .populate("user", "username full_name avatarUrl location")
             .populate({
                 path: "comments",
@@ -562,8 +586,7 @@ const filterPostByComments = async (userId) => {
                 group: null,
             })
             .sort({ createdAt: -1 })
-            .populate("user", "username avatarUrl")
-            .populate("likes", "username avatarUrl location")
+            .populate("user", "username avatarUrl location")
             .populate("comments.user", "username avatarUrl location");
 
         return posts;

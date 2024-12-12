@@ -4,12 +4,13 @@ import { toast } from 'react-toastify';
 
 const useAccount = create((set) => ({
     accounts: [],
+    pagination: null,
     setAccounts: (accounts) => set({ accounts }),
 
-    getAccounts: async () => {
+    getAccounts: async (page = 1, limit = 10) => {
         try {
-            const { data } = await axiosClient.get('admin/accounts');
-            set({ accounts: data.data });
+            const { data } = await axiosClient.get('admin/accounts', { params: { page, limit } });
+            set({ accounts: data.data.users, pagination: data.data.pagination });
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to fetch accounts');
         }

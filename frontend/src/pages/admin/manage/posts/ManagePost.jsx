@@ -17,7 +17,8 @@ const ManagePost = () => {
     const { posts, loading, getPosts, hidePost, unhidePost } = usePostZ();
     const navigate = useNavigate()
     const [filterContent, setFilterContent] = useState("")
-    const [currentPage, setCurrentPage] = useState(0)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage] = useState(10)
     const [columnVisibility, setColumnVisibility] = useState({
         user: true,
         content: true,
@@ -28,18 +29,16 @@ const ManagePost = () => {
     })
 
     React.useEffect(() => {
-        getPosts();
-    }, [getPosts])
+        getPosts(currentPage, itemsPerPage);
+    }, [getPosts, currentPage, itemsPerPage])
 
-    const ITEMS_PER_PAGE = 5;
-    const filteredPosts = posts.filter(post =>
-        post.content.toLowerCase().includes(filterContent.toLowerCase())
+    const filteredPosts = posts?.filter(post =>
+        post.content?.toLowerCase().includes(filterContent.toLowerCase())
     )
-    const pageCount = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE)
-    const displayedPosts = filteredPosts.slice(
-        currentPage * ITEMS_PER_PAGE,
-        (currentPage + 1) * ITEMS_PER_PAGE
-    )
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    }
 
     const handleHidePost = (id) => {
         hidePost(id)
@@ -153,15 +152,15 @@ const ManagePost = () => {
         <AdminPageLayout title="Manage Post">
             <DataTable
                 columns={columns}
-                data={displayedPosts}
+                data={filteredPosts}
                 filterPlaceholder="Filter content..."
                 filterValue={filterContent}
                 onFilterChange={setFilterContent}
                 columnVisibility={columnVisibility}
                 setColumnVisibility={setColumnVisibility}
                 currentPage={currentPage}
-                pageCount={pageCount}
-                onPageChange={setCurrentPage}
+                pageCount={usePostZ.getState().pagination?.totalPages || 1}
+                onPageChange={handlePageChange}
                 onRowClick={(id) => navigate(`/admin/manage/posts/${id}`)}
                 renderRowActions={renderRowActions}
                 loading={loading}

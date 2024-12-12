@@ -4,8 +4,7 @@ const errorHandler = require("../utils/errorUtil");
 const passwordUtil = require("../utils/passwordUtil");
 const {
     generateAccessToken,
-    generateRefreshToken,
-    accessTokenVerify,
+    generateRefreshToken,      
     refreshTokenVerify,
     generateConfirmToken,
 } = require("../utils/tokenUtil");
@@ -246,6 +245,24 @@ const loginGoogle = async (profile) => {
         } else {
             logger.info(`User ${userInfo.email} already exists. Generating tokens.`);
         }
+
+        // Create notification for admins
+        const admins = await userModel.find({ role: 'admin' });
+        await notificationModel.create({
+            user: user._id,
+            recipients: admins.map(admin => admin._id),
+            content: `(${user.email}) registered a new account`,
+            type: "admin_user_registered",
+            url: `/admin/manage/accounts/${user._id}`,
+        });
+
+        // Emit socket event to all admins
+        admins.forEach(admin => {
+            const receiverSocketId = getReceiverSocketId(admin._id.toString())
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit("admin-notification")
+            }
+        });
 
         // Create a user object without sensitive information
         const userWithoutSensitiveInfo = user.toObject({

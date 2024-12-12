@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import countries from '@/utils/countries';
@@ -17,6 +17,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { getFlagImage } from "@/utils/flag";
 
 export const LocationSelection = ({ value, onChange, error, state }) => {
@@ -66,33 +67,35 @@ export const LocationSelection = ({ value, onChange, error, state }) => {
                 <PopoverContent className="w-full p-0">
                     <Command className="w-full">
                         <CommandInput placeholder="Search country..." className="h-9" />
-                        <CommandList className="max-h-[200px] overflow-y-auto">
+                        <CommandList>
                             <CommandEmpty>No country found.</CommandEmpty>
                             <CommandGroup>
-                                {countries.map((country) => (
-                                    <CommandItem
-                                        key={country.code}
-                                        value={country.name}
-                                        onSelect={() => {
-                                            onChange(country.code);
-                                            setOpen(false);
-                                        }}
-                                    >
-                                        <Check
-                                            className={cn(
-                                                "mr-2 h-4 w-4",
-                                                value === country.code ? "opacity-100" : "opacity-0"
-                                            )}
-                                        />
-                                        <img
-                                            src={getFlagImage(country.code)}
-                                            width="20"
-                                            alt={country.name}
-                                            className="mr-2"
-                                        />
-                                        {country.name}
-                                    </CommandItem>
-                                ))}
+                                <ScrollArea className="h-[200px]">
+                                    {countries.map((country) => (
+                                        <CommandItem
+                                            key={country.code}
+                                            value={country.name}
+                                            onSelect={() => {
+                                                onChange(country.code);
+                                                setOpen(false);
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    value === country.code ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            <img
+                                                src={getFlagImage(country.code)}
+                                                width="20"
+                                                alt={country.name}
+                                                className="mr-2"
+                                            />
+                                            {country.name}
+                                        </CommandItem>
+                                    ))}
+                                </ScrollArea>
                             </CommandGroup>
                         </CommandList>
                     </Command>

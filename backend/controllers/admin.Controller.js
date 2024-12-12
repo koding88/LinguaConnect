@@ -3,11 +3,15 @@ const topicService = require('../services/topic.Service');
 
 const getAllUsersController = async (req, res, next) => {
     try {
-        const users = await adminService.getAllUsers();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const users = await adminService.getAllUsers(page, limit);
         res.status(200).json({
             status: 'success',
             message: 'Users retrieved successfully',
             data: users,
+            pagination: users.pagination
         });
     } catch (error) {
         next(error);
@@ -127,11 +131,16 @@ const unblockGroupByIdController = async (req, res, next) => {
 
 const getAllPostsController = async (req, res, next) => {
     try {
-        const posts = await adminService.getAllPosts();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        
+        const result = await adminService.getAllPosts(page, limit);
+        
         res.status(200).json({
             status: 'success',
-            message: 'Posts retrieved successfully',
-            data: posts,
+            message: "Posts retrieved successfully",
+            data: result.posts,
+            pagination: result.pagination
         });
     } catch (error) {
         next(error);

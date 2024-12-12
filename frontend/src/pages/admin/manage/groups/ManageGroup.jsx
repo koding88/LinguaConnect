@@ -14,10 +14,11 @@ import { MoreHorizontal } from "lucide-react"
 import useGroup from '@/zustand/useGroup'
 
 const ManageGroup = () => {
-    const { groups, getGroups, blockGroup, unblockGroup } = useGroup()
+    const { groups, loading, getGroups, blockGroup, unblockGroup } = useGroup()
     const navigate = useNavigate()
     const [filterName, setFilterName] = useState("")
-    const [currentPage, setCurrentPage] = useState(0)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage] = useState(10)
     const [columnVisibility, setColumnVisibility] = useState({
         name: true,
         description: true,
@@ -27,19 +28,17 @@ const ManageGroup = () => {
     })
 
     React.useEffect(() => {
-        getGroups()
-    }, [getGroups])
+        getGroups(currentPage, itemsPerPage)
+    }, [getGroups, currentPage, itemsPerPage])
 
-    const ITEMS_PER_PAGE = 5;
-    const filteredGroups = groups.filter(group =>
+    const filteredGroups = groups?.filter(group =>
         group.name.toLowerCase().includes(filterName.toLowerCase())
     )
-    const pageCount = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE)
-    const displayedGroups = filteredGroups.slice(
-        currentPage * ITEMS_PER_PAGE,
-        (currentPage + 1) * ITEMS_PER_PAGE
-    )
 
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    }
+    
     const blockGroupHandler = async (id) => {
         blockGroup(id)
     }
@@ -105,17 +104,18 @@ const ManageGroup = () => {
         <AdminPageLayout title="Manage Group">
             <DataTable
                 columns={columns}
-                data={displayedGroups}
+                data={filteredGroups}
                 filterPlaceholder="Filter groups..."
                 filterValue={filterName}
                 onFilterChange={setFilterName}
                 columnVisibility={columnVisibility}
                 setColumnVisibility={setColumnVisibility}
                 currentPage={currentPage}
-                pageCount={pageCount}
-                onPageChange={setCurrentPage}
+                pageCount={useGroup.getState().pagination?.totalPages || 1}
+                onPageChange={handlePageChange}
                 onRowClick={(id) => navigate(`/admin/manage/groups/${id}`)}
                 renderRowActions={renderRowActions}
+                loading={loading}
             />
         </AdminPageLayout>
     )

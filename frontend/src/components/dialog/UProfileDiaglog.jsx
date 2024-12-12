@@ -116,7 +116,7 @@ const UProfileDialog = ({ props, onSubmit, trigger }) => {
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="max-w-[765px] p-3.5 sm:p-4.25 overflow-y-auto max-h-[72vh] lg:overflow-visible lg:max-h-none">
+            <DialogContent className="max-w-[765px] p-3.5 sm:p-4.25 overflow-y-auto max-h-[72vh]">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
                         Edit Your Profile
@@ -124,7 +124,7 @@ const UProfileDialog = ({ props, onSubmit, trigger }) => {
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4.25 mt-2.5">
-                        {/* Cột trái */}
+                        {/* Column left */}
                         <div className="flex flex-col h-full">
                             <div className="flex flex-col items-center mb-5">
                                 <div className="relative">
@@ -181,7 +181,7 @@ const UProfileDialog = ({ props, onSubmit, trigger }) => {
                             </div>
                         </div>
 
-                        {/* Cột phải */}
+                        {/* Column right */}
                         <div className="flex flex-col h-full">
                             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3.5 flex-1">
                                 <h3 className="text-sm font-semibold mb-2.5 flex items-center gap-1.5">

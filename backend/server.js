@@ -17,7 +17,10 @@ app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 app.use(passport.initialize());
 
 // Ejs template engine
-app.set("views", path.join(__dirname, "views"));
+const viewsPath = process.env.NODE_ENV === 'production' 
+  ? path.join(__dirname, 'views')
+  : path.join(__dirname, 'views');
+app.set("views", viewsPath);
 app.set("view engine", "ejs");
 
 // Routes v1

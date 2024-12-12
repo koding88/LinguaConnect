@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; 
 import logo from '@/assets/logo.png';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,10 @@ import {
     AtSign, 
     Mail, 
     Lock, 
-    MapPin, 
-    Cake,
     UserCircle2,
-    Hash
+    Hash,
+    Eye,
+    EyeOff
 } from "lucide-react";
 import useSignUp from '@/hooks/useSignUp';
 import { validations } from '@/validation/register';
@@ -36,7 +36,7 @@ const Register = () => {
     });
 
     const [formErrors, setFormErrors] = useState({});
-    const birthdayString = `${inputs.birthday.day}-${inputs.birthday.month}-${inputs.birthday.year}`;
+    const birthdayString = `${inputs.birthday.month}-${inputs.birthday.day}-${inputs.birthday.year}`;
 
     const [touchedFields, setTouchedFields] = useState({
         full_name: false,
@@ -46,6 +46,8 @@ const Register = () => {
         birthday: false,
         location: false,
     });
+
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const validateField = (field) => {
@@ -129,7 +131,6 @@ const Register = () => {
                     <p className="text-gray-500 text-sm sm:text-base mt-1.5">Connect with language learners worldwide</p>
                 </div>
 
-                {/* Tách form và Google button thành 2 phần riêng biệt */}
                 <div className="space-y-3">
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                         <div className="space-y-4">
@@ -209,15 +210,26 @@ const Register = () => {
                                     </Label>
                                     <div className="relative">
                                         <Input
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             id="password"
                                             placeholder="Enter password"
                                             value={inputs.password}
                                             onChange={(e) => setInputs({ ...inputs, password: e.target.value })}
                                             onBlur={() => setTouchedFields(prev => ({ ...prev, password: true }))}
-                                            className={`pl-10 ${getInputClassName('password')}`}
+                                            className={`pl-10 pr-10 ${getInputClassName('password')}`}
                                         />
                                         <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="w-5 h-5 text-gray-400" />
+                                            ) : (
+                                                <Eye className="w-5 h-5 text-gray-400" />
+                                            )}
+                                        </button>
                                     </div>
                                     {touchedFields.password && formErrors.password && (
                                         <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>
@@ -281,7 +293,6 @@ const Register = () => {
                         </div>
                     </form>
 
-                    {/* Google button và sign in link */}
                     <div className="space-y-3">
                         <a
                             href={googleUrl}

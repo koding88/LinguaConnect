@@ -65,10 +65,16 @@ const Profile = () => {
                 };
 
                 setUser(newUserData);
-                setAuthUser(prev => ({
-                    ...prev,
-                    ...newUserData,
-                }));
+                
+                // Update authUser with the new data
+                const updatedAuthUser = {
+                    ...authUser,
+                    ...updatedUser
+                };
+                setAuthUser(updatedAuthUser);
+                
+                // Store updated user in localStorage to persist across refreshes
+                localStorage.setItem('user', JSON.stringify(updatedAuthUser));
 
                 await getPostByUserId(userId);
             }

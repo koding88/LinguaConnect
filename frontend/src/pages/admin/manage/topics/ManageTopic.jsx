@@ -15,28 +15,27 @@ import useTopic from '@/zustand/useTopic'
 const ManageTopic = () => {
     const navigate = useNavigate()
     const [filterName, setFilterName] = useState("")
-    const [currentPage, setCurrentPage] = useState(0)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage] = useState(10)
     const [columnVisibility, setColumnVisibility] = useState({
         name: true,
         description: true,
         createdAt: true
     })
 
-    const { topics, getTopics, deleteTopic } = useTopic();
+    const { topics, loading, getTopics, deleteTopic } = useTopic();
 
     React.useEffect(() => {
-        getTopics();
-    }, [getTopics]);
+        getTopics(currentPage, itemsPerPage);
+    }, [getTopics, currentPage, itemsPerPage]);
 
-    const ITEMS_PER_PAGE = 5;
-    const filteredTopics = topics.filter(topic =>
+    const filteredTopics = topics?.filter(topic =>
         topic.name.toLowerCase().includes(filterName.toLowerCase())
     )
-    const pageCount = Math.ceil(filteredTopics.length / ITEMS_PER_PAGE)
-    const displayedTopics = filteredTopics.slice(
-        currentPage * ITEMS_PER_PAGE,
-        (currentPage + 1) * ITEMS_PER_PAGE
-    )
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    }
 
     const handleEditTopic = (topic) => {
         navigate(`/admin/manage/topics/${topic._id}/edit`, {
@@ -117,18 +116,19 @@ const ManageTopic = () => {
         <AdminPageLayout title="Manage Topic">
             <DataTable
                 columns={columns}
-                data={displayedTopics}
+                data={filteredTopics}
                 filterPlaceholder="Filter topics..."
                 filterValue={filterName}
                 onFilterChange={setFilterName}
                 columnVisibility={columnVisibility}
                 setColumnVisibility={setColumnVisibility}
                 currentPage={currentPage}
-                pageCount={pageCount}
-                onPageChange={setCurrentPage}
+                pageCount={useTopic.getState().pagination?.totalPages || 1}
+                onPageChange={handlePageChange}
                 onRowClick={(id) => navigate(`/admin/manage/topics/${id}`)}
                 renderRowActions={renderRowActions}
                 renderCustomHeader={renderCustomHeader}
+                loading={loading}
             />
         </AdminPageLayout>
     )

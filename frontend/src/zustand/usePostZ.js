@@ -8,18 +8,23 @@ const usePostZ = create((set, get) => ({
     loading: false,
     error: null,
     lastFetchTime: null,
+    pagination: null,
 
-    getAllPosts: async (forceRefresh = false) => {
-        const shouldFetch = forceRefresh || Date.now() - (get().lastFetchTime || 0) > 30000 || !get().posts.length;
-        if (shouldFetch) {
+    getAllPosts: async (page = 1, limit = 10, shouldAppend = false) => {
+        try {
             set({ loading: true });
-            try {
-                const { data } = await axiosClient.get('/posts');
-                set({ posts: data.data, loading: false, lastFetchTime: Date.now() });
-            } catch (error) {
-                set({ loading: false });
-                // toast.error(error.response?.data?.message || "Error fetching posts");
-            }
+            const { data } = await axiosClient.get('/posts', {
+                params: { page, limit }
+            });
+            set({ 
+                posts: shouldAppend ? [...get().posts, ...data.data] : data.data,
+                pagination: data.pagination,
+                loading: false,
+                lastFetchTime: Date.now()
+            });
+        } catch (error) {
+            set({ loading: false });
+            // toast.error(error.response?.data?.message || "Error fetching posts");
         }
     },
 
@@ -40,12 +45,19 @@ const usePostZ = create((set, get) => ({
         }
     },
 
-    getPosts: async () => {
+    getPosts: async (page = 1, limit = 10) => {
         try {
             set({ loading: true });
-            const { data } = await axiosClient.get(`/admin/posts`);
-            set({ posts: data.data, loading: false });
+            const { data } = await axiosClient.get(`/admin/posts`, {
+                params: { page, limit }
+            });
+            set({ 
+                posts: data.data,
+                pagination: data.pagination,
+                loading: false 
+            });
         } catch (error) {
+            set({ loading: false });
             toast.error(error.response?.data?.message || "Error fetching posts");
             return null;
         }

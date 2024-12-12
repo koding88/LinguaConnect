@@ -141,14 +141,14 @@ const DataTable = ({
 
             <div className="flex items-center justify-end space-x-2 py-4">
                 <div className="flex-1 text-sm text-muted-foreground">
-                    Page {currentPage + 1} of {pageCount}
+                    Page {currentPage} of {pageCount}
                 </div>
                 <div className="space-x-2">
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => onPageChange(currentPage - 1)}
-                        disabled={currentPage === 0}
+                        disabled={currentPage <= 1}
                     >
                         Previous
                     </Button>
@@ -156,7 +156,7 @@ const DataTable = ({
                         variant="outline"
                         size="sm"
                         onClick={() => onPageChange(currentPage + 1)}
-                        disabled={currentPage >= pageCount - 1}
+                        disabled={currentPage >= pageCount}
                     >
                         Next
                     </Button>

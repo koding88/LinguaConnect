@@ -26,7 +26,7 @@ class PromptTemplateService:
                 <translatedText></translatedText>
                 <explanation></explanation>
                 <contextAnalysis></contextAnalysis>
-            </translation>
+            </translation>    
             """,
                 ),
                 ("user", "Context: {context}\n\nSentence to translate: {sentence}"),
